@@ -1,0 +1,43 @@
+bin
+obj
+*.depend
+*.layout
+*.exe
+
+# backup files
+*~
+
+# auxiliary scripts
+/compile
+/missing
+/install-sh
+/depcomp
+/ar-lib
+/libtool
+/ltmain.sh
+/test-driver
+
+# autotools generated files
+/aclocal.m4
+*.in
+/configure
+
+# configuration output
+/stamp-*
+/config.*
+/*.cache
+Makefile
+
+# Compilation output
+*.o
+*.Po
+*.a
+*.la
+*.lo
+
+.deps
+autoscan.log
+util/parser/lwp
+util/test/test
+COPYING
+INSTALL

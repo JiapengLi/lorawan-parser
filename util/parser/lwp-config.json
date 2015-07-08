@@ -1,0 +1,207 @@
+{
+    /* LoRaWAN Parser Configuration File */
+
+    /* nwkskey, appskey, appkey */
+    "key":{
+        "nwkskey":"2B 7E 15 16 28 AE D2 A6 AB F7 15 88 09 CF 4F 3c",
+        "appskey":"2B7E151628AED2A6ABF7158809CF4F3C",
+        "appkey":"0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00"
+    },
+
+    /* Join trasaction use to extract keys, set "key" true to overwrite default session keys */
+    "join":{
+        "key": true,
+        "request":" 00 01 00 00 00 00 00 00 86 01 00 00 00 00 00 00 86 F7 9F B4 C2 06 60",
+        "accept":" 20 2D 95 83 AB A7 36 C8 0F 97 00 DB 42 0A 01 05 54"
+    },
+
+    /* payload array, add all payload which need parse here */
+    "messages": [
+        // "00 00 00 00 00 00 00 00 86 EF CD AB 89 67 45 23 01 21 F8 AF 0B 20 34",
+        // "20 1F 03 04 BB E7 C1 67 49 05 9C D4 8E 50 1A 3A 83ABC",
+        // "40 z38 00 00 48 80 00 00 01 E1 8B 4B 22 9E 7B 92 5B",
+        // "40 38 00 00 48 80 00 00 01 E1 8B 4B 22 9E 7B 92 5B",
+
+        // "40 D9 1E 11 00 80 01 00 08 2E 63 CD E8 BA A9 DC 79",
+
+        // "40 D9 1E 11 00 80 02 00 08 C9 8D C2 89 77 C2 9D 39",
+
+        // "80 D9 1E 11 00 80 03 00 08 79 4D 32 F8 3F 7C 00 50",
+        // "60 D9 1E 11 00 20 00 00 CD D5 88 59",
+
+        // "80 D9 1E 11 00 80 04 00 08 5E 32 D9 D7 84 3A B4 8B",
+        // "60 D9 1E 11 00 20 01 00 89 13 C3 D3",
+
+        // "40 D9 1E 11 00 80 05 00 08 3D 5D 62 E0 4D 1E ED 2A",
+
+        // "40 D9 1E 11 00 80 06 00 08 28 4B 54 88 26 1A 8F D4",
+        // "A0 D9 1E 11 00 05 02 00 03 51 07 00 61 ED 3F DB 75"
+
+        " 00 01 00 00 00 00 00 00 86 01 00 00 00 00 00 00 86 F7 9F B4 C2 06 60",
+        " 20 2D 95 83 AB A7 36 C8 0F 97 00 DB 42 0A 01 05 54",
+        " 40 97 01 00 48 80 00 00 01 2E 3A 00 DE 42 F0 72 D2",
+        " A0 97 01 00 48 05 00 00 03 01 07 00 61 56 ED BA 18",
+        " 40 97 01 00 48 80 01 00 01 63 8B 0E 20 9D E4 87 49",
+        " A0 97 01 00 48 05 00 00 03 01 07 00 61 56 ED BA 18",
+        " 40 97 01 00 48 E2 02 00 03 06 01 C9 B6 A5 8A 32 0E C7 37",
+        " 60 97 01 00 48 00 01 00 35 9C 2E 00",
+        " 40 97 01 00 48 80 03 00 01 C7 9D FC E7 D5 D3 D7 FA",
+        " A0 97 01 00 48 05 02 00 03 01 07 00 61 5D 83 B2 FB",
+        " 40 97 01 00 48 E2 04 00 03 06 01 F6 A5 65 EB C0 FC FB 7B",
+        " 60 97 01 00 48 00 03 00 F8 26 10 45",
+        " 40 97 01 00 48 80 05 00 01 A8 D6 54 2C 24 C2 CB F3",
+        " 40 97 01 00 48 80 06 00 01 22 00 58 C3 79 D7 D3 5B",
+        " 40 97 01 00 48 80 07 00 01 C1 0C C8 8C F1 CC AF 00",
+        " 40 97 01 00 48 80 08 00 01 F3 0C 3C 9B 9B 16 B5 5B",
+        " 40 97 01 00 48 80 09 00 01 AB 25 29 E4 7A E9 E1 A2",
+        " A0 97 01 00 48 00 04 00 02 9B 76 E2 72 A8",
+        " 40 97 01 00 48 A0 0A 00 01 E1 B9 38 8B A6 83 C9 FC",
+        " 40 97 01 00 48 80 0B 00 01 1A 90 50 96 04 89 DB 1A",
+        " 40 97 01 00 48 80 0D 00 01 22 2C D0 2E 06 9F 0C 06",
+        " 40 97 01 00 48 80 0E 00 01 9D 5C C2 31 D6 EC F9 1C",
+        " 40 97 01 00 48 80 0F 00 01 19 5B B5 54 C1 17 C0 90",
+        " 40 97 01 00 48 80 10 00 01 C4 3D B1 AB DB 0B 57 56",
+        " 40 97 01 00 48 80 11 00 01 86 F4 61 BF 0A 4A 47 A1",
+        " 40 97 01 00 48 80 12 00 01 20 40 0E 75 CC 60 22 E6",
+        " 40 97 01 00 48 80 13 00 01 98 14 1B 8C 1C 64 9C 7C",
+        " 40 97 01 00 48 80 14 00 01 AD 98 59 41 2D 1B 79 98",
+        " A0 97 01 00 48 00 06 00 02 95 CE E9 57 7E",
+        " 40 97 01 00 48 A0 15 00 01 9E 67 CB 94 1E 14 D6 4D",
+        " 40 97 01 00 48 80 16 00 01 5A 2F 19 0E 12 0C 89 D7",
+        " A0 97 01 00 48 00 07 00 02 F3 B5 FD 7F 0D",
+        " 40 97 01 00 48 A0 17 00 01 4B AC 16 C1 20 9B 99 C7",
+        " 40 97 01 00 48 80 18 00 01 38 64 82 DC 55 C1 36 8B",
+        " A0 97 01 00 48 00 08 00 02 5A 5C 31 3A BF",
+        " 40 97 01 00 48 A0 19 00 01 4D A4 13 61 D3 39 DC F1",
+        " 40 97 01 00 48 80 1A 00 01 5B 9B 9F ED 93 72 25 7A",
+        " A0 97 01 00 48 00 08 00 02 5A 5C 31 3A BF",
+        " 40 97 01 00 48 80 1B 00 01 26 A2 34 DA 5A 61 A4 7C",
+        " A0 97 01 00 48 00 08 00 02 5A 5C 31 3A BF",
+        " 40 97 01 00 48 80 1C 00 01 EA CD D0 AB C3 6D B7 C3",
+        " A0 97 01 00 48 00 08 00 02 5A 5C 31 3A BF",
+        " 40 97 01 00 48 80 1D 00 01 6A 91 DB B3 9E 21 F5 B0",
+        " A0 97 01 00 48 00 08 00 02 5A 5C 31 3A BF",
+        " 40 97 01 00 48 80 1E 00 01 F7 05 A2 0D AC E5 FD 4B",
+        " A0 97 01 00 48 00 09 00 02 8A 94 AF 55 26",
+        " 40 97 01 00 48 A0 1F 00 01 87 F8 95 CF 94 42 80 C0",
+        " A0 97 01 00 48 00 0D 00 02 6B 79 5E D9 52",
+        " 40 97 01 00 48 A0 20 00 01 E6 81 D1 32 BD 06 26 1E",
+        " A0 97 01 00 48 00 0F 00 02 19 CC 7E E5 8B",
+        " 40 97 01 00 48 A0 21 00 01 9F 81 FF 7E 03 41 E5 CB",
+        " A0 97 01 00 48 00 1A 00 02 95 EF 1F 22 E9",
+        " 40 97 01 00 48 A0 22 00 01 18 6D C5 A9 58 1A 3D 32",
+        " 40 97 01 00 48 80 23 00 01 FD 2F 2E 67 51 E4 FE 09",
+        " 40 97 01 00 48 80 24 00 01 DA 13 84 6A 1E DB AA 2E",
+        " 40 97 01 00 48 80 25 00 01 4B 3A 9B BC 39 DC D5 D1",
+        " A0 97 01 00 48 00 1F 00 02 C5 98 80 41 2E",
+        " 40 97 01 00 48 80 27 00 01 18 D5 05 36 55 94 77 D3",
+        " A0 97 01 00 48 00 1F 00 02 C5 98 80 41 2E",
+        " 40 97 01 00 48 80 28 00 01 F4 BA 65 65 7B B9 21 61",
+        " A0 97 01 00 48 00 1F 00 02 C5 98 80 41 2E",
+        " 40 97 01 00 48 80 29 00 01 F3 74 F1 C5 86 A4 D3 5C",
+        " A0 97 01 00 48 00 1F 00 02 C5 98 80 41 2E",
+        " 40 97 01 00 48 80 2A 00 01 4C 62 BE 92 86 BA B6 66",
+        " A0 97 01 00 48 00 1F 00 02 C5 98 80 41 2E",
+        " 40 97 01 00 48 80 2B 00 01 02 D8 3E 1A 78 E7 9D 8B",
+        " 40 97 01 00 48 80 2C 00 01 09 DE B8 F3 EB A7 AE 86",
+        " 40 97 01 00 48 80 2D 00 01 FB 1A 71 71 D3 FA FE 55",
+        " 40 97 01 00 48 80 2E 00 01 D5 7B 40 A9 81 BC 7A B0",
+        " 40 97 01 00 48 80 2F 00 01 65 C5 BB F2 D8 AF 9A 8B",
+        " A0 97 01 00 48 05 23 00 03 61 07 00 00 89 F2 4B 85",
+        " 40 97 01 00 48 80 30 00 01 3E 30 C4 B5 3A F5 6A 60",
+        " A0 97 01 00 48 05 23 00 03 61 07 00 00 89 F2 4B 85",
+        " 40 97 01 00 48 E2 31 00 03 07 01 2B AC 3A A6 0B 92 29 2D",
+        " 60 97 01 00 48 00 24 00 3E FC 2A 25",
+        " 40 97 01 00 48 80 32 00 01 05 FC 27 40 3E 07 2E 10",
+        " 40 97 01 00 48 80 33 00 01 E9 0F CF 30 D7 0B 42 73",
+        " 40 97 01 00 48 80 34 00 01 6D B7 8A 4E FE 07 23 0E"
+    ],
+
+    "maccommands":[
+        {   // LinkCheckReq
+            "direction": "up",
+            "command":"02"
+        },
+        {   // LinkCheckAns
+            "direction": "down",
+            "command":"02 30 01"
+        },
+
+        {   // LinkADRReq
+            "direction": "down",
+            "command":"03 51 07 00 61"
+        },
+        {   // LinkADRAns
+            "direction": "up",
+            "command":"03 07"
+        },
+
+        {   // DutyCycleReq
+            "direction": "down",
+            "command":"04 00"
+        },
+        {   // DutyCycleAns
+            "direction": "up",
+            "command":"04"
+        },
+
+        {   // RXParamSetupReq
+            "direction": "down",
+            "command":"05 07 00 00 00"
+        },
+        {   // RXParamSetupReq
+            "direction": "up",
+            "command":"05 07"
+        },
+
+        {   // DevStatusReq
+            "direction": "down",
+            "command":"06"
+        },
+        {   // DevStatusReq
+            "direction": "up",
+            "command":"06 FF 3F"
+        },
+
+        {   // NewChannelReq
+            "direction": "down",
+            "command":"07 00 01 23 45 11"
+        },
+        {   // NewChannelAns
+            "direction": "up",
+            "command":"07 07"
+        },
+
+        {   // RXTimingSetupReq
+            "direction": "down",
+            "command":"08 01"
+        },
+        {   // RXTimingSetupAns
+            "direction": "up",
+            "command":"08"
+        }
+    ]
+}
+
+// Note: Hex string supports mixed mode
+// "0xAA 55, B6AC9" => "AA 55 0B 6A C9"
+
+// 40 unconfirmed message up
+// 80 confirmed message up
+// 60 unconfirmed message down
+// A0 confirmed message down
+
+// 0x02  LinkCheckReq               ND    UP        1
+// 0x02  LinkCheckAns               GW    DOWN      3
+// 0x03  LinkADRReq                 GW    DOWN      5
+// 0x03  LinkADRAns                 ND    UP        2
+// 0x04  DutyCycleReq               GW    DOWN      2
+// 0x04  DutyCycleAns               ND    UP        1
+// 0x05  RXParamSetupReq            GW    DOWN      5
+// 0x05  RXParamSetupAns            ND    UP        2
+// 0x06  DevStatusReq               GW    DOWN      1
+// 0x06  DevStatusAns               ND    UP        3
+// 0x07  NewChannelReq              GW    DOWN      6
+// 0x07  NewChannelAns              ND    UP        2
+// 0x08  RXTimingSetupReq           GW    DOWN      2
+// 0x08  RXTimingSetupAns           ND    UP        1
