@@ -28,9 +28,9 @@ lorawan-parser supports [Codeblocks](http://www.codeblocks.org/) project. One co
 Refer to `util/test/main.c` to know the usage of lorawan API.
 
 After compile find `parser.exe/lwp` under `util/parser/` directory to parse the LoRaWAN frame.
-	
+
 	# WIN
-    parson.exe -c lwp-config.json
+    parser.exe -c lwp-config.json
 	# Linux
     lwp -c lwp-config.json
 
