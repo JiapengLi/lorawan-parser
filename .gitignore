@@ -3,6 +3,8 @@ obj
 *.depend
 *.layout
 *.exe
+*.log
+json
 
 # backup files
 *~

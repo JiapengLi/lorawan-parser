@@ -61,6 +61,10 @@ int main(int argc, char **argv)
         printf("Configuration parse error(%d)\n", ret);
     }
 
+    if(lw_set_band(config.band) < 0){
+        printf("Band error\n");
+    }
+
     lw_parse_key_t pkey;
     if(config.flag&CFLAG_NWKSKEY){
         pkey.nwkskey = config.nwkskey;
@@ -115,7 +119,7 @@ int main(int argc, char **argv)
         }
     }
 
-    /** try to parse all data message */
+    /** parse all data message */
     ll_head = config.message;
     while(ll_head != NULL){
         ret = lw_parse(ll_head->buf, ll_head->len, &pkey);

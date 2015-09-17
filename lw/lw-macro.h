@@ -17,6 +17,7 @@ enum{
     LW_ERR_JOINA_LEN        = -9,
     LW_ERR_MALLOC           = -10,
     LW_ERR_NOT_AVALAIBLE    = -11,
+    LW_ERR_BAND             = -12,
 };
 
 typedef enum{

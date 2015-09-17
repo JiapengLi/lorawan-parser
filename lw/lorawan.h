@@ -15,6 +15,7 @@
 #define LW_KEY_LEN              (16)
 #define LW_MIC_LEN              (4)
 
+#define LW_BAND_MAX_NUM                         (5)
 
 typedef union{
     uint8_t data;
@@ -127,12 +128,59 @@ typedef struct{
     int16_t len;
 }lw_buffer_t;
 
+typedef enum{
+    LW_BAND_EU868,
+    LW_BAND_US915,
+    LW_BAND_CN780,
+    LW_BAND_EU433,
+    LW_BAND_CUSTOM,
+}lw_band_t;
+
+#define LW_DR(sf, bw)               ( (uint8_t)( (sf) | ((bw)<<4) ))
+#define LW_DR_RFU                   (0xFF)
+#define LW_POW_RFU                  (-128)
+
+/* Channel Mask Control */
+#define LW_CMC(from, to)            ( (uint8_t)( (from) | ((to)<<8) ))
+#define LW_CMC_RFU                  (0xFFFF)
+#define LW_CMC_ALL_ON               (0xFFFE)
+#define LW_CMC_ALL_125KHZ_ON        (0xFFFD)
+#define LW_CMC_ALL_125KHZ_OFF       (0xFFFC)
+
+enum{
+    FSK = 0,
+    SF5 = 5,
+    SF6 = 6,
+    SF7 = 7,
+    SF8 = 8,
+    SF9 = 9,
+    SF10 = 10,
+    SF11 = 11,
+    SF12 = 12,
+};
+
+enum{
+    BW125 = 0,      // 125*1 125*pow(2,n)
+    BW250 = 1,      // 125*2
+    BW500 = 2,      // 125*4
+};
+
+typedef union{
+    uint8_t data;
+    struct{
+        uint8_t sf              : 4;
+        uint8_t bw              : 2;
+    }bits;
+}lw_dr_t;
+
 int lw_maccmd(uint8_t mac_header, uint8_t *opts, int len);
 int lw_parse(uint8_t *buf, int len, lw_parse_key_t *pkey);
 int lw_get_dmsg(uint8_t *buf, int max_len);
 int lw_get_devnonce(lw_dnonce_t *dnonce);
 int lw_get_appnonce(lw_anonce_t *anonce);
 int lw_get_netid(lw_netid_t *netid);
+
+int lw_set_band(lw_band_t band);
 
 /** crypto functions */
 void lw_msg_mic(lw_mic_t* mic, lw_key_t *key);

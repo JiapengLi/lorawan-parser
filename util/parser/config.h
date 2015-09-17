@@ -23,6 +23,7 @@ typedef struct{
     uint8_t nwkskey[16];
     uint8_t appskey[16];
     uint8_t appkey[16];
+    uint8_t band;
     bool joinkey;
     uint8_t *joinr;
     uint8_t joinr_size;

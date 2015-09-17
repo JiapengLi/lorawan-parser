@@ -6,6 +6,7 @@
 #include "config.h"
 #include "str2hex.h"
 #include "print.h"
+#include "lorawan.h"
 
 void pl_insert(message_t **head, message_t *new_node)
 {
@@ -82,6 +83,14 @@ void config_free(config_t *config)
     pl_free(&config->maccmd);
 }
 
+const char *config_band_tab[LW_BAND_MAX_NUM]={
+    "EU868",
+    "US915",
+    "CN780",
+    "EU433",
+    "CUSTOM",
+};
+
 int config_parse(const char *file, config_t *config)
 {
     JSON_Value *jvroot;
@@ -109,6 +118,21 @@ int config_parse(const char *file, config_t *config)
         return -1;
     }
     joroot = json_value_get_object(jvroot);
+
+    string = json_object_get_string(joroot, "band");
+    if(string == NULL){
+        config->band = LW_BAND_EU868;
+    }else{
+        for(i=0; i<LW_BAND_MAX_NUM; i++){
+            if(0 == strcmp(string, config_band_tab[i])){
+                config->band = (lw_band_t)i;
+                break;
+            }
+        }
+        if(i==LW_BAND_MAX_NUM){
+            config->band = LW_BAND_EU868;
+        }
+    }
 
     string = json_object_dotget_string(joroot, "key.nwkskey");
     if(string != NULL){
@@ -276,6 +300,7 @@ int config_parse(const char *file, config_t *config)
     }
 
     print_spliter();
+    printf("%15s %s\n","BAND:\t", config_band_tab[LW_BAND_EU868]);
     printf("%15s","NWKSKEY:\t");
     putlen(16);
     puthbuf(config->nwkskey, 16);

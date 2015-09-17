@@ -1,6 +1,10 @@
 {
     /* LoRaWAN Parser Configuration File */
 
+    /* Default EU868 when absent, available band EU868, US915, CN780, EU433, CUSTOM */
+    /* Region Specific: DataRate, TXPower, JoinResp CFList, RX1DROffset */
+    "band": "EU868",
+
     /* nwkskey, appskey, appkey */
     "key":{
         "nwkskey":"2B 7E 15 16 28 AE D2 A6 AB F7 15 88 09 CF 4F 3c",
@@ -138,7 +142,7 @@
 
         {   // DutyCycleReq
             "direction": "down",
-            "command":"04 00"
+            "command":"04 04"
         },
         {   // DutyCycleAns
             "direction": "up",
@@ -147,7 +151,7 @@
 
         {   // RXParamSetupReq
             "direction": "down",
-            "command":"05 07 00 00 00"
+            "command":"05 07 01 02 03"
         },
         {   // RXParamSetupReq
             "direction": "up",
@@ -160,7 +164,7 @@
         },
         {   // DevStatusReq
             "direction": "up",
-            "command":"06 FF 3F"
+            "command":"06 FF 30"
         },
 
         {   // NewChannelReq
@@ -169,7 +173,7 @@
         },
         {   // NewChannelAns
             "direction": "up",
-            "command":"07 07"
+            "command":"07 03"
         },
 
         {   // RXTimingSetupReq
