@@ -27,11 +27,11 @@ lorawan-parser supports [Codeblocks](http://www.codeblocks.org/) project. One co
 
 Refer to `util/test/main.c` to know the usage of lorawan API.
 
-After compile find `parser.exe/lwp` under `util/parser/` directory to parse the LoRaWAN frame.
+After compile find `lwp.exe/lwp` under `util/parser/` directory to parse the LoRaWAN frame.
 
-	# WIN
-    parser.exe -c lwp-config.json
-	# Linux
+    # WIN
+    lwp.exe -c lwp-config.json
+    # Linux
     lwp -c lwp-config.json
 
 To go further, user could fill their own LoRaWAN frames in a json file to parse it.
@@ -49,7 +49,7 @@ parson, AES, CMAC have its own licenses. Please follow links below to know the d
 
 # Acknowledgement
 
-+ LoRaWAN Alliance.
++ [LoRa Alliance](https://www.lora-alliance.org/)
 + kgabis. parson (JSON parser) https://github.com/kgabis/parson
 + Brian Gladman. AES library http://www.gladman.me.uk/
 + Lander Casado, Philippas Tsigas. CMAC library http://www.cse.chalmers.se/research/group/dcs/masters/contikisec/
