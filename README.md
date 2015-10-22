@@ -36,6 +36,10 @@ After compile find `lwp.exe/lwp` under `util/parser/` directory to parse the LoR
 
 To go further, user could fill their own LoRaWAN frames in a json file to parse it.
 
+## Limitation
+
+lorawan-parser only handles frames of which real frame counter is less than 0xFFFF, this is because an exact LoRaWAN frame only record low 16bits of the frame, the parser alwarys assumes the high 16bits is zero.
+
 # Contribute
 
 Any kind of contributions are welcome, issue report, pull requests,  WIKI, suggestions...
@@ -49,7 +53,8 @@ parson, AES, CMAC have its own licenses. Please follow links below to know the d
 
 # Acknowledgement
 
-+ [LoRa Alliance](https://www.lora-alliance.org/)
++ Semtech LoRa http://www.semtech.com/wireless-rf/lora.html
++ LoRa Alliance https://www.lora-alliance.org/
 + kgabis. parson (JSON parser) https://github.com/kgabis/parson
 + Brian Gladman. AES library http://www.gladman.me.uk/
 + Lander Casado, Philippas Tsigas. CMAC library http://www.cse.chalmers.se/research/group/dcs/masters/contikisec/
