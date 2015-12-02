@@ -1,4 +1,3 @@
-
 #ifndef __STR2HEX_H
 #define __STR2HEX_H
 

@@ -418,6 +418,7 @@ int lw_mtype_msg_up(uint8_t *msg, int len, lw_parse_key_t *pkey)
     int16_t port;
     int pl_len;
     int pl_index;
+    uint8_t out[255];
 
     /** calculate MIC */
     memcpy(plmic.buf, msg+len-4, 4);
@@ -455,10 +456,8 @@ int lw_mtype_msg_up(uint8_t *msg, int len, lw_parse_key_t *pkey)
         pl_len  = len - 4 - pl_index;
         lw_key.in = msg + pl_index;
         lw_key.len = pl_len;
-        uint8_t *out = malloc(lw_key.len);
         pl_len = lw_encrypt(out, &lw_key);
         if(pl_len<=0){
-            free(out);
             return LW_ERR_DECRYPT;
         }
 
@@ -467,8 +466,6 @@ int lw_mtype_msg_up(uint8_t *msg, int len, lw_parse_key_t *pkey)
         memcpy(lw_buf.buf + pl_index, out, pl_len);   // payload
         memcpy(lw_buf.buf + len - 4, mic.buf, 4); // mic
         lw_buf.len = len;
-
-        free(out);
     }else{
         port = -1;
         printf("No Port and FRMPayload field in message\n");
