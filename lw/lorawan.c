@@ -687,7 +687,6 @@ int lw_maccmd(uint8_t mac_header, uint8_t *opts, int len)
 {
     lw_mhdr_t mhdr;
     uint16_t ChMask;
-    int ret = LW_OK;
     uint8_t dr;
     uint8_t power;
     uint16_t chmaskcntl;
@@ -703,11 +702,9 @@ int lw_maccmd(uint8_t mac_header, uint8_t *opts, int len)
 
     lw_band_t band;
 
-    mhdr.data = mac_header;
+    int i;
 
-    printf("MACCMD ( %s ): ", lw_maccmd_str(mhdr.bits.mtype, opts[0]));
-    puthbuf(opts, len);
-    printf("\n");
+    mhdr.data = mac_header;
 
     if(lw_band != LW_BAND_US915){
         band = LW_BAND_US915;
@@ -715,224 +712,330 @@ int lw_maccmd(uint8_t mac_header, uint8_t *opts, int len)
         band = LW_BAND_EU868;
     }
 
-    if( (mhdr.bits.mtype == LW_MTYPE_MSG_UP) || (mhdr.bits.mtype == LW_MTYPE_CMSG_UP) ){
-        switch(opts[0]){
-            // Class A
-        case LW_MCMD_LCHK_REQ:
-            if(len != LW_MCMD_LCHK_REQ_LEN){
-                ret = LW_ERR_MACCMD_LEN;
+    // Traverse all possible commands, if any of them is invalid terminate and return error
+    i=0;
+    while(i<len){
+        if( (mhdr.bits.mtype == LW_MTYPE_MSG_UP) || (mhdr.bits.mtype == LW_MTYPE_CMSG_UP) ){
+            switch(opts[i]){
+                // Class A
+            case LW_MCMD_LCHK_REQ:
+                if((len-i+1) < LW_MCMD_LCHK_REQ_LEN){
+                    return LW_ERR_MACCMD_LEN;
+                }
+                i+=LW_MCMD_LCHK_REQ_LEN;
                 break;
-            }
-            lw_no_pl();
-            break;
-        case LW_MCMD_LADR_ANS:
-            if(len != LW_MCMD_LADR_ANS_LEN){
-                ret = LW_ERR_MACCMD_LEN;
+            case LW_MCMD_LADR_ANS:
+                if((len-i+1) < LW_MCMD_LADR_ANS_LEN){
+                    return LW_ERR_MACCMD_LEN;
+                }
+                i+=LW_MCMD_LADR_ANS_LEN;
                 break;
-            }
-            printf("Status: 0x%02X\n", opts[1]);
-            printf("Channel mask %s\n", (opts[1]&0x01)?"ACK":"NACK");
-            printf("Data rate %s\n", (opts[1]&0x02)?"ACK":"NACK");
-            printf("Power %s\n", (opts[1]&0x04)?"ACK":"NACK");
-            break;
-        case LW_MCMD_DCAP_ANS:
-            if(len != LW_MCMD_DCAP_ANS_LEN){
-                ret = LW_ERR_MACCMD_LEN;
+            case LW_MCMD_DCAP_ANS:
+                if((len-i+1) < LW_MCMD_DCAP_ANS_LEN){
+                    return LW_ERR_MACCMD_LEN;
+                }
+                i+=LW_MCMD_DCAP_ANS_LEN;
                 break;
-            }
-            lw_no_pl();
-            break;
-        case LW_MCMD_DN2P_ANS:
-            if(len != LW_MCMD_DN2P_ANS_LEN){
-                ret = LW_ERR_MACCMD_LEN;
+            case LW_MCMD_DN2P_ANS:
+                if((len-i+1) < LW_MCMD_DN2P_ANS_LEN){
+                    return LW_ERR_MACCMD_LEN;
+                }
+                i+=LW_MCMD_DN2P_ANS_LEN;
                 break;
-            }
-            printf("Status: 0x%02X\n", opts[1]);
-            printf("Channel %s\n", (opts[1]&0x01)?"ACK":"NACK");
-            printf("RXWIN2 %s\n", (opts[1]&0x02)?"ACK":"NACK");
-            printf("RX1DRoffset %s\n", (opts[1]&0x04)?"ACK":"NACK");
-            break;
-        case LW_MCMD_DEVS_ANS:
-            if(len != LW_MCMD_DEVS_ANS_LEN){
-                ret = LW_ERR_MACCMD_LEN;
+            case LW_MCMD_DEVS_ANS:
+                if((len-i+1) < LW_MCMD_DEVS_ANS_LEN){
+                    return LW_ERR_MACCMD_LEN;
+                }
+                i+=LW_MCMD_DEVS_ANS_LEN;
                 break;
-            }
-            if(opts[1] == 0){
-                printf("Battery: %d (External Powered)\n", opts[1]);
-            }else if(opts[1] == 255){
-                printf("Battery: %d (Unknown)\n", opts[1]);
-            }else{
-                printf("Battery: %d (%.1f%%)\n", opts[1], 1.0*opts[1]/255);
-            }
-            dev_sta_margin.data = opts[2];
-            printf("Margin: %d\n", dev_sta_margin.bits.margin);
-
-            break;
-        case LW_MCMD_SNCH_ANS:
-            if(len != LW_MCMD_SNCH_ANS_LEN){
-                ret = LW_ERR_MACCMD_LEN;
+            case LW_MCMD_SNCH_ANS:
+                if((len-i+1) < LW_MCMD_SNCH_ANS_LEN){
+                    return LW_ERR_MACCMD_LEN;
+                }
+                i+=LW_MCMD_SNCH_ANS_LEN;
                 break;
-            }
-            printf("Status: 0x%02X\n", opts[1]);
-            printf("Channel %s\n", (opts[1]&0x01)?"ACK":"NACK");
-            printf("DataRate %s\n", (opts[1]&0x02)?"ACK":"NACK");
-            break;
-        case LW_MCMD_RXTS_ANS:
-            if(len != LW_MCMD_RXTS_ANS_LEN){
-                ret = LW_ERR_MACCMD_LEN;
+            case LW_MCMD_RXTS_ANS:
+                if((len-i+1) < LW_MCMD_RXTS_ANS_LEN){
+                    return LW_ERR_MACCMD_LEN;
+                }
+                i+=LW_MCMD_RXTS_ANS_LEN;
                 break;
-            }
-            lw_no_pl();
-            break;
-        //Class B
-        case LW_MCMD_PING_IND:
-            lw_no_pl();
-            break;
-        case LW_MCMD_PING_ANS:
-            lw_no_pl();
-            break;
-        case LW_MCMD_BCNI_REQ:
-            lw_no_pl();
-            break;
-        }
-    }else if( (mhdr.bits.mtype == LW_MTYPE_MSG_DOWN) || (mhdr.bits.mtype == LW_MTYPE_CMSG_DOWN) ){
-        switch(opts[0]){
-        // Class A
-        case LW_MCMD_LCHK_ANS:
-            if(len != LW_MCMD_LCHK_ANS_LEN){
-                ret = LW_ERR_MACCMD_LEN;
+            //Class B
+            case LW_MCMD_PING_IND:
+                if((len-i+1) < 1){
+                    return LW_ERR_MACCMD_LEN;
+                }
+                i+=1;
                 break;
-            }
-            if(opts[1] == 255){
-                printf("Margin: %d (RFU)\n", opts[1]);
-            }else{
-                printf("Margin: %ddB\n", opts[1]);
-            }
-            printf("GwCnt: %d\n", opts[2]);
-            break;
-        case LW_MCMD_LADR_REQ:
-            if(len != LW_MCMD_LADR_REQ_LEN){
-                ret = LW_ERR_MACCMD_LEN;
+            case LW_MCMD_PING_ANS:
+                if((len-i+1) < 1){
+                    return LW_ERR_MACCMD_LEN;
+                }
+                i+=1;
                 break;
-            }
-            dr = lw_dr_tab[band][opts[1]>>4];
-            power = lw_pow_tab[band][opts[1]&0x0F];
-            chmaskcntl = lw_chmaskcntl_tab[band][(opts[4]>>4)&0x07];
-            ChMask = opts[2] + (((uint16_t)opts[3])<<8);
-            if(power == LW_POW_RFU){
-                printf("TXPower: %d (RFU)\n", opts[1]&0x0F);
-            }else{
-                printf("TXPower: %d (%ddBm)\n", opts[1]&0x0F, power);
-            }
-            if(dr == LW_DR_RFU){
-                printf("DataRate: DR%d (RFU)\n", opts[1]>>4);
-            }else if( (dr&0x0F) == FSK){
-                printf("DataRate: DR%d (FSK)\n", opts[1]>>4);
-            }else{
-                printf("DataRate: DR%d (SF%d/BW%dKHz)\n", opts[1]>>4, dr&0x0F, (int)(125*pow(2,dr>>4)));
-            }
-            printf("ChMask: 0x%04X\n", ChMask);
-            printf("NbRep: %d\n", opts[4]&0x0F);
-            switch(chmaskcntl){
-            case LW_CMC_RFU:
-                printf("ChMaskCntl: %d (RFU)\n", (opts[4]>>4)&0x07);
-                break;
-            case LW_CMC_ALL_ON:
-                printf("ChMaskCntl: %d (EU868 All on)\n", (opts[4]>>4)&0x07);
-                break;
-            case LW_CMC_ALL_125KHZ_ON:
-                printf("ChMaskCntl: %d, All 125KHz channels on, ChMask applies to 64 ~ 71\n", (opts[4]>>4)&0x07);
-                break;
-            case LW_CMC_ALL_125KHZ_OFF:
-                printf("ChMaskCntl: %d, All 125KHz channels off, ChMask applies to 64 ~ 71\n", (opts[4]>>4)&0x07);
+            case LW_MCMD_BCNI_REQ:
+                if((len-i+1) < 1){
+                    return LW_ERR_MACCMD_LEN;
+                }
+                i+=1;
                 break;
             default:
-                printf("ChMaskCntl: %d, ChMask applies to %d ~ %d\n", (opts[4]>>4)&0x07, chmaskcntl&0x00FF, chmaskcntl>>8);
+                return LW_ERR_MACCMD_LEN;
+            }
+        }else if( (mhdr.bits.mtype == LW_MTYPE_MSG_DOWN) || (mhdr.bits.mtype == LW_MTYPE_CMSG_DOWN) ){
+            switch(opts[i]){
+            // Class A
+            case LW_MCMD_LCHK_ANS:
+                if((len-i+1) < LW_MCMD_LCHK_ANS_LEN){
+                    return LW_ERR_MACCMD_LEN;
+                }
+                i+=LW_MCMD_LCHK_ANS_LEN;
                 break;
-            }
-            break;
-        case LW_MCMD_DCAP_REQ:
-            if(len != LW_MCMD_DCAP_REQ_LEN){
-                ret = LW_ERR_MACCMD_LEN;
+            case LW_MCMD_LADR_REQ:
+                if((len-i+1) < LW_MCMD_LADR_REQ_LEN){
+                    return LW_ERR_MACCMD_LEN;
+                }
+                i+=LW_MCMD_LADR_REQ_LEN;
                 break;
-            }
-            if(opts[1] == 255){
-                printf("MaxDCycle: %d(Off)\n", opts[1]);
-            }else if(opts[1]<16){
-                printf("MaxDCycle: %d (%.2f%%)\n", opts[1], 100.0/pow(2,opts[1]));
-            }else{
-                printf("MaxDCycle: %d(RFU)\n", opts[1]);
-            }
-            break;
-        case LW_MCMD_DN2P_REQ:
-            if(len != LW_MCMD_DN2P_REQ_LEN){
-                ret = LW_ERR_MACCMD_LEN;
+            case LW_MCMD_DCAP_REQ:
+                if((len-i+1) < LW_MCMD_DCAP_REQ_LEN){
+                    return LW_ERR_MACCMD_LEN;
+                }
+                i+=LW_MCMD_DCAP_REQ_LEN;
                 break;
-            }
-            rx1drofst = (opts[1]>>4) & 0x07;
-            rx2dr = lw_dr_tab[band][opts[1] & 0x0F];
-            freq = (opts[2]) | ((uint32_t)opts[3]<<8) | ((uint32_t)opts[4]<<16);
-            freq *= 100;
-            printf("RX1DROffset: %d\n", rx1drofst);
-            if(rx2dr == LW_DR_RFU){
-                printf("RX2DataRate: DR%d (RFU)\n", opts[1] & 0x0F);
-            }else if( (rx2dr&0x0F) == FSK){
-                printf("RX2DataRate: DR%d (FSK)\n", opts[1] & 0x0F);
-            }else{
-                printf("RX2DataRate: DR%d (SF%d/BW%dKHz)\n", opts[1] & 0x0F, rx2dr&0x0F, (int)(125*pow(2,rx2dr>>4)));
-            }
-            if(freq < 100000000){
-                printf("Freq: %d (RFU <100MHz)\n", freq);
-            }else{
-                printf("Freq: %d\n", freq);
-            }
-            break;
-        case LW_MCMD_DEVS_REQ:
-            if(len != LW_MCMD_DEVS_REQ_LEN){
-                ret = LW_ERR_MACCMD_LEN;
+            case LW_MCMD_DN2P_REQ:
+                if((len-i+1) < LW_MCMD_DN2P_REQ_LEN){
+                    return LW_ERR_MACCMD_LEN;
+                }
+                i+=LW_MCMD_DN2P_REQ_LEN;
                 break;
-            }
-            lw_no_pl();
-            break;
-        case LW_MCMD_SNCH_REQ:
-            if(len != LW_MCMD_SNCH_REQ_LEN){
-                ret = LW_ERR_MACCMD_LEN;
+            case LW_MCMD_DEVS_REQ:
+                if((len-i+1) < LW_MCMD_DEVS_REQ_LEN){
+                    return LW_ERR_MACCMD_LEN;
+                }
+                i+=LW_MCMD_DEVS_REQ_LEN;
                 break;
-            }
-            freq = (opts[2]) | ((uint32_t)opts[3]<<8) | ((uint32_t)opts[4]<<16);
-            freq *= 100;
-            printf("ChIndex: %d\n", opts[1]);
-            if(freq < 100000000){
-                printf("Freq: %d (RFU <100MHz)\n", freq);
-            }else{
-                printf("Freq: %d\n", freq);
-            }
-            printf("DrRange: 0x%02X (DR%d ~ DR%d)\n", opts[5], opts[5]&0x0F, opts[5]>>4);
-            break;
-        case LW_MCMD_RXTS_REQ:
-            if(len != LW_MCMD_RXTS_REQ_LEN){
-                ret = LW_ERR_MACCMD_LEN;
+            case LW_MCMD_SNCH_REQ:
+                if((len-i+1) < LW_MCMD_SNCH_REQ_LEN){
+                    return LW_ERR_MACCMD_LEN;
+                }
+                i+=LW_MCMD_SNCH_REQ_LEN;
                 break;
+            case LW_MCMD_RXTS_REQ:
+                if((len-i+1) < LW_MCMD_RXTS_REQ_LEN){
+                    return LW_ERR_MACCMD_LEN;
+                }
+                i+=LW_MCMD_RXTS_REQ_LEN;
+                break;
+                //Class B
+            case LW_MCMD_PING_SET:
+                if((len-i+1) < 1){
+                    return LW_ERR_MACCMD_LEN;
+                }
+                i+=1;
+                break;
+            case LW_MCMD_BCNI_ANS:
+                if((len-i+1) < 1){
+                    return LW_ERR_MACCMD_LEN;
+                }
+                i+=1;
+                break;
+            default:
+                return LW_ERR_MACCMD_LEN;
             }
-            if((opts[1]&0x0F) == 0){
-                printf("Del: %ds\n", (opts[1]&0x0F)+1);
-            }else{
-                printf("Del: %ds\n", opts[1]&0x0F);
-            }
-            break;
-            //Class B
-        case LW_MCMD_PING_SET:
-            lw_no_pl();
-            break;
-        case LW_MCMD_BCNI_ANS:
-            lw_no_pl();
-            break;
+        }else{
+            return LW_ERR_MACCMD;
         }
-    }else{
-        return LW_ERR_MACCMD;
     }
 
-    return ret;
+    printf("MACCMD: ");
+    puthbuf(opts, len);
+    printf("\n");
+    i=0;
+    while(i<len){
+        printf("MACCMD ( %s )", lw_maccmd_str(mhdr.bits.mtype, opts[i]));
+        printf("\n");
+
+        if( (mhdr.bits.mtype == LW_MTYPE_MSG_UP) || (mhdr.bits.mtype == LW_MTYPE_CMSG_UP) ){
+            switch(opts[i]){
+                // Class A
+            case LW_MCMD_LCHK_REQ:
+                i+=LW_MCMD_LCHK_REQ_LEN;
+                lw_no_pl();
+                break;
+            case LW_MCMD_LADR_ANS:
+                i+=LW_MCMD_LADR_ANS_LEN;
+                printf("Status: 0x%02X\n", opts[i+1]);
+                printf("Channel mask %s\n", (opts[i+1]&0x01)?"ACK":"NACK");
+                printf("Data rate %s\n", (opts[i+1]&0x02)?"ACK":"NACK");
+                printf("Power %s\n", (opts[i+1]&0x04)?"ACK":"NACK");
+                break;
+            case LW_MCMD_DCAP_ANS:
+                i+=LW_MCMD_DCAP_ANS_LEN;
+                lw_no_pl();
+                break;
+            case LW_MCMD_DN2P_ANS:
+                i+=LW_MCMD_DN2P_ANS_LEN;
+                printf("Status: 0x%02X\n", opts[i+1]);
+                printf("Channel %s\n", (opts[i+1]&0x01)?"ACK":"NACK");
+                printf("RXWIN2 %s\n", (opts[i+1]&0x02)?"ACK":"NACK");
+                printf("RX1DRoffset %s\n", (opts[i+1]&0x04)?"ACK":"NACK");
+                break;
+            case LW_MCMD_DEVS_ANS:
+                i+=LW_MCMD_DEVS_ANS_LEN;
+                if(opts[i+1] == 0){
+                    printf("Battery: %d (External Powered)\n", opts[i+1]);
+                }else if(opts[i+1] == 255){
+                    printf("Battery: %d (Unknown)\n", opts[i+1]);
+                }else{
+                    printf("Battery: %d (%.1f%%)\n", opts[i+1], 1.0*opts[i+1]/255);
+                }
+                dev_sta_margin.data = opts[i+2];
+                printf("Margin: %d\n", dev_sta_margin.bits.margin);
+
+                break;
+            case LW_MCMD_SNCH_ANS:
+                i+=LW_MCMD_SNCH_ANS_LEN;
+                printf("Status: 0x%02X\n", opts[i+1]);
+                printf("Channel %s\n", (opts[i+1]&0x01)?"ACK":"NACK");
+                printf("DataRate %s\n", (opts[i+1]&0x02)?"ACK":"NACK");
+                break;
+            case LW_MCMD_RXTS_ANS:
+                i+=LW_MCMD_RXTS_ANS_LEN;
+                lw_no_pl();
+                break;
+            //Class B
+            case LW_MCMD_PING_IND:
+                i+=1;
+                lw_no_pl();
+                break;
+            case LW_MCMD_PING_ANS:
+                i+=1;
+                lw_no_pl();
+                break;
+            case LW_MCMD_BCNI_REQ:
+                i+=1;
+                lw_no_pl();
+                break;
+            }
+        }else if( (mhdr.bits.mtype == LW_MTYPE_MSG_DOWN) || (mhdr.bits.mtype == LW_MTYPE_CMSG_DOWN) ){
+            switch(opts[i]){
+            // Class A
+            case LW_MCMD_LCHK_ANS:
+                i+=LW_MCMD_LCHK_ANS_LEN;
+                if(opts[i+1] == 255){
+                    printf("Margin: %d (RFU)\n", opts[i+1]);
+                }else{
+                    printf("Margin: %ddB\n", opts[i+1]);
+                }
+                printf("GwCnt: %d\n", opts[i+2]);
+                break;
+            case LW_MCMD_LADR_REQ:
+                i+=LW_MCMD_LADR_REQ_LEN;
+                dr = lw_dr_tab[band][opts[i+1]>>4];
+                power = lw_pow_tab[band][opts[i+1]&0x0F];
+                chmaskcntl = lw_chmaskcntl_tab[band][(opts[i+4]>>4)&0x07];
+                ChMask = opts[i+2] + (((uint16_t)opts[i+3])<<8);
+                if(power == LW_POW_RFU){
+                    printf("TXPower: %d (RFU)\n", opts[i+1]&0x0F);
+                }else{
+                    printf("TXPower: %d (%ddBm)\n", opts[i+1]&0x0F, power);
+                }
+                if(dr == LW_DR_RFU){
+                    printf("DataRate: DR%d (RFU)\n", opts[i+1]>>4);
+                }else if( (dr&0x0F) == FSK){
+                    printf("DataRate: DR%d (FSK)\n", opts[i+1]>>4);
+                }else{
+                    printf("DataRate: DR%d (SF%d/BW%dKHz)\n", opts[i+1]>>4, dr&0x0F, (int)(125*pow(2,dr>>4)));
+                }
+                printf("ChMask: 0x%04X\n", ChMask);
+                printf("NbRep: %d\n", opts[i+4]&0x0F);
+                switch(chmaskcntl){
+                case LW_CMC_RFU:
+                    printf("ChMaskCntl: %d (RFU)\n", (opts[i+4]>>4)&0x07);
+                    break;
+                case LW_CMC_ALL_ON:
+                    printf("ChMaskCntl: %d (EU868 All on)\n", (opts[i+4]>>4)&0x07);
+                    break;
+                case LW_CMC_ALL_125KHZ_ON:
+                    printf("ChMaskCntl: %d, All 125KHz channels on, ChMask applies to 64 ~ 71\n", (opts[i+4]>>4)&0x07);
+                    break;
+                case LW_CMC_ALL_125KHZ_OFF:
+                    printf("ChMaskCntl: %d, All 125KHz channels off, ChMask applies to 64 ~ 71\n", (opts[i+4]>>4)&0x07);
+                    break;
+                default:
+                    printf("ChMaskCntl: %d, ChMask applies to %d ~ %d\n", (opts[i+4]>>4)&0x07, chmaskcntl&0x00FF, chmaskcntl>>8);
+                    break;
+                }
+                break;
+            case LW_MCMD_DCAP_REQ:
+                i+=LW_MCMD_DCAP_REQ_LEN;
+                if(opts[i+1] == 255){
+                    printf("MaxDCycle: %d(Off)\n", opts[i+1]);
+                }else if(opts[i+1]<16){
+                    printf("MaxDCycle: %d (%.2f%%)\n", opts[i+1], 100.0/pow(2,opts[i+1]));
+                }else{
+                    printf("MaxDCycle: %d(RFU)\n", opts[i+1]);
+                }
+                break;
+            case LW_MCMD_DN2P_REQ:
+                i+=LW_MCMD_DN2P_REQ_LEN;
+                rx1drofst = (opts[i+1]>>4) & 0x07;
+                rx2dr = lw_dr_tab[band][opts[i+1] & 0x0F];
+                freq = (opts[i+2]) | ((uint32_t)opts[i+3]<<8) | ((uint32_t)opts[i+4]<<16);
+                freq *= 100;
+                printf("RX1DROffset: %d\n", rx1drofst);
+                if(rx2dr == LW_DR_RFU){
+                    printf("RX2DataRate: DR%d (RFU)\n", opts[i+1] & 0x0F);
+                }else if( (rx2dr&0x0F) == FSK){
+                    printf("RX2DataRate: DR%d (FSK)\n", opts[i+1] & 0x0F);
+                }else{
+                    printf("RX2DataRate: DR%d (SF%d/BW%dKHz)\n", opts[i+1] & 0x0F, rx2dr&0x0F, (int)(125*pow(2,rx2dr>>4)));
+                }
+                if(freq < 100000000){
+                    printf("Freq: %d (RFU <100MHz)\n", freq);
+                }else{
+                    printf("Freq: %d\n", freq);
+                }
+                break;
+            case LW_MCMD_DEVS_REQ:
+                i+=LW_MCMD_DEVS_REQ_LEN;
+                lw_no_pl();
+                break;
+            case LW_MCMD_SNCH_REQ:
+                i+=LW_MCMD_SNCH_REQ_LEN;
+                freq = (opts[i+2]) | ((uint32_t)opts[i+3]<<8) | ((uint32_t)opts[i+4]<<16);
+                freq *= 100;
+                printf("ChIndex: %d\n", opts[i+1]);
+                if(freq < 100000000){
+                    printf("Freq: %d (RFU <100MHz)\n", freq);
+                }else{
+                    printf("Freq: %d\n", freq);
+                }
+                printf("DrRange: 0x%02X (DR%d ~ DR%d)\n", opts[i+5], opts[i+5]&0x0F, opts[i+5]>>4);
+                break;
+            case LW_MCMD_RXTS_REQ:
+                i+=LW_MCMD_RXTS_REQ_LEN;
+                if((opts[i+1]&0x0F) == 0){
+                    printf("Del: %ds\n", (opts[i+1]&0x0F)+1);
+                }else{
+                    printf("Del: %ds\n", opts[i+1]&0x0F);
+                }
+                break;
+                //Class B
+            case LW_MCMD_PING_SET:
+                i+=1;
+                lw_no_pl();
+                break;
+            case LW_MCMD_BCNI_ANS:
+                i+=1;
+                lw_no_pl();
+                break;
+            }
+        }
+    }
+
+    return LW_OK;
 }
 
 uint8_t *lw_write_dw(uint8_t *output, uint32_t input)
