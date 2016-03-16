@@ -45,7 +45,7 @@ int main(int argc, char **argv)
     lw_log(LW_LOG_OFF);
 
     while ((i = getopt (argc, argv, "hc:")) != -1) {
-		switch (i) {
+        switch (i) {
         case 'h':
             usage(basename(argv[0]));
             return 0;
@@ -65,8 +65,8 @@ int main(int argc, char **argv)
             log_puts(LOG_FATAL, "PARAMETER ERROR");
             usage(basename(argv[0]));
             return -1;
-		}
-	}
+        }
+    }
 
     ret = config_parse(pfile, &config);
     if(ret < 0){
