@@ -47,9 +47,9 @@ Any kind of contributions are welcome, issue report, pull requests,  WIKI, sugge
 Before you send pull request, please try to make your code keep same style as the original one.
 
 # License
-parson, AES, CMAC have its own licenses. Please follow links below to know the details.
+lorawan-paser and is licensed under [The MIT License](http://opensource.org/licenses/mit-license.php). Check LICENSE.txt for more information.
 
-*lorawan-paser has no license yet, to be defined.*
+parson, AES, CMAC have its own licenses. Please follow links below to get the details.
 
 # Acknowledgement
 
