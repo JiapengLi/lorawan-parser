@@ -5,7 +5,7 @@
 #include "lorawan.h"
 #include "aes.h"
 #include "cmac.h"
-#include "print.h"
+#include "log.h"
 
 int lw_mtype_join_accept(uint8_t *buf, int len, lw_parse_key_t *pkey);
 int lw_mtype_join_request(uint8_t *buf, int len, lw_parse_key_t *pkey);
@@ -158,6 +158,8 @@ const char *lw_mtype_str[] = {
     "PROPRIETARY",
 };
 
+static int lw_log_flag = 1;
+
 void lw_log_data(uint8_t *buf, int len)
 {
     int i;
@@ -165,9 +167,9 @@ void lw_log_data(uint8_t *buf, int len)
     uint8_t * str = malloc(len+1);
     str[len] = '\0';
 
-    printf("DATA(HEX): ");
-    puthbuf(buf, len);
-    printf("\n");
+    if(lw_log_flag){
+        log_hex(LOG_NORMAL, buf, len, "DATA(HEX):");
+    }
     for(i=0; i<len; i++){
         str[i] = buf[i];
         if(buf[i]<' ' || buf[i]>'~'){
@@ -175,7 +177,9 @@ void lw_log_data(uint8_t *buf, int len)
         }
     }
     if(i==len){
-        printf("DATA(STR): %s\n", str);
+        if(lw_log_flag){
+            log_puts(LOG_NORMAL, "DATA(STR): %s", str);
+        }
     }
     free(str);
 }
@@ -227,6 +231,12 @@ int lw_get_netid(lw_netid_t *netid)
     return 0;
 }
 
+int lw_log(int logflag)
+{
+    lw_log_flag = logflag;
+    return lw_log_flag;
+}
+
 int lw_parse(uint8_t *buf, int len, lw_parse_key_t *pkey)
 {
     lw_mhdr_t mhdr;
@@ -236,29 +246,36 @@ int lw_parse(uint8_t *buf, int len, lw_parse_key_t *pkey)
 
     mhdr.data = buf[LW_MHDR];
 
-    print_spliter();
-    printf("MSG: ");
-    puthbuf(buf, len);
-    printf("\n");
+    if(lw_log_flag){
+        log_line();
+        log_hex(LOG_NORMAL, buf, len, "MSG:");
+    }
 
     if(mhdr.bits.major == LW_VERSION_MAJOR_R1){
-        printf("LoRaWAN R1\n");
+        if(lw_log_flag){
+            log_puts(LOG_NORMAL, "LoRaWAN R1");
+        }
     }else{
-        printf("LoRaWAN version unknown\n");
+        if(lw_log_flag){
+            log_puts(LOG_NORMAL, "LoRaWAN version unknown");
+        }
     }
 
     if(mhdr.bits.mtype>=LW_MTYPE_PROPRIETARY){
         return LW_ERR_CMD_UNKNOWN;
     }
 
-    printf("%s\n", lw_mtype_str[mhdr.bits.mtype]);
+    if(lw_log_flag){
+        log_puts(LOG_NORMAL, "%s", lw_mtype_str[mhdr.bits.mtype]);
+    }
+
     ret = lwp_mtye_func[mhdr.bits.mtype](buf, len, pkey);
 
     if(ret == LW_OK){
         lw_flag |= LW_FLAG_BUF_OK;
-        printf("DMSG: ");
-        puthbuf(lw_buf.buf, lw_buf.len);
-        printf("\n");
+        if(lw_log_flag){
+            log_hex(LOG_NORMAL, lw_buf.buf, lw_buf.len, "DMSG:");
+        }
     }
 
     return ret;
@@ -283,23 +300,31 @@ int lw_mtype_join_request(uint8_t *buf, int len, lw_parse_key_t *pkey)
     lw_key.len = len-4;
     lw_join_mic(&mic, &lw_key);
     if(mic.data == plmic.data){
-        printf("Join Request MIC is OK\n");
+        if(lw_log_flag){
+            log_puts(LOG_NORMAL, "Join Request MIC is OK");
+        }
     }else{
-        printf("Join Request MIC is ERROR\n");
+        if(lw_log_flag){
+            log_puts(LOG_NORMAL, "Join Request MIC is ERROR");
+        }
     }
 
     if(mic.data != plmic.data){
-        printf("MIC is ERROR\n");
+        if(lw_log_flag){
+           log_puts(LOG_NORMAL, "MIC is ERROR");
+        }
         return LW_ERR_MIC;
     }
-    printf("MIC is OK [ %02X %02X %02X %02X ]\n", mic.buf[0], mic.buf[1], mic.buf[2], mic.buf[3]);
 
-    idx = LW_JR_OFF_APPEUI;
-    printf("APPEUI: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X\n", buf[idx+7], buf[idx+6], buf[idx+5], buf[idx+4], buf[idx+3], buf[idx+2], buf[idx+1], buf[idx+0]);
-    idx = LW_JR_OFF_DEVEUI;
-    printf("DEVEUI: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X\n", buf[idx+7], buf[idx+6], buf[idx+5], buf[idx+4], buf[idx+3], buf[idx+2], buf[idx+1], buf[idx+0]);
-    idx = LW_JR_OFF_DEVNONCE;
-    printf("DEVNONCE: 0x%02X%02X\n", buf[idx+1], buf[idx]);
+    if(lw_log_flag){
+        log_puts(LOG_NORMAL, "MIC is OK [ %02X %02X %02X %02X ]", mic.buf[0], mic.buf[1], mic.buf[2], mic.buf[3]);
+        idx = LW_JR_OFF_APPEUI;
+        log_puts(LOG_NORMAL, "APPEUI: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X", buf[idx+7], buf[idx+6], buf[idx+5], buf[idx+4], buf[idx+3], buf[idx+2], buf[idx+1], buf[idx+0]);
+        idx = LW_JR_OFF_DEVEUI;
+        log_puts(LOG_NORMAL, "DEVEUI: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X", buf[idx+7], buf[idx+6], buf[idx+5], buf[idx+4], buf[idx+3], buf[idx+2], buf[idx+1], buf[idx+0]);
+        idx = LW_JR_OFF_DEVNONCE;
+        log_puts(LOG_NORMAL, "DEVNONCE: 0x%02X%02X", buf[idx+1], buf[idx]);
+    }
 
     memcpy(lw_buf.buf, buf, len);
     lw_buf.len = len;
@@ -334,9 +359,9 @@ int lw_mtype_join_accept(uint8_t *buf, int len, lw_parse_key_t *pkey)
         return LW_ERR_MALLOC;
     }
 
-    printf("Debug: ");
-    puthbuf(buf, len);
-    printf("\n");
+    if(lw_log_flag){
+        //log_hex(LOG_DEBUG, buf, len, "DEBUG:");
+    }
 
     lw_key.aeskey = pkey->appkey;
     lw_key.in = buf+1;
@@ -345,22 +370,25 @@ int lw_mtype_join_accept(uint8_t *buf, int len, lw_parse_key_t *pkey)
     pl_len = lw_join_decrypt(out+1, &lw_key);
 
     if(pl_len>0){
-        printf("Join accept encrypted payload:(%d)\n", len);
-        puthbuf(buf, len);
-        printf("\n");
-        printf("Join accept decrypted payload:(%d)\n", len);
-        puthbuf(out, len);
-        printf("\n");
-
+        if(lw_log_flag){
+            log_puts(LOG_NORMAL, "Join accept encrypted payload:(%d)", len);
+            log_hex(LOG_NORMAL, buf, len, 0);
+            log_puts(LOG_NORMAL, "Join accept decrypted payload:(%d)", len);
+            log_hex(LOG_NORMAL, out, len, 0);
+        }
         memcpy(plmic.buf, out+len-4, 4);
         lw_key.aeskey = pkey->appkey;
         lw_key.in = out;
         lw_key.len = len-4;
         lw_join_mic(&mic, &lw_key);
         if(mic.data == plmic.data){
-            printf("JoinAccept MIC is OK\n");
+            if(lw_log_flag){
+                log_puts(LOG_NORMAL,"JoinAccept MIC is OK");
+            }
         }else{
-            printf("JoinAccept MIC is ERROR\n");
+            if(lw_log_flag){
+                log_puts(LOG_NORMAL,"JoinAccept MIC is ERROR");
+            }
         }
     }
 
@@ -370,30 +398,28 @@ int lw_mtype_join_accept(uint8_t *buf, int len, lw_parse_key_t *pkey)
     memcpy(lw_skey_seed.netid.buf, out+LW_JA_OFF_NETID ,3);
     lw_get_skeys(lw_nwkskey, lw_appskey, &lw_skey_seed);
 
-    idx = LW_JA_OFF_APPNONCE;
-    printf("APPNONCE: 0x%02X%02X%02X\n", out[idx+2], out[idx+1], out[idx+0]);
-    idx = LW_JA_OFF_NETID;
-    printf("NETID: 0x%02X%02X%02X\n",out[idx+2], out[idx+1], out[idx+0]);
-    idx = LW_JA_OFF_DEVADDR;
-    printf("DEVADDR: %02X:%02X:%02X:%02X\n", out[idx+3], out[idx+2], out[idx+1], out[idx+0]);
-    idx = LW_JA_OFF_DLSET;
-    printf("RX2DataRate: %d\n", out[idx]&0x0F);
-    printf("RX1DRoffset: %d\n", (out[idx]>>4)&0x07);
+    if(lw_log_flag){
+        idx = LW_JA_OFF_APPNONCE;
+        log_puts(LOG_NORMAL, "APPNONCE: 0x%02X%02X%02X", out[idx+2], out[idx+1], out[idx+0]);
+        idx = LW_JA_OFF_NETID;
+        log_puts(LOG_NORMAL, "NETID: 0x%02X%02X%02X",out[idx+2], out[idx+1], out[idx+0]);
+        idx = LW_JA_OFF_DEVADDR;
+        log_puts(LOG_NORMAL, "DEVADDR: %02X:%02X:%02X:%02X", out[idx+3], out[idx+2], out[idx+1], out[idx+0]);
+        idx = LW_JA_OFF_DLSET;
+        log_puts(LOG_NORMAL, "RX2DataRate: %d", out[idx]&0x0F);
+        log_puts(LOG_NORMAL, "RX1DRoffset: %d", (out[idx]>>4)&0x07);
+    }
     if(len == LW_JA_LEN_EXT){
         idx = LW_JA_OFF_CFLIST;
-        printf("CFList: ");
-        puthbuf(out+idx, 16);
-        printf("\n");
+        if(lw_log_flag){
+            log_hex(LOG_NORMAL, out+idx, 16, "CFList:");
+        }
     }
 
-    printf("NWKSKEY: ");
-    puthbuf(lw_nwkskey, LW_KEY_LEN);
-    printf("\n");
-
-    printf("APPSKEY: ");
-    puthbuf(lw_appskey, LW_KEY_LEN);
-    printf("\n");
-
+    if(lw_log_flag){
+        log_hex(LOG_NORMAL, lw_nwkskey, LW_KEY_LEN, "NWKSKEY:");
+        log_hex(LOG_NORMAL, lw_appskey, LW_KEY_LEN, "APPSKEY:");
+    }
     lw_buf.len = len;
     memcpy(lw_buf.buf, out, lw_buf.len);
 
@@ -431,16 +457,23 @@ int lw_mtype_msg_up(uint8_t *msg, int len, lw_parse_key_t *pkey)
     lw_msg_mic(&mic, &lw_key);
 
     if(mic.data != plmic.data){
-        printf("MIC is ERROR\n");
+        if(lw_log_flag){
+            log_puts(LOG_WARN, "MIC is ERROR");
+        }
         return LW_ERR_MIC;
     }
-    printf("MIC is OK [ %02X %02X %02X %02X ]\n", mic.buf[0], mic.buf[1], mic.buf[2], mic.buf[3]);
-    printf("DEVADDR: %02X:%02X:%02X:%02X\n", lw_key.devaddr.buf[3], lw_key.devaddr.buf[2], lw_key.devaddr.buf[1], lw_key.devaddr.buf[0]);
+    if(lw_log_flag){
+        log_puts(LOG_NORMAL, "MIC is OK [ %02X %02X %02X %02X ]", mic.buf[0], mic.buf[1], mic.buf[2], mic.buf[3]);
+        log_puts(LOG_NORMAL, "DEVADDR: %02X:%02X:%02X:%02X", lw_key.devaddr.buf[3], lw_key.devaddr.buf[2], lw_key.devaddr.buf[1], lw_key.devaddr.buf[0]);
+    }
 
     fctrl.data = msg[LW_DATA_OFF_FCTRL];
-    printf("ADR: %d, ADRACKREQ: %d, ACK %d\n", fctrl.bits.adr, fctrl.bits.adrackreq, fctrl.bits.ack);
-    if(fctrl.bits.classb){
-        printf("Class B\n");
+
+    if(lw_log_flag){
+        log_puts(LOG_NORMAL, "ADR: %d, ADRACKREQ: %d, ACK %d", fctrl.bits.adr, fctrl.bits.adrackreq, fctrl.bits.ack);
+        if(fctrl.bits.classb){
+            log_puts(LOG_NORMAL, "Class B");
+        }
     }
 
     if( len > (8 + 4 + fctrl.bits.foptslen) ){
@@ -468,18 +501,24 @@ int lw_mtype_msg_up(uint8_t *msg, int len, lw_parse_key_t *pkey)
         lw_buf.len = len;
     }else{
         port = -1;
-        printf("No Port and FRMPayload field in message\n");
+        if(lw_log_flag){
+            log_puts(LOG_NORMAL, "No Port and FRMPayload field in message");
+        }
     }
 
-    if(port>=0){
-        printf("PORT: %d\n", port);
-    }else{
-        printf("PORT: NONE\n");
+    if(lw_log_flag){
+        if(port>=0){
+            log_puts(LOG_NORMAL, "PORT: %d", port);
+        }else{
+            log_puts(LOG_NORMAL, "PORT: NONE");
+        }
     }
-    printf("FCNT: %d [0x%X]\n", lw_key.fcnt32, lw_key.fcnt32);
+    if(lw_log_flag){
+        log_puts(LOG_NORMAL, "FCNT: %d [0x%X]", lw_key.fcnt32, lw_key.fcnt32);
+    }
 
     if(fctrl.bits.foptslen != 0 && port == 0){
-        //printf("[ERROR] PORT ZERO WITH FOPTS\n");
+        //log_puts(LOG_NORMAL, "[ERROR] PORT ZERO WITH FOPTS");
         return LW_ERR_FOPTS_PORT0;
     }else if(fctrl.bits.foptslen != 0 && port != 0){
         if(lw_maccmd(msg[LW_MHDR], msg+LW_DATA_OFF_FOPTS, fctrl.bits.foptslen) < 0){
@@ -526,16 +565,24 @@ int lw_mtype_msg_down(uint8_t *msg, int len, lw_parse_key_t *pkey)
     lw_msg_mic(&mic, &lw_key);
 
     if(mic.data != plmic.data){
-        printf("MIC is ERROR\n");
+        if(lw_log_flag){
+            log_puts(LOG_WARN, "MIC is ERROR");
+        }
         return LW_ERR_MIC;
     }
-    printf("MIC is OK [ %02X %02X %02X %02X ]\n", mic.buf[0], mic.buf[1], mic.buf[2], mic.buf[3]);
-    printf("DEVADDR: %02X:%02X:%02X:%02X\n", lw_key.devaddr.buf[3], lw_key.devaddr.buf[2], lw_key.devaddr.buf[1], lw_key.devaddr.buf[0]);
+
+    if(lw_log_flag){
+        log_puts(LOG_NORMAL, "MIC is OK [ %02X %02X %02X %02X ]", mic.buf[0], mic.buf[1], mic.buf[2], mic.buf[3]);
+        log_puts(LOG_NORMAL, "DEVADDR: %02X:%02X:%02X:%02X", lw_key.devaddr.buf[3], lw_key.devaddr.buf[2], lw_key.devaddr.buf[1], lw_key.devaddr.buf[0]);
+    }
 
     fctrl.data = msg[LW_DATA_OFF_FCTRL];
-    printf("ADR: %d, ADRACKREQ: %d, ACK %d\n", fctrl.bits.adr, fctrl.bits.adrackreq, fctrl.bits.ack);
-    if(fctrl.bits.fpending){
-        printf("FPENDING is on\n");
+
+    if(lw_log_flag){
+        log_puts(LOG_NORMAL, "ADR: %d, ADRACKREQ: %d, ACK %d", fctrl.bits.adr, fctrl.bits.adrackreq, fctrl.bits.ack);
+        if(fctrl.bits.fpending){
+            log_puts(LOG_NORMAL, "FPENDING is on");
+        }
     }
 
     if( len > (8 + 4 + fctrl.bits.foptslen) ){
@@ -568,16 +615,19 @@ int lw_mtype_msg_down(uint8_t *msg, int len, lw_parse_key_t *pkey)
     }else{
         port = -1;
         memcpy(lw_buf.buf, msg, len);
-        printf("No Port and FRMPayload field in message\n");
+        if(lw_log_flag){
+            log_puts(LOG_NORMAL, "No Port and FRMPayload field in message");
+        }
     }
 
-    if(port>=0){
-        printf("PORT: %d\n", port);
+    if(lw_log_flag){
+        if(port>=0){
+            log_puts(LOG_NORMAL, "PORT: %d", port);
+        }
+        log_puts(LOG_NORMAL, "FCNT: %d [0x%X]", lw_key.fcnt32, lw_key.fcnt32);
     }
-    printf("FCNT: %d [0x%X]\n", lw_key.fcnt32, lw_key.fcnt32);
-
     if(fctrl.bits.foptslen != 0 && port == 0){
-        //printf("[ERROR] PORT ZERO WITH FOPTS\n");
+        //log_puts(LOG_NORMAL, "[ERROR] PORT ZERO WITH FOPTS");
         return LW_ERR_FOPTS_PORT0;
     }else if(fctrl.bits.foptslen != 0 && port != 0){
         if(lw_maccmd(msg[LW_MHDR], msg+LW_DATA_OFF_FOPTS, fctrl.bits.foptslen) < 0){
@@ -680,7 +730,9 @@ const char *lw_maccmd_str(uint8_t mtype, uint8_t cmd)
 
 void lw_no_pl(void)
 {
-    printf("No MAC command payload\n");
+    if(lw_log_flag){
+        log_puts(LOG_NORMAL, "No MAC command payload");
+    }
 }
 
 int lw_maccmd(uint8_t mac_header, uint8_t *opts, int len)
@@ -848,14 +900,15 @@ int lw_maccmd(uint8_t mac_header, uint8_t *opts, int len)
         }
     }
 
-    printf("MACCMD: ");
-    puthbuf(opts, len);
-    printf("\n");
+    if(0  == lw_log_flag){
+        return LW_OK;
+    }
+    log_hex(LOG_NORMAL, opts, len, "MACCMD:");
     i=0;
     while(i<len){
-        printf("MACCMD ( %s )", lw_maccmd_str(mhdr.bits.mtype, opts[i]));
-        printf("\n");
-
+        if(lw_log_flag){
+            log_puts(LOG_NORMAL, "MACCMD ( %s )", lw_maccmd_str(mhdr.bits.mtype, opts[i]));
+        }
         if( (mhdr.bits.mtype == LW_MTYPE_MSG_UP) || (mhdr.bits.mtype == LW_MTYPE_CMSG_UP) ){
             switch(opts[i]){
                 // Class A
@@ -865,10 +918,10 @@ int lw_maccmd(uint8_t mac_header, uint8_t *opts, int len)
                 break;
             case LW_MCMD_LADR_ANS:
                 i+=LW_MCMD_LADR_ANS_LEN;
-                printf("Status: 0x%02X\n", opts[i+1]);
-                printf("Channel mask %s\n", (opts[i+1]&0x01)?"ACK":"NACK");
-                printf("Data rate %s\n", (opts[i+1]&0x02)?"ACK":"NACK");
-                printf("Power %s\n", (opts[i+1]&0x04)?"ACK":"NACK");
+                log_puts(LOG_NORMAL, "Status: 0x%02X", opts[i+1]);
+                log_puts(LOG_NORMAL, "Channel mask %s", (opts[i+1]&0x01)?"ACK":"NACK");
+                log_puts(LOG_NORMAL, "Data rate %s", (opts[i+1]&0x02)?"ACK":"NACK");
+                log_puts(LOG_NORMAL, "Power %s", (opts[i+1]&0x04)?"ACK":"NACK");
                 break;
             case LW_MCMD_DCAP_ANS:
                 i+=LW_MCMD_DCAP_ANS_LEN;
@@ -876,29 +929,29 @@ int lw_maccmd(uint8_t mac_header, uint8_t *opts, int len)
                 break;
             case LW_MCMD_DN2P_ANS:
                 i+=LW_MCMD_DN2P_ANS_LEN;
-                printf("Status: 0x%02X\n", opts[i+1]);
-                printf("Channel %s\n", (opts[i+1]&0x01)?"ACK":"NACK");
-                printf("RXWIN2 %s\n", (opts[i+1]&0x02)?"ACK":"NACK");
-                printf("RX1DRoffset %s\n", (opts[i+1]&0x04)?"ACK":"NACK");
+                log_puts(LOG_NORMAL, "Status: 0x%02X", opts[i+1]);
+                log_puts(LOG_NORMAL, "Channel %s", (opts[i+1]&0x01)?"ACK":"NACK");
+                log_puts(LOG_NORMAL, "RXWIN2 %s", (opts[i+1]&0x02)?"ACK":"NACK");
+                log_puts(LOG_NORMAL, "RX1DRoffset %s", (opts[i+1]&0x04)?"ACK":"NACK");
                 break;
             case LW_MCMD_DEVS_ANS:
                 i+=LW_MCMD_DEVS_ANS_LEN;
                 if(opts[i+1] == 0){
-                    printf("Battery: %d (External Powered)\n", opts[i+1]);
+                    log_puts(LOG_NORMAL, "Battery: %d (External Powered)", opts[i+1]);
                 }else if(opts[i+1] == 255){
-                    printf("Battery: %d (Unknown)\n", opts[i+1]);
+                    log_puts(LOG_NORMAL, "Battery: %d (Unknown)", opts[i+1]);
                 }else{
-                    printf("Battery: %d (%.1f%%)\n", opts[i+1], 1.0*opts[i+1]/255);
+                    log_puts(LOG_NORMAL, "Battery: %d (%.1f%%)", opts[i+1], 1.0*opts[i+1]/255);
                 }
                 dev_sta_margin.data = opts[i+2];
-                printf("Margin: %d\n", dev_sta_margin.bits.margin);
+                log_puts(LOG_NORMAL, "Margin: %d", dev_sta_margin.bits.margin);
 
                 break;
             case LW_MCMD_SNCH_ANS:
                 i+=LW_MCMD_SNCH_ANS_LEN;
-                printf("Status: 0x%02X\n", opts[i+1]);
-                printf("Channel %s\n", (opts[i+1]&0x01)?"ACK":"NACK");
-                printf("DataRate %s\n", (opts[i+1]&0x02)?"ACK":"NACK");
+                log_puts(LOG_NORMAL, "Status: 0x%02X", opts[i+1]);
+                log_puts(LOG_NORMAL, "Channel %s", (opts[i+1]&0x01)?"ACK":"NACK");
+                log_puts(LOG_NORMAL, "DataRate %s", (opts[i+1]&0x02)?"ACK":"NACK");
                 break;
             case LW_MCMD_RXTS_ANS:
                 i+=LW_MCMD_RXTS_ANS_LEN;
@@ -924,11 +977,11 @@ int lw_maccmd(uint8_t mac_header, uint8_t *opts, int len)
             case LW_MCMD_LCHK_ANS:
                 i+=LW_MCMD_LCHK_ANS_LEN;
                 if(opts[i+1] == 255){
-                    printf("Margin: %d (RFU)\n", opts[i+1]);
+                    log_puts(LOG_NORMAL, "Margin: %d (RFU)", opts[i+1]);
                 }else{
-                    printf("Margin: %ddB\n", opts[i+1]);
+                    log_puts(LOG_NORMAL, "Margin: %ddB", opts[i+1]);
                 }
-                printf("GwCnt: %d\n", opts[i+2]);
+                log_puts(LOG_NORMAL, "GwCnt: %d", opts[i+2]);
                 break;
             case LW_MCMD_LADR_REQ:
                 i+=LW_MCMD_LADR_REQ_LEN;
@@ -937,45 +990,45 @@ int lw_maccmd(uint8_t mac_header, uint8_t *opts, int len)
                 chmaskcntl = lw_chmaskcntl_tab[band][(opts[i+4]>>4)&0x07];
                 ChMask = opts[i+2] + (((uint16_t)opts[i+3])<<8);
                 if(power == LW_POW_RFU){
-                    printf("TXPower: %d (RFU)\n", opts[i+1]&0x0F);
+                    log_puts(LOG_NORMAL, "TXPower: %d (RFU)", opts[i+1]&0x0F);
                 }else{
-                    printf("TXPower: %d (%ddBm)\n", opts[i+1]&0x0F, power);
+                    log_puts(LOG_NORMAL, "TXPower: %d (%ddBm)", opts[i+1]&0x0F, power);
                 }
                 if(dr == LW_DR_RFU){
-                    printf("DataRate: DR%d (RFU)\n", opts[i+1]>>4);
+                    log_puts(LOG_NORMAL, "DataRate: DR%d (RFU)", opts[i+1]>>4);
                 }else if( (dr&0x0F) == FSK){
-                    printf("DataRate: DR%d (FSK)\n", opts[i+1]>>4);
+                    log_puts(LOG_NORMAL, "DataRate: DR%d (FSK)", opts[i+1]>>4);
                 }else{
-                    printf("DataRate: DR%d (SF%d/BW%dKHz)\n", opts[i+1]>>4, dr&0x0F, (int)(125*pow(2,dr>>4)));
+                    log_puts(LOG_NORMAL, "DataRate: DR%d (SF%d/BW%dKHz)", opts[i+1]>>4, dr&0x0F, (int)(125*pow(2,dr>>4)));
                 }
-                printf("ChMask: 0x%04X\n", ChMask);
-                printf("NbRep: %d\n", opts[i+4]&0x0F);
+                log_puts(LOG_NORMAL, "ChMask: 0x%04X", ChMask);
+                log_puts(LOG_NORMAL, "NbRep: %d", opts[i+4]&0x0F);
                 switch(chmaskcntl){
                 case LW_CMC_RFU:
-                    printf("ChMaskCntl: %d (RFU)\n", (opts[i+4]>>4)&0x07);
+                    log_puts(LOG_NORMAL, "ChMaskCntl: %d (RFU)", (opts[i+4]>>4)&0x07);
                     break;
                 case LW_CMC_ALL_ON:
-                    printf("ChMaskCntl: %d (EU868 All on)\n", (opts[i+4]>>4)&0x07);
+                    log_puts(LOG_NORMAL, "ChMaskCntl: %d (EU868 All on)", (opts[i+4]>>4)&0x07);
                     break;
                 case LW_CMC_ALL_125KHZ_ON:
-                    printf("ChMaskCntl: %d, All 125KHz channels on, ChMask applies to 64 ~ 71\n", (opts[i+4]>>4)&0x07);
+                    log_puts(LOG_NORMAL, "ChMaskCntl: %d, All 125KHz channels on, ChMask applies to 64 ~ 71", (opts[i+4]>>4)&0x07);
                     break;
                 case LW_CMC_ALL_125KHZ_OFF:
-                    printf("ChMaskCntl: %d, All 125KHz channels off, ChMask applies to 64 ~ 71\n", (opts[i+4]>>4)&0x07);
+                    log_puts(LOG_NORMAL, "ChMaskCntl: %d, All 125KHz channels off, ChMask applies to 64 ~ 71", (opts[i+4]>>4)&0x07);
                     break;
                 default:
-                    printf("ChMaskCntl: %d, ChMask applies to %d ~ %d\n", (opts[i+4]>>4)&0x07, chmaskcntl&0x00FF, chmaskcntl>>8);
+                    log_puts(LOG_NORMAL, "ChMaskCntl: %d, ChMask applies to %d ~ %d", (opts[i+4]>>4)&0x07, chmaskcntl&0x00FF, chmaskcntl>>8);
                     break;
                 }
                 break;
             case LW_MCMD_DCAP_REQ:
                 i+=LW_MCMD_DCAP_REQ_LEN;
                 if(opts[i+1] == 255){
-                    printf("MaxDCycle: %d(Off)\n", opts[i+1]);
+                    log_puts(LOG_NORMAL, "MaxDCycle: %d(Off)", opts[i+1]);
                 }else if(opts[i+1]<16){
-                    printf("MaxDCycle: %d (%.2f%%)\n", opts[i+1], 100.0/pow(2,opts[i+1]));
+                    log_puts(LOG_NORMAL, "MaxDCycle: %d (%.2f%%)", opts[i+1], 100.0/pow(2,opts[i+1]));
                 }else{
-                    printf("MaxDCycle: %d(RFU)\n", opts[i+1]);
+                    log_puts(LOG_NORMAL, "MaxDCycle: %d(RFU)", opts[i+1]);
                 }
                 break;
             case LW_MCMD_DN2P_REQ:
@@ -984,18 +1037,18 @@ int lw_maccmd(uint8_t mac_header, uint8_t *opts, int len)
                 rx2dr = lw_dr_tab[band][opts[i+1] & 0x0F];
                 freq = (opts[i+2]) | ((uint32_t)opts[i+3]<<8) | ((uint32_t)opts[i+4]<<16);
                 freq *= 100;
-                printf("RX1DROffset: %d\n", rx1drofst);
+                log_puts(LOG_NORMAL, "RX1DROffset: %d", rx1drofst);
                 if(rx2dr == LW_DR_RFU){
-                    printf("RX2DataRate: DR%d (RFU)\n", opts[i+1] & 0x0F);
+                    log_puts(LOG_NORMAL, "RX2DataRate: DR%d (RFU)", opts[i+1] & 0x0F);
                 }else if( (rx2dr&0x0F) == FSK){
-                    printf("RX2DataRate: DR%d (FSK)\n", opts[i+1] & 0x0F);
+                    log_puts(LOG_NORMAL, "RX2DataRate: DR%d (FSK)", opts[i+1] & 0x0F);
                 }else{
-                    printf("RX2DataRate: DR%d (SF%d/BW%dKHz)\n", opts[i+1] & 0x0F, rx2dr&0x0F, (int)(125*pow(2,rx2dr>>4)));
+                    log_puts(LOG_NORMAL, "RX2DataRate: DR%d (SF%d/BW%dKHz)", opts[i+1] & 0x0F, rx2dr&0x0F, (int)(125*pow(2,rx2dr>>4)));
                 }
                 if(freq < 100000000){
-                    printf("Freq: %d (RFU <100MHz)\n", freq);
+                    log_puts(LOG_NORMAL, "Freq: %d (RFU <100MHz)", freq);
                 }else{
-                    printf("Freq: %d\n", freq);
+                    log_puts(LOG_NORMAL, "Freq: %d", freq);
                 }
                 break;
             case LW_MCMD_DEVS_REQ:
@@ -1006,20 +1059,20 @@ int lw_maccmd(uint8_t mac_header, uint8_t *opts, int len)
                 i+=LW_MCMD_SNCH_REQ_LEN;
                 freq = (opts[i+2]) | ((uint32_t)opts[i+3]<<8) | ((uint32_t)opts[i+4]<<16);
                 freq *= 100;
-                printf("ChIndex: %d\n", opts[i+1]);
+                log_puts(LOG_NORMAL, "ChIndex: %d", opts[i+1]);
                 if(freq < 100000000){
-                    printf("Freq: %d (RFU <100MHz)\n", freq);
+                    log_puts(LOG_NORMAL, "Freq: %d (RFU <100MHz)", freq);
                 }else{
-                    printf("Freq: %d\n", freq);
+                    log_puts(LOG_NORMAL, "Freq: %d", freq);
                 }
-                printf("DrRange: 0x%02X (DR%d ~ DR%d)\n", opts[i+5], opts[i+5]&0x0F, opts[i+5]>>4);
+                log_puts(LOG_NORMAL, "DrRange: 0x%02X (DR%d ~ DR%d)", opts[i+5], opts[i+5]&0x0F, opts[i+5]>>4);
                 break;
             case LW_MCMD_RXTS_REQ:
                 i+=LW_MCMD_RXTS_REQ_LEN;
                 if((opts[i+1]&0x0F) == 0){
-                    printf("Del: %ds\n", (opts[i+1]&0x0F)+1);
+                    log_puts(LOG_NORMAL, "Del: %ds", (opts[i+1]&0x0F)+1);
                 }else{
-                    printf("Del: %ds\n", opts[i+1]&0x0F);
+                    log_puts(LOG_NORMAL, "Del: %ds", opts[i+1]&0x0F);
                 }
                 break;
                 //Class B
@@ -1092,7 +1145,9 @@ void lw_join_mic(lw_mic_t* mic, lw_key_t *key)
 int lw_join_encrypt(uint8_t *out, lw_key_t *key)
 {
     if((key->len == 0) || (key->len%LW_KEY_LEN != 0)){
-        printf("lw_ja_encrypt input length error [%d]\n", key->len);
+        if(lw_log_flag){
+            log_puts(LOG_ERROR, "lw_ja_encrypt input length error [%d]", key->len);
+        }
         return -1;
     }
 
@@ -1113,7 +1168,9 @@ int lw_join_encrypt(uint8_t *out, lw_key_t *key)
 int lw_join_decrypt(uint8_t *out, lw_key_t *key)
 {
     if((key->len == 0) || (key->len%LW_KEY_LEN != 0)){
-        printf("lw_ja_encrypt input length error [%d]\n", key->len);
+        if(lw_log_flag){
+            log_puts(LOG_ERROR, "lw_ja_encrypt input length error [%d]", key->len);
+        }
         return -1;
     }
 

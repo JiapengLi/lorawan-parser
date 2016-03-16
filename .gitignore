@@ -1,45 +1,38 @@
+# Folders
 bin
 obj
+.deps
+autom4te.cache
+util/parser/lwp
+util/test/test
+# Files
+*~
 *.depend
 *.layout
 *.exe
 *.log
-json
-
-# backup files
-*~
-
-# auxiliary scripts
-/compile
-/missing
-/install-sh
-/depcomp
-/ar-lib
-/libtool
-/ltmain.sh
-/test-driver
-
-# autotools generated files
-/aclocal.m4
+compile
+missing
+install-sh
+depcomp
+ar-lib
+libtool
+ltmain.sh
+test-driver
+aclocal.m4
 *.in
-/configure
-
-# configuration output
-/stamp-*
-/config.*
-/*.cache
+configure
+config.guess
+config.status
+config.sub
+stamp-*
 Makefile
-
-# Compilation output
 *.o
 *.Po
 *.a
 *.la
 *.lo
-
-.deps
+*.patch
 autoscan.log
-util/parser/lwp
-util/test/test
 COPYING
 INSTALL

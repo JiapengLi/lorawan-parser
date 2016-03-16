@@ -1,1 +1,1 @@
-SUBDIRS = lib lw util/parser util/test
+SUBDIRS = lib lw util

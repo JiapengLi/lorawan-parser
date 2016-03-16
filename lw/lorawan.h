@@ -147,6 +147,9 @@ typedef enum{
 #define LW_CMC_ALL_125KHZ_ON        (0xFFFD)
 #define LW_CMC_ALL_125KHZ_OFF       (0xFFFC)
 
+#define LW_LOG_OFF                  (0)
+#define LW_LOG_ON                   (1)
+
 enum{
     FSK = 0,
     SF5 = 5,
@@ -173,6 +176,7 @@ typedef union{
     }bits;
 }lw_dr_t;
 
+int lw_log(int logflag);
 int lw_maccmd(uint8_t mac_header, uint8_t *opts, int len);
 int lw_parse(uint8_t *buf, int len, lw_parse_key_t *pkey);
 int lw_get_dmsg(uint8_t *buf, int max_len);

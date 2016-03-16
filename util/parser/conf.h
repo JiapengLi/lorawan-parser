@@ -1,5 +1,5 @@
-#ifndef __CONFIG_H
-#define __CONFIG_H
+#ifndef __LWP_CONFIG_H
+#define __LWP_CONFIG_H
 
 #include <stdint.h>
 #include <stdbool.h>

@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "parson.h"
-#include "config.h"
+#include "conf.h"
+#include "log.h"
 #include "str2hex.h"
-#include "print.h"
 #include "lorawan.h"
 
 void pl_insert(message_t **head, message_t *new_node)
@@ -299,7 +299,7 @@ int config_parse(const char *file, config_t *config)
         }
     }
 
-    print_spliter();
+    log_line();
     printf("%15s %s\n","BAND:\t", config_band_tab[LW_BAND_EU868]);
     printf("%15s","NWKSKEY:\t");
     putlen(16);

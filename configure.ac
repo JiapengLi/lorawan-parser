@@ -35,7 +35,7 @@ AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
 AC_TYPE_UINT8_T
 
-LWP_CFLAGS='-I$(top_srcdir)/lib -I$(top_srcdir)/lw -I$(top_builddir)/include'
+LWP_CFLAGS='-I$(top_srcdir)/lib/libloragw/inc -I$(top_srcdir)/lib -I$(top_srcdir)/lw'
 AC_SUBST(LWP_CFLAGS)
 
 # Checks for library functions.
@@ -46,7 +46,10 @@ AC_CHECK_FUNCS([munmap memset])
 AC_CONFIG_FILES([
 		Makefile
 		lib/Makefile
+		lib/libloragw/Makefile
+		lib/libloragw/src/Makefile
 		lw/Makefile
+		util/Makefile
 		util/parser/Makefile
 		util/test/Makefile
 		])

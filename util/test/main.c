@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "lorawan.h"
-#include "print.h"
+#include "log.h"
 
 #define PL_LEN                      (sizeof(msg_pl))
 #define PL                          (msg_pl)
@@ -114,7 +115,7 @@ int main(int argc, char **argv)
     lw_skey_seed_t lw_skey_seed;
     int len;
 
-    print_spliter();
+    log_line();
     printf("Test Normal Message MIC\n");
     memcpy(plmic.buf, PL+PL_LEN-4, 4);
     lw_key.aeskey = NWKSKEY;
@@ -137,7 +138,7 @@ int main(int argc, char **argv)
     }
 
 
-    print_spliter();
+    log_line();
     printf("Test Normal Message Decrypt\n");
     /** Test Normal Message Decrypt */
     lw_key.aeskey = APPSKEY;
@@ -158,7 +159,7 @@ int main(int argc, char **argv)
         printf("%s\n", out);
     }
 
-    print_spliter();
+    log_line();
     printf("Test Join Request MIC\n");
     memcpy(plmic.buf, JRPL+JRPL_LEN-4, 4);
     lw_key.aeskey = APPKEY;
@@ -172,7 +173,7 @@ int main(int argc, char **argv)
         printf("Join Request MIC is ERROR\n");
     }
 
-    print_spliter();
+    log_line();
     printf("Test Join Accept Decrypt and MIC\n");
     lw_key.aeskey = APPKEY;
     lw_key.in = JAPL+1;
@@ -201,7 +202,7 @@ int main(int argc, char **argv)
         }
     }
 
-    print_spliter();
+    log_line();
     printf("Test NWKSKEY, APPSKEY generated\n");
     lw_skey_seed.aeskey = APPKEY;
     lw_skey_seed.anonce = anonce;
@@ -237,6 +238,25 @@ int main(int argc, char **argv)
         puthbuf(rappskey, len);
         printf("\n");
     }
+
+    log_init(LOG_LEVEL_VERBOSE);
+
+    log_puts(LOG_NORMAL, "");
+
+    log_puts(LOG_FATAL, "LOG_FATAL");
+    log_puts(LOG_ERROR, "LOG_ERROR");
+    log_puts(LOG_WARN, "LOG_WARN");
+    log_puts(LOG_INFO, "LOG_INFO");
+    log_puts(LOG_DEBUG, "LOG_DEBUG");
+    log_puts(LOG_NORMAL, "LOG_NORMAL");
+
+    char buf[5] = {0, 1, 2, 3, 4};
+    log_hex(LOG_FATAL, buf, 5, "HI%d", 5);
+    log_hex(LOG_ERROR, buf, 5, "HI%d", 5);
+    log_hex(LOG_WARN, buf, 5, "HI%d", 5);
+    log_hex(LOG_INFO, buf, 5, "HI%d", 5);
+    log_hex(LOG_DEBUG, buf, 5, "HI%d", 5);
+    log_hex(LOG_NORMAL, buf, 5, "HI%d", 5);
 
     return 0;
 }

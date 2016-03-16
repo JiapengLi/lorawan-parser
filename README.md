@@ -21,7 +21,14 @@ Depends on tools *libtool*, *automake*. To build:
 lorawan-parser supports [Codeblocks](http://www.codeblocks.org/) project. One could download Codeblocks from its official website.
 
 ### CMake
-*Not supported yet. You are welcome to send me CMake patches.*
+*Not supported yet. You are welcome to submit CMake patches.*
+
+## Raspberry Pi
+
+    sudo apt-get install autoconf libtool
+    autoreconf -i
+    ./configure
+    make
 
 # Usage
 
@@ -56,5 +63,6 @@ parson, AES, CMAC have its own licenses. Please follow links below to get the de
 + Semtech LoRa http://www.semtech.com/wireless-rf/lora.html
 + LoRa Alliance https://www.lora-alliance.org/
 + kgabis. parson (JSON parser) https://github.com/kgabis/parson
++ Semtech LoRa Net lora_gateway https://github.com/lora-net/lora_gateway
 + Brian Gladman. AES library http://www.gladman.me.uk/
 + Lander Casado, Philippas Tsigas. CMAC library http://www.cse.chalmers.se/research/group/dcs/masters/contikisec/
