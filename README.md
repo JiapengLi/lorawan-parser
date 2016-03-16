@@ -4,6 +4,14 @@ This LoRaWAN tool is for LoRaWAN developers who need know the details of LoRaWAN
 
 With lorawan-parser, one could see all details of LoRaWAN, like how frames are defined, how data is encrypted and decrypted etc.
 
+## Features
+
++ Support LoRaWAN 1.0 protocol
++ Support both ABP and OTAA mode device
++ Colorful terminal outputs
++ Cross platform (Tested on Ubuntu, Lubuntu, Raspberry Pi, Windows)
++ (TODO) Live parse LoRaWAN motes message (To support Semtech IoT Start Kit)
+
 # Compile
 
 ## Linux
