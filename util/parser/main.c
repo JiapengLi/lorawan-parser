@@ -18,7 +18,6 @@ config_t config;
 void usage(char *name)
 {
     log_puts(LOG_NORMAL, "Usage: %s [OPTIONS]... [JSON FILE]", name);
-    log_puts(LOG_NORMAL, "Configure RisingHF LoRaWAN devices");
     log_puts(LOG_NORMAL, " -h    Help");
     log_puts(LOG_NORMAL, " -c    Get configuration from json format file");
 }
