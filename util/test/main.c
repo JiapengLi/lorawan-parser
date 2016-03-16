@@ -250,7 +250,7 @@ int main(int argc, char **argv)
     log_puts(LOG_DEBUG, "LOG_DEBUG");
     log_puts(LOG_NORMAL, "LOG_NORMAL");
 
-    char buf[5] = {0, 1, 2, 3, 4};
+    uint8_t buf[5] = {0, 1, 2, 3, 4};
     log_hex(LOG_FATAL, buf, 5, "HI%d", 5);
     log_hex(LOG_ERROR, buf, 5, "HI%d", 5);
     log_hex(LOG_WARN, buf, 5, "HI%d", 5);

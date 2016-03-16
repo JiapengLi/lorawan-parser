@@ -442,8 +442,8 @@ int lw_mtype_msg_up(uint8_t *msg, int len, lw_parse_key_t *pkey)
 
     lw_ul_fctrl_t fctrl;
     int16_t port;
-    int pl_len;
-    int pl_index;
+    int pl_len = 0;
+    int pl_index = 0;
     uint8_t out[255];
 
     /** calculate MIC */
@@ -551,8 +551,8 @@ int lw_mtype_msg_down(uint8_t *msg, int len, lw_parse_key_t *pkey)
 
     lw_dl_fctrl_t fctrl;
     int16_t port;
-    int pl_len;
-    int pl_index;
+    int pl_len = 0;
+    int pl_index = 0;
 
     /** calculate MIC */
     memcpy(plmic.buf, msg+len-4, 4);

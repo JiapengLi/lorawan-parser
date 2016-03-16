@@ -36,3 +36,4 @@ Makefile
 autoscan.log
 COPYING
 INSTALL
+json

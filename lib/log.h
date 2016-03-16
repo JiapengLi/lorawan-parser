@@ -19,7 +19,7 @@ typedef enum{
 
 int log_init(log_level_t level);
 void log_puts(int priority, const char *format, ...);
-void log_hex(int priority, const char *buf, int len, const char *format, ...);
+void log_hex(int priority, const uint8_t *buf, int len, const char *format, ...);
 void log_line(void);
 
 void putlen(int len);
