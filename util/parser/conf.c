@@ -43,11 +43,10 @@ void pl_print(message_t *head)
 
     while(head != NULL){
         char buf[100];
+        char len[10];
         sprintf(buf, " %d MESSAGE:\t", i);
-        printf("%15s",buf);
-        putlen(head->len);
-        puthbuf(head->buf, head->len);
-        printf("\n");
+        sprintf(len, "<%d>", head->len);
+        log_hex(LOG_NORMAL, head->buf, head->len, "%15s%6s", buf, len);
         head = head->next;
         i++;
     }
@@ -59,12 +58,10 @@ void maccmd_print(message_t *head)
 
     while(head != NULL){
         char buf[100];
+        char len[10];
         sprintf(buf, " %d MACCMD:\t", i);
-        printf("%15s",buf);
-        putlen(head->len-1);
-        printf("[%02X] ", head->buf[0]);
-        puthbuf(head->buf+1, head->len-1);
-        printf("\n");
+        sprintf(len, "<%d>", head->len-1);
+        log_hex(LOG_NORMAL, head->buf+1, head->len-1, "%15s%6s [%02X]", buf, len, head->buf[0]);
         head = head->next;
         i++;
     }
@@ -101,6 +98,7 @@ int config_parse(const char *file, config_t *config)
     const char *string;
     int ret;
     int i;
+    char sbuf[100], slen[10];
 
     if(file == NULL){
         return -1;
@@ -108,8 +106,6 @@ int config_parse(const char *file, config_t *config)
 
     /** Clear all flags */
     config_free(config);
-
-    printf("Start parsing configuration file....\n\n");
 
     /* parsing json and validating output */
     jvroot = json_parse_file_with_comments(file);
@@ -220,15 +216,15 @@ int config_parse(const char *file, config_t *config)
                     memcpy(pl->buf, tmp, pl->len);
                     pl_insert(&config->message, pl);
                 }else{
-                    printf("Messages[%d] \"%s\" is not hex string\n", i, string);
+                    log_puts(LOG_WARN, "Messages[%d] \"%s\" is not hex string\n", i, string);
 
                 }
             }else{
-                printf("Messages item %d is not string\n", i);
+                log_puts(LOG_WARN, "Messages item %d is not string\n", i);
             }
         }
     }else{
-        printf("Can't get payload array\n");
+        log_puts(LOG_WARN, "Can't get \"messages\" payload array\n");
     }
 
     jarray = json_object_get_array(joroot, "maccommands");
@@ -242,7 +238,7 @@ int config_parse(const char *file, config_t *config)
             if(string != NULL){
                 len = str2hex(string, &mhdr, 1);
                 if(len != 1){
-                    printf("\"maccommands\"[%d].MHDR \"%s\" must be 1 byte hex string\n", i, string);
+                    log_puts(LOG_WARN, "\"maccommands\"[%d].MHDR \"%s\" must be 1 byte hex string\n", i, string);
                     continue;
                 }
             }else{
@@ -251,7 +247,7 @@ int config_parse(const char *file, config_t *config)
                     int j;
                     len = strlen(string);
                     if(len>200){
-                        printf("\"maccommands\"[%d].direction \"%s\" too long\n", i, string);
+                        log_puts(LOG_WARN, "\"maccommands\"[%d].direction \"%s\" too long\n", i, string);
                         continue;
                     }
                     for(j=0; j<len; j++){
@@ -263,11 +259,11 @@ int config_parse(const char *file, config_t *config)
                     }else if(0==strcmp((char *)tmp, "down")){
                         mhdr = 0xA0;
                     }else{
-                        printf("\"maccommands\"[%d].MHDR \"%s\" must be 1 byte hex string\n", i, string);
+                        log_puts(LOG_WARN, "\"maccommands\"[%d].MHDR \"%s\" must be 1 byte hex string\n", i, string);
                         continue;
                     }
                 }else{
-                    printf("Can't recognize maccommand direction\n");
+                    log_puts(LOG_WARN, "Can't recognize maccommand direction\n");
                     continue;
                 }
             }
@@ -275,11 +271,11 @@ int config_parse(const char *file, config_t *config)
             if(string != NULL){
                 len = str2hex(string, tmp, 255);
                 if(len <= 0){
-                    printf("\"maccommands\"[%d].command \"%s\" is not hex string\n", i, string);
+                    log_puts(LOG_WARN, "\"maccommands\"[%d].command \"%s\" is not hex string\n", i, string);
                     continue;
                 }
             }else{
-                printf("c\"maccommands\"[%d].command is not string\n", i);
+                log_puts(LOG_WARN, "c\"maccommands\"[%d].command is not string\n", i);
                 continue;
             }
             message_t *pl = malloc(sizeof(message_t));
@@ -300,27 +296,22 @@ int config_parse(const char *file, config_t *config)
     }
 
     log_line();
-    printf("%15s %s\n","BAND:\t", config_band_tab[LW_BAND_EU868]);
-    printf("%15s","NWKSKEY:\t");
-    putlen(16);
-    puthbuf(config->nwkskey, 16);
-    printf("\n");
-    printf("%15s","APPSKEY:\t");
-    putlen(16);
-    puthbuf(config->appskey, 16);
-    printf("\n");
-    printf("%15s","APPKEY:\t");
-    putlen(16);
-    puthbuf(config->appkey, 16);
-    printf("\n");
-    printf("%15s","JOINR:\t");
-    putlen(config->joinr_size);
-    puthbuf(config->joinr, config->joinr_size );
-    printf("\n");
-    printf("%15s","JOINA:\t");
-    putlen(config->joina_size);
-    puthbuf(config->joina, config->joina_size );
-    printf("\n");
+    log_puts(LOG_NORMAL, "%15s %s","BAND:\t", config_band_tab[LW_BAND_EU868]);
+    sprintf(sbuf, "NWKSKEY:\t");
+    sprintf(slen, "<%d>", 16);
+    log_hex(LOG_NORMAL, config->nwkskey, 16, "%15s%6s", sbuf, slen);
+    sprintf(sbuf, "APPSKEY:\t");
+    sprintf(slen, "<%d>", 16);
+    log_hex(LOG_NORMAL, config->appskey, 16, "%15s%6s", sbuf, slen);
+    sprintf(sbuf, "APPKEY:\t");
+    sprintf(slen, "<%d>", 16);
+    log_hex(LOG_NORMAL, config->appkey, 16, "%15s%6s", sbuf, slen);
+    sprintf(sbuf, "JOINR:\t");
+    sprintf(slen, "<%d>", config->joinr_size);
+    log_hex(LOG_NORMAL, config->joinr, config->joinr_size, "%15s%6s", sbuf, slen);
+    sprintf(sbuf, "JOINA:\t");
+    sprintf(slen, "<%d>", config->joina_size);
+    log_hex(LOG_NORMAL, config->joina, config->joina_size, "%15s%6s", sbuf, slen);
     pl_print(config->message);
     maccmd_print(config->maccmd);
 

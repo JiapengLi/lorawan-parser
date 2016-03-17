@@ -116,7 +116,7 @@ int main(int argc, char **argv)
     int len;
 
     log_line();
-    printf("Test Normal Message MIC\n");
+    log_puts(LOG_NORMAL, "Test Normal Message MIC\n");
     memcpy(plmic.buf, PL+PL_LEN-4, 4);
     lw_key.aeskey = NWKSKEY;
     lw_key.in = PL;
@@ -130,16 +130,16 @@ int main(int argc, char **argv)
 
     lw_msg_mic(&mic, &lw_key);
 
-    printf("%08X len:%d\n", mic.data, lw_key.len);
+    log_puts(LOG_NORMAL, "%08X len:%d\n", mic.data, lw_key.len);
     if(mic.data == plmic.data){
-        printf("MIC is OK\n");
+        log_puts(LOG_NORMAL, "MIC is OK\n");
     }else{
-        printf("MIC is ERROR\n");
+        log_puts(LOG_NORMAL, "MIC is ERROR\n");
     }
 
 
     log_line();
-    printf("Test Normal Message Decrypt\n");
+    log_puts(LOG_NORMAL, "Test Normal Message Decrypt\n");
     /** Test Normal Message Decrypt */
     lw_key.aeskey = APPSKEY;
     lw_key.in = PL + 13 - 4;
@@ -154,27 +154,27 @@ int main(int argc, char **argv)
     len = lw_encrypt(out, &lw_key);
     out[len] = 0;
     if(len>0){
-        printf("Message MIC is OK\n");
-        puthbuf(out, len);
-        printf("%s\n", out);
+        log_puts(LOG_NORMAL, "Message MIC is OK\n");
+        log_hex(LOG_NORMAL, out, len, 0);
+        log_puts(LOG_NORMAL, "%s\n", out);
     }
 
     log_line();
-    printf("Test Join Request MIC\n");
+    log_puts(LOG_NORMAL, "Test Join Request MIC\n");
     memcpy(plmic.buf, JRPL+JRPL_LEN-4, 4);
     lw_key.aeskey = APPKEY;
     lw_key.in = JRPL;
     lw_key.len = JRPL_LEN-4;
     lw_join_mic(&mic, &lw_key);
-    printf("%08X len:%d\n", mic.data, lw_key.len);
+    log_puts(LOG_NORMAL, "%08X len:%d\n", mic.data, lw_key.len);
     if(mic.data == plmic.data){
-        printf("Join Request MIC is OK\n");
+        log_puts(LOG_NORMAL, "Join Request MIC is OK\n");
     }else{
-        printf("Join Request MIC is ERROR\n");
+        log_puts(LOG_NORMAL, "Join Request MIC is ERROR\n");
     }
 
     log_line();
-    printf("Test Join Accept Decrypt and MIC\n");
+    log_puts(LOG_NORMAL, "Test Join Accept Decrypt and MIC\n");
     lw_key.aeskey = APPKEY;
     lw_key.in = JAPL+1;
     lw_key.len = JAPL_LEN-1;
@@ -182,61 +182,47 @@ int main(int argc, char **argv)
     len = lw_join_decrypt(out+1, &lw_key);
 
     if(len>0){
-        printf("Join accept encrypted payload:(%d)\n", JAPL_LEN);
-        puthbuf(JAPL, JAPL_LEN);
-        printf("\n");
-        printf("Join accept decrypted payload:(%d)\n", JAPL_LEN);
-        puthbuf(out, JAPL_LEN);
-        printf("\n");
+        log_puts(LOG_NORMAL, "Join accept encrypted payload:(%d)\n", JAPL_LEN);
+        log_hex(LOG_NORMAL, JAPL, JAPL_LEN, 0);
+        log_puts(LOG_NORMAL, "Join accept decrypted payload:(%d)\n", JAPL_LEN);
+        log_hex(LOG_NORMAL, out, JAPL_LEN, 0);
 
         memcpy(plmic.buf, out+JAPL_LEN-4, 4);
         lw_key.aeskey = APPKEY;
         lw_key.in = out;
         lw_key.len = JAPL_LEN-4;
         lw_join_mic(&mic, &lw_key);
-        printf("%08X len:%d\n", mic.data, lw_key.len);
+        log_puts(LOG_NORMAL, "%08X len:%d\n", mic.data, lw_key.len);
         if(mic.data == plmic.data){
-            printf("Join Request MIC is OK\n");
+            log_puts(LOG_NORMAL, "Join Request MIC is OK\n");
         }else{
-            printf("Join Request MIC is ERROR\n");
+            log_puts(LOG_NORMAL, "Join Request MIC is ERROR\n");
         }
     }
 
     log_line();
-    printf("Test NWKSKEY, APPSKEY generated\n");
+    log_puts(LOG_NORMAL, "Test NWKSKEY, APPSKEY generated\n");
     lw_skey_seed.aeskey = APPKEY;
     lw_skey_seed.anonce = anonce;
     lw_skey_seed.dnonce = dnonce;
     lw_skey_seed.netid = netid;
     lw_get_skeys(nwkskey, appskey, &lw_skey_seed);
     if(memcmp(nwkskey, rnwkskey, 16) == 0){
-        printf("NWKSKEY generated successfully\n");
-        printf("NWKSKEY:\t");
-        puthbuf(nwkskey, len);
-        printf("\n");
+        log_puts(LOG_NORMAL, "NWKSKEY generated successfully\n");
+        log_hex(LOG_NORMAL, nwkskey, len, "NWKSKEY:\t");
     }else{
-        printf("NWKSKEY generated failed\n");
-        printf("nwkskey:\t");
-        puthbuf(nwkskey, len);
-        printf("\n");
-        printf("rnwkskey:\t");
-        puthbuf(rnwkskey, len);
-        printf("\n");
+        log_puts(LOG_NORMAL,"NWKSKEY generated failed\n");
+        log_hex(LOG_NORMAL, nwkskey, len, "nwkskey:\t");
+        log_hex(LOG_NORMAL, rnwkskey, len, "rnwkskey:\t");
     }
 
     if(memcmp(appskey, rappskey, 16) == 0){
-        printf("APPSKEY generated successfully\n");
-        printf("APPSKEY:\t");
-        puthbuf(appskey, len);
-        printf("\n");
+        log_puts(LOG_NORMAL, "APPSKEY generated successfully\n");
+        log_hex(LOG_NORMAL, appskey, len, "APPSKEY:\t");
     }else{
-        printf("APPSKEY generated failed\n");
-        printf("appskey: ");
-        puthbuf(appskey, len);
-        printf("\n");
-        printf("rappskey: ");
-        puthbuf(rappskey, len);
-        printf("\n");
+        log_puts(LOG_NORMAL, "APPSKEY generated failed\n");
+        log_hex(LOG_NORMAL, appskey, len, "appskey:\t");
+        log_hex(LOG_NORMAL, rappskey, len, "rappskey:\t");
     }
 
     log_init(LOG_LEVEL_VERBOSE);

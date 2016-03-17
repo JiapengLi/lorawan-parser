@@ -243,18 +243,3 @@ void log_line(void)
 {
     printf("\n\n--------------------------------------------------------------------------------\n");
 }
-
-void puthbuf(uint8_t *buf, int len)
-{
-    int i;
-    for(i=0; i<len; i++){
-        printf("%02X ", buf[i]);
-    }
-}
-
-void putlen(int len)
-{
-    char buf[10];
-    sprintf(buf, "<%d> ", len);
-    printf("%6s", buf);
-}

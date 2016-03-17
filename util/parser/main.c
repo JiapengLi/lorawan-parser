@@ -13,7 +13,8 @@
 #include "str2hex.h"
 #include "log.h"
 
-config_t config;
+static config_t config;
+static int logflag;
 
 void usage(char *name)
 {
@@ -21,7 +22,6 @@ void usage(char *name)
     log_puts(LOG_NORMAL, " -h    Help");
     log_puts(LOG_NORMAL, " -c    Get configuration from json format file");
 }
-
 
 int main(int argc, char **argv)
 {
@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 //        log_puts(LOG_NORMAL, "arg%d %s", i, argv[i]);
 //    }
 
-    lw_log(LW_LOG_OFF);
+    logflag = lw_log(LW_LOG_ON);
 
     while ((i = getopt (argc, argv, "hc:")) != -1) {
         switch (i) {
@@ -141,7 +141,9 @@ int main(int argc, char **argv)
     /** parse command list */
     ll_head = config.maccmd;
     while(ll_head != NULL){
-        log_line();
+        if(logflag){
+            log_line();
+        }
         /** buf[0] -> MHDR, buf[1] ~ buf[n] -> maccmd */
         ret = lw_maccmd(ll_head->buf[0], ll_head->buf+1, ll_head->len-1);
         if(ret < 0){

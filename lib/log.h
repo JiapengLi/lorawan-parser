@@ -22,8 +22,5 @@ void log_puts(int priority, const char *format, ...);
 void log_hex(int priority, const uint8_t *buf, int len, const char *format, ...);
 void log_line(void);
 
-void putlen(int len);
-void puthbuf(uint8_t *buf, int len);
-
 #endif // __LOG_H
 
