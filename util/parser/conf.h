@@ -18,6 +18,22 @@ typedef struct message{
     struct message *next;
 }message_t;
 
+typedef struct motes_abp{
+    uint8_t band;
+    uint8_t devaddr[4];
+    uint8_t nwkskey[16];
+    uint8_t appskey[16];
+    struct message *next;
+}motes_abp_t;
+
+typedef struct motes_abp{
+    uint8_t band;
+    uint8_t devaddr[4];
+    uint8_t nwkskey[16];
+    uint8_t appskey[16];
+    struct message *next;
+}motes_abp_t;
+
 typedef struct{
     uint32_t flag;
     uint8_t nwkskey[16];
