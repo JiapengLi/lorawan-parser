@@ -33,6 +33,8 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
+			<Add directory="../../lib" />
+			<Add directory="../../lw" />
 		</Compiler>
 		<Unit filename="../../lib/aes.c">
 			<Option compilerVar="CC" />
@@ -42,6 +44,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../../lib/cmac.h" />
+		<Unit filename="../../lib/log.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../lib/log.h" />
 		<Unit filename="../../lw/lorawan.c">
 			<Option compilerVar="CC" />
 		</Unit>
