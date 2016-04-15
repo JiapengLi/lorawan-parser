@@ -7,14 +7,14 @@
 #include "cmac.h"
 #include "log.h"
 
-int lw_mtype_join_accept(uint8_t *buf, int len, lw_parse_key_t *pkey);
-int lw_mtype_join_request(uint8_t *buf, int len, lw_parse_key_t *pkey);
-int lw_mtype_msg_up(uint8_t *buf, int len, lw_parse_key_t *pkey);
-int lw_mtype_msg_down(uint8_t *buf, int len, lw_parse_key_t *pkey);
-int lw_mtype_cmsg_up(uint8_t *buf, int len, lw_parse_key_t *pkey);
-int lw_mtype_cmsg_down(uint8_t *buf, int len, lw_parse_key_t *pkey);
-int lw_mtype_rfu(uint8_t *buf, int len, lw_parse_key_t *pkey);
-int lw_mtype_proprietary(uint8_t *buf, int len, lw_parse_key_t *pkey);
+int lw_mtype_join_accept(uint8_t *buf, int len, lw_parse_key_t *pkey, uint32_t fcnt16_msb);
+int lw_mtype_join_request(uint8_t *buf, int len, lw_parse_key_t *pkey, uint32_t fcnt16_msb);
+int lw_mtype_msg_up(uint8_t *buf, int len, lw_parse_key_t *pkey, uint32_t fcnt16_msb);
+int lw_mtype_msg_down(uint8_t *buf, int len, lw_parse_key_t *pkey, uint32_t fcnt16_msb);
+int lw_mtype_cmsg_up(uint8_t *buf, int len, lw_parse_key_t *pkey, uint32_t fcnt16_msb);
+int lw_mtype_cmsg_down(uint8_t *buf, int len, lw_parse_key_t *pkey, uint32_t fcnt16_msb);
+int lw_mtype_rfu(uint8_t *buf, int len, lw_parse_key_t *pkey, uint32_t fcnt16_msb);
+int lw_mtype_proprietary(uint8_t *buf, int len, lw_parse_key_t *pkey, uint32_t fcnt16_msb);
 
 #define LW_FLAG_BUF_OK                  (1<<0)
 #define LW_FLAG_DNONCE_OK               (1<<1)
@@ -30,7 +30,7 @@ lw_netid_t lw_netid;
 uint8_t lw_appskey[LW_KEY_LEN];
 uint8_t lw_nwkskey[LW_KEY_LEN];
 
-typedef int (*lw_mtype_func_p) (uint8_t *buf, int len, lw_parse_key_t *pkey);
+typedef int (*lw_mtype_func_p) (uint8_t *buf, int len, lw_parse_key_t *pkey, uint32_t fcnt16_msb);
 
 const uint8_t lw_dr_tab[][16] = {
     /* EU868 */
@@ -237,7 +237,7 @@ int lw_log(int logflag)
     return lw_log_flag;
 }
 
-int lw_parse(uint8_t *buf, int len, lw_parse_key_t *pkey)
+int lw_parse(uint8_t *buf, int len, lw_parse_key_t *pkey, uint32_t fcnt16_msb)
 {
     lw_mhdr_t mhdr;
     int ret;
@@ -269,7 +269,7 @@ int lw_parse(uint8_t *buf, int len, lw_parse_key_t *pkey)
         log_puts(LOG_NORMAL, "%s", lw_mtype_str[mhdr.bits.mtype]);
     }
 
-    ret = lwp_mtye_func[mhdr.bits.mtype](buf, len, pkey);
+    ret = lwp_mtye_func[mhdr.bits.mtype](buf, len, pkey, fcnt16_msb);
 
     if(ret == LW_OK){
         lw_flag |= LW_FLAG_BUF_OK;
@@ -281,7 +281,7 @@ int lw_parse(uint8_t *buf, int len, lw_parse_key_t *pkey)
     return ret;
 }
 
-int lw_mtype_join_request(uint8_t *buf, int len, lw_parse_key_t *pkey)
+int lw_mtype_join_request(uint8_t *buf, int len, lw_parse_key_t *pkey, uint32_t fcnt16_msb)
 {
     lw_mic_t mic;
     lw_mic_t plmic;
@@ -337,7 +337,7 @@ int lw_mtype_join_request(uint8_t *buf, int len, lw_parse_key_t *pkey)
     return LW_OK;
 }
 
-int lw_mtype_join_accept(uint8_t *buf, int len, lw_parse_key_t *pkey)
+int lw_mtype_join_accept(uint8_t *buf, int len, lw_parse_key_t *pkey, uint32_t fcnt16_msb)
 {
     lw_mic_t mic;
     lw_mic_t plmic;
@@ -434,7 +434,7 @@ int lw_mtype_join_accept(uint8_t *buf, int len, lw_parse_key_t *pkey)
     return LW_OK;
 }
 
-int lw_mtype_msg_up(uint8_t *msg, int len, lw_parse_key_t *pkey)
+int lw_mtype_msg_up(uint8_t *msg, int len, lw_parse_key_t *pkey, uint32_t fcnt16_msb)
 {
     lw_mic_t mic;
     lw_mic_t plmic;
@@ -453,7 +453,7 @@ int lw_mtype_msg_up(uint8_t *msg, int len, lw_parse_key_t *pkey)
     lw_key.len = len-4;
     lw_key.link = LW_UPLINK;
     memcpy(lw_key.devaddr.buf, msg+LW_DATA_OFF_DEVADDR, 4);
-    lw_key.fcnt32 = ((uint32_t)msg[LW_DATA_OFF_FCNT+1]<<8) + msg[LW_DATA_OFF_FCNT];
+    lw_key.fcnt32 = ((uint32_t)msg[LW_DATA_OFF_FCNT+1]<<8) + msg[LW_DATA_OFF_FCNT] + (fcnt16_msb<<16);
     lw_msg_mic(&mic, &lw_key);
 
     if(mic.data != plmic.data){
@@ -538,12 +538,12 @@ int lw_mtype_msg_up(uint8_t *msg, int len, lw_parse_key_t *pkey)
     return LW_OK;
 }
 
-int lw_mtype_cmsg_up(uint8_t *msg, int len, lw_parse_key_t *pkey)
+int lw_mtype_cmsg_up(uint8_t *msg, int len, lw_parse_key_t *pkey, uint32_t fcnt16_msb)
 {
-    return lw_mtype_msg_up(msg, len, pkey);
+    return lw_mtype_msg_up(msg, len, pkey, fcnt16_msb);
 }
 
-int lw_mtype_msg_down(uint8_t *msg, int len, lw_parse_key_t *pkey)
+int lw_mtype_msg_down(uint8_t *msg, int len, lw_parse_key_t *pkey, uint32_t fcnt16_msb)
 {
     lw_mic_t mic;
     lw_mic_t plmic;
@@ -561,7 +561,7 @@ int lw_mtype_msg_down(uint8_t *msg, int len, lw_parse_key_t *pkey)
     lw_key.len = len-4;
     lw_key.link = LW_DOWNLINK;
     memcpy(lw_key.devaddr.buf, msg+LW_DATA_OFF_DEVADDR, 4);
-    lw_key.fcnt32 = ((uint32_t)msg[LW_DATA_OFF_FCNT+1]<<8) + msg[LW_DATA_OFF_FCNT];
+    lw_key.fcnt32 = ((uint32_t)msg[LW_DATA_OFF_FCNT+1]<<8) + msg[LW_DATA_OFF_FCNT] + (fcnt16_msb<<16);
     lw_msg_mic(&mic, &lw_key);
 
     if(mic.data != plmic.data){
@@ -647,17 +647,17 @@ int lw_mtype_msg_down(uint8_t *msg, int len, lw_parse_key_t *pkey)
     return LW_OK;
 }
 
-int lw_mtype_cmsg_down(uint8_t *msg, int len, lw_parse_key_t *pkey)
+int lw_mtype_cmsg_down(uint8_t *msg, int len, lw_parse_key_t *pkey, uint32_t fcnt16_msb)
 {
-    return lw_mtype_msg_down(msg, len, pkey);
+    return lw_mtype_msg_down(msg, len, pkey, fcnt16_msb);
 }
 
-int lw_mtype_rfu(uint8_t *msg, int len, lw_parse_key_t *pkey)
+int lw_mtype_rfu(uint8_t *msg, int len, lw_parse_key_t *pkey, uint32_t fcnt16_msb)
 {
     return LW_OK;
 }
 
-int lw_mtype_proprietary(uint8_t *msg, int len, lw_parse_key_t *pkey)
+int lw_mtype_proprietary(uint8_t *msg, int len, lw_parse_key_t *pkey, uint32_t fcnt16_msb)
 {
     return LW_OK;
 }

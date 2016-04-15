@@ -178,7 +178,7 @@ typedef union{
 
 int lw_log(int logflag);
 int lw_maccmd(uint8_t mac_header, uint8_t *opts, int len);
-int lw_parse(uint8_t *buf, int len, lw_parse_key_t *pkey);
+int lw_parse(uint8_t *buf, int len, lw_parse_key_t *pkey, uint32_t fcnt16_msb);
 int lw_get_dmsg(uint8_t *buf, int max_len);
 int lw_get_devnonce(lw_dnonce_t *dnonce);
 int lw_get_appnonce(lw_anonce_t *anonce);

@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 
     /** try to parse join request/accept message */
     if(config.flag&CFLAG_JOINR){
-        if(0==lw_parse(config.joinr, config.joinr_size, &pkey)){
+        if(0==lw_parse(config.joinr, config.joinr_size, &pkey, 0)){
 
         }
     }
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
         /** If get join request and accept is parsed,
         then try to generate new key with JION transaction,
         the new generated key will be used to parse message */
-        if(0==lw_parse(config.joina, config.joina_size, &pkey)){
+        if(0==lw_parse(config.joina, config.joina_size, &pkey, 0)){
             if( 0==lw_get_devnonce(&devnonce) && 0==lw_get_appnonce(&appnonce) && 0==lw_get_netid(&netid) ){
                 lw_skey_seed.aeskey = config.appkey;
                 lw_skey_seed.anonce = appnonce;
@@ -131,7 +131,7 @@ int main(int argc, char **argv)
     /** parse all data message */
     ll_head = config.message;
     while(ll_head != NULL){
-        ret = lw_parse(ll_head->buf, ll_head->len, &pkey);
+        ret = lw_parse(ll_head->buf, ll_head->len, &pkey, 0);
         if(ret < 0){
             log_puts(LOG_ERROR, "DATA MESSAGE PARSE error(%d)", ret);
         }

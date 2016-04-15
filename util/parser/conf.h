@@ -23,16 +23,15 @@ typedef struct motes_abp{
     uint8_t devaddr[4];
     uint8_t nwkskey[16];
     uint8_t appskey[16];
-    struct message *next;
+    struct motes_abp *next;
 }motes_abp_t;
 
-typedef struct motes_abp{
+typedef struct motes_otaa{
     uint8_t band;
-    uint8_t devaddr[4];
-    uint8_t nwkskey[16];
-    uint8_t appskey[16];
-    struct message *next;
-}motes_abp_t;
+    uint8_t deveui[8];
+    uint8_t appkey[16];
+    struct motes_otaa *next;
+}motes_otaa_t;
 
 typedef struct{
     uint32_t flag;
@@ -48,7 +47,6 @@ typedef struct{
     message_t *message;
     message_t *maccmd;
 }config_t;
-
 
 int config_parse(const char *file, config_t *config);
 void config_free(config_t *config);

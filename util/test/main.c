@@ -80,6 +80,8 @@ uint8_t ja_pl[]={
 //appskey = 80 A3 4F C1 8A F5 61 DC 6F 7D E3 70 8F 60 8D 0B
 //nwkskey = DE 07 EF E7 FF 92 F8 19 08 38 09 0D B4 EE A5 01
 
+
+
 lw_netid_t netid = {
     .buf[0] = 0x24,
     .buf[1] = 0x00,
@@ -243,6 +245,40 @@ int main(int argc, char **argv)
     log_hex(LOG_INFO, buf, 5, "HI%d", 5);
     log_hex(LOG_DEBUG, buf, 5, "HI%d", 5);
     log_hex(LOG_NORMAL, buf, 5, "HI%d", 5);
+
+    /** Example to show how to use lorawan parser find frame counter most-significant bits */
+    uint32_t fcnt = 0;
+    do{
+        lw_parse_key_t pkey;
+        uint8_t askey[]={
+            0x3B, 0x7E, 0x15, 0x16, 0x28, 0xAE, 0xD2, 0xA6,
+            0xAB, 0xF7, 0x15, 0x88, 0x09, 0xCF, 0x4F, 0x3C
+        };
+
+        uint8_t nskey[]={
+            0x3B, 0x7E, 0x15, 0x16, 0x28, 0xAE, 0xD2, 0xA6,
+            0xAB, 0xF7, 0x15, 0x88, 0x09, 0xCF, 0x4F, 0x3C
+        };
+        uint8_t buf[]={
+            0x40 , 0x01 , 0x00 , 0x00 , 0x00 , 0x80 , 0x52 ,
+            0x92 , 0x08 , 0xBA , 0x82 , 0x5C , 0x67 , 0x5E ,
+            0x36 , 0x80 , 0x59 , 0x52 , 0x62 , 0xAC , 0x9A , 0xEC
+        };
+        int ret;
+
+        pkey.nwkskey = nskey;
+        pkey.flag.bits.nwkskey = 1;
+        pkey.appskey = askey;
+        pkey.flag.bits.appskey = 1;
+
+        ret = lw_parse(buf, 22, &pkey, fcnt++);
+        if(ret < 0){
+            //log_puts(LOG_ERROR, "DATA MESSAGE PARSE error(%d)", ret);
+        }else{
+            log_puts(LOG_INFO, "FRAME COUNTER 0x%08X", fcnt<<16);
+            return 0;
+        }
+    }while(fcnt<1000);
 
     return 0;
 }
