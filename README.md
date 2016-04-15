@@ -1,3 +1,5 @@
+# There is plan to make some updates to make the LoRaWAN parser API more flexible, welcome to suggest.
+
 # Introduction
 
 This LoRaWAN tool is for LoRaWAN developers who need know the details of LoRaWAN protocol.
@@ -54,6 +56,9 @@ To go further, user could fill their own LoRaWAN frames in a json file to parse 
 ## Limitation
 
 lorawan-parser only handles frames of which real frame counter is less than 0xFFFF, this is because an exact LoRaWAN frame only record low 16bits of the frame, the parser alwarys assumes the high 16bits is zero.
+
+### Frame counter enhancement
+API is updated to receive frame counter 16 most-significante bits passed from user. This makes it possible to emunate the frame counter most significante bits when a frame is known to be valid
 
 # Contribute
 
