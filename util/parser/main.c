@@ -16,11 +16,53 @@
 static config_t config;
 static int logflag;
 
+/**
+    JR: Join Request
+    JA: Join Accept
+    UU: Unconfirmed Data Up
+    UD: Unconfirmed Data Down
+    CU: Confirmed Data Up
+    CD: Confirmed Data Down
+    P:  Proprietary
+*/
 void usage(char *name)
 {
-    log_puts(LOG_NORMAL, "Usage: %s [OPTIONS]... [JSON FILE]", name);
-    log_puts(LOG_NORMAL, " -h    Help");
-    log_puts(LOG_NORMAL, " -c    Get configuration from json format file");
+    log_puts(LOG_NORMAL, "Usage: %s [OPTIONS]", name);
+    log_puts(LOG_NORMAL, " -h                       Help");
+    log_puts(LOG_NORMAL, " -v                       Version");
+    log_line();
+    log_puts(LOG_NORMAL, " -c           <file>      Get configuration from json format file");
+    log_puts(LOG_NORMAL, " -m           <hex>       Parse MAC command");
+    log_puts(LOG_NORMAL, " -p                       Parse packet");
+    log_puts(LOG_NORMAL, " -g                       Generate one packet");
+    log_line();
+    log_puts(LOG_NORMAL, " -B           <string>    Physical band EU868/US915/EU434/AU920/CN780/CN470");
+    log_puts(LOG_NORMAL, " -N           <hex>       NwkSKey");
+    log_puts(LOG_NORMAL, " -A           <hex>       AppSKey");
+    log_puts(LOG_NORMAL, " -K           <hex>       AppKey");
+    log_line();
+    log_puts(LOG_NORMAL, " -T           <string>    Frame type (JR/JA/UU/UD/CU/CD/P)");
+    log_puts(LOG_NORMAL, " -D           <hex>       DevAddr");
+    log_puts(LOG_NORMAL, " --devaddr    <hex>       DevAddr, same as devaddr");
+    log_puts(LOG_NORMAL, " --ack                    FCtrl ACK");
+    log_puts(LOG_NORMAL, " --aareq                  FCtrl ADRACKReq");
+    log_puts(LOG_NORMAL, " --adr                    FCtrl ADR");
+    log_puts(LOG_NORMAL, " -O           <hex>       FOpts, LoRaWAN Options");
+    log_puts(LOG_NORMAL, " -C           <int>       Frame counter");
+    log_puts(LOG_NORMAL, " -P           <int>       Port");
+    log_line();
+    log_puts(LOG_NORMAL, " -F           <hex>       Payload for generating, or LoRaWAN frame for parsing");
+    log_line();
+    log_puts(LOG_NORMAL, " --appeui     <hex>       AppEui");
+    log_puts(LOG_NORMAL, " --deveui     <hex>       DevEui");
+    log_puts(LOG_NORMAL, " --anonce     <hex>       AppNonce");
+    log_puts(LOG_NORMAL, " --dnonce     <hex>       DevNonce");
+    log_puts(LOG_NORMAL, " --netid      <hex>       NetId");
+    log_puts(LOG_NORMAL, " --cflist     <hex>       CFList");
+    log_puts(LOG_NORMAL, " --rx1droft   <int>       RX1DRoffset (0~7)");
+    log_puts(LOG_NORMAL, " --rx2dr      <int>       RX2DataRate (0~15)");
+    log_puts(LOG_NORMAL, " --rxdelay    <int>       RxDelay (0~15)");
+
 }
 
 int main(int argc, char **argv)
