@@ -758,11 +758,7 @@ int lw_maccmd(uint8_t mac_header, uint8_t *opts, int len)
 
     mhdr.data = mac_header;
 
-    if(lw_band != LW_BAND_US915){
-        band = LW_BAND_US915;
-    }else{
-        band = LW_BAND_EU868;
-    }
+    band = lw_band;
 
     // Traverse all possible commands, if any of them is invalid terminate and return error
     i=0;
@@ -913,29 +909,28 @@ int lw_maccmd(uint8_t mac_header, uint8_t *opts, int len)
             switch(opts[i]){
                 // Class A
             case LW_MCMD_LCHK_REQ:
-                i+=LW_MCMD_LCHK_REQ_LEN;
                 lw_no_pl();
+                i+=LW_MCMD_LCHK_REQ_LEN;
                 break;
             case LW_MCMD_LADR_ANS:
-                i+=LW_MCMD_LADR_ANS_LEN;
                 log_puts(LOG_NORMAL, "Status: 0x%02X", opts[i+1]);
                 log_puts(LOG_NORMAL, "Channel mask %s", (opts[i+1]&0x01)?"ACK":"NACK");
                 log_puts(LOG_NORMAL, "Data rate %s", (opts[i+1]&0x02)?"ACK":"NACK");
                 log_puts(LOG_NORMAL, "Power %s", (opts[i+1]&0x04)?"ACK":"NACK");
+                i+=LW_MCMD_LADR_ANS_LEN;
                 break;
             case LW_MCMD_DCAP_ANS:
                 i+=LW_MCMD_DCAP_ANS_LEN;
                 lw_no_pl();
                 break;
             case LW_MCMD_DN2P_ANS:
-                i+=LW_MCMD_DN2P_ANS_LEN;
                 log_puts(LOG_NORMAL, "Status: 0x%02X", opts[i+1]);
                 log_puts(LOG_NORMAL, "Channel %s", (opts[i+1]&0x01)?"ACK":"NACK");
                 log_puts(LOG_NORMAL, "RXWIN2 %s", (opts[i+1]&0x02)?"ACK":"NACK");
                 log_puts(LOG_NORMAL, "RX1DRoffset %s", (opts[i+1]&0x04)?"ACK":"NACK");
+                i+=LW_MCMD_DN2P_ANS_LEN;
                 break;
             case LW_MCMD_DEVS_ANS:
-                i+=LW_MCMD_DEVS_ANS_LEN;
                 if(opts[i+1] == 0){
                     log_puts(LOG_NORMAL, "Battery: %d (External Powered)", opts[i+1]);
                 }else if(opts[i+1] == 255){
@@ -945,13 +940,13 @@ int lw_maccmd(uint8_t mac_header, uint8_t *opts, int len)
                 }
                 dev_sta_margin.data = opts[i+2];
                 log_puts(LOG_NORMAL, "Margin: %d", dev_sta_margin.bits.margin);
-
+                i+=LW_MCMD_DEVS_ANS_LEN;
                 break;
             case LW_MCMD_SNCH_ANS:
-                i+=LW_MCMD_SNCH_ANS_LEN;
                 log_puts(LOG_NORMAL, "Status: 0x%02X", opts[i+1]);
                 log_puts(LOG_NORMAL, "Channel %s", (opts[i+1]&0x01)?"ACK":"NACK");
                 log_puts(LOG_NORMAL, "DataRate %s", (opts[i+1]&0x02)?"ACK":"NACK");
+                i+=LW_MCMD_SNCH_ANS_LEN;
                 break;
             case LW_MCMD_RXTS_ANS:
                 i+=LW_MCMD_RXTS_ANS_LEN;
@@ -975,16 +970,15 @@ int lw_maccmd(uint8_t mac_header, uint8_t *opts, int len)
             switch(opts[i]){
             // Class A
             case LW_MCMD_LCHK_ANS:
-                i+=LW_MCMD_LCHK_ANS_LEN;
                 if(opts[i+1] == 255){
                     log_puts(LOG_NORMAL, "Margin: %d (RFU)", opts[i+1]);
                 }else{
                     log_puts(LOG_NORMAL, "Margin: %ddB", opts[i+1]);
                 }
                 log_puts(LOG_NORMAL, "GwCnt: %d", opts[i+2]);
+                i+=LW_MCMD_LCHK_ANS_LEN;
                 break;
             case LW_MCMD_LADR_REQ:
-                i+=LW_MCMD_LADR_REQ_LEN;
                 dr = lw_dr_tab[band][opts[i+1]>>4];
                 power = lw_pow_tab[band][opts[i+1]&0x0F];
                 chmaskcntl = lw_chmaskcntl_tab[band][(opts[i+4]>>4)&0x07];
@@ -1020,9 +1014,9 @@ int lw_maccmd(uint8_t mac_header, uint8_t *opts, int len)
                     log_puts(LOG_NORMAL, "ChMaskCntl: %d, ChMask applies to %d ~ %d", (opts[i+4]>>4)&0x07, chmaskcntl&0x00FF, chmaskcntl>>8);
                     break;
                 }
+                i+=LW_MCMD_LADR_REQ_LEN;
                 break;
             case LW_MCMD_DCAP_REQ:
-                i+=LW_MCMD_DCAP_REQ_LEN;
                 if(opts[i+1] == 255){
                     log_puts(LOG_NORMAL, "MaxDCycle: %d(Off)", opts[i+1]);
                 }else if(opts[i+1]<16){
@@ -1030,9 +1024,9 @@ int lw_maccmd(uint8_t mac_header, uint8_t *opts, int len)
                 }else{
                     log_puts(LOG_NORMAL, "MaxDCycle: %d(RFU)", opts[i+1]);
                 }
+                i+=LW_MCMD_DCAP_REQ_LEN;
                 break;
             case LW_MCMD_DN2P_REQ:
-                i+=LW_MCMD_DN2P_REQ_LEN;
                 rx1drofst = (opts[i+1]>>4) & 0x07;
                 rx2dr = lw_dr_tab[band][opts[i+1] & 0x0F];
                 freq = (opts[i+2]) | ((uint32_t)opts[i+3]<<8) | ((uint32_t)opts[i+4]<<16);
@@ -1050,30 +1044,31 @@ int lw_maccmd(uint8_t mac_header, uint8_t *opts, int len)
                 }else{
                     log_puts(LOG_NORMAL, "Freq: %d", freq);
                 }
+                i+=LW_MCMD_DN2P_REQ_LEN;
                 break;
             case LW_MCMD_DEVS_REQ:
                 i+=LW_MCMD_DEVS_REQ_LEN;
                 lw_no_pl();
                 break;
             case LW_MCMD_SNCH_REQ:
-                i+=LW_MCMD_SNCH_REQ_LEN;
                 freq = (opts[i+2]) | ((uint32_t)opts[i+3]<<8) | ((uint32_t)opts[i+4]<<16);
                 freq *= 100;
-                log_puts(LOG_NORMAL, "ChIndex: %d", opts[i+1]);
+                log_puts(LOG_NORMAL, "ChIndex: %d 0x%02X", opts[i+1], opts[i+1]);
                 if(freq < 100000000){
                     log_puts(LOG_NORMAL, "Freq: %d (RFU <100MHz)", freq);
                 }else{
                     log_puts(LOG_NORMAL, "Freq: %d", freq);
                 }
                 log_puts(LOG_NORMAL, "DrRange: 0x%02X (DR%d ~ DR%d)", opts[i+5], opts[i+5]&0x0F, opts[i+5]>>4);
+                i+=LW_MCMD_SNCH_REQ_LEN;
                 break;
             case LW_MCMD_RXTS_REQ:
-                i+=LW_MCMD_RXTS_REQ_LEN;
                 if((opts[i+1]&0x0F) == 0){
                     log_puts(LOG_NORMAL, "Del: %ds", (opts[i+1]&0x0F)+1);
                 }else{
                     log_puts(LOG_NORMAL, "Del: %ds", opts[i+1]&0x0F);
                 }
+                i+=LW_MCMD_RXTS_REQ_LEN;
                 break;
                 //Class B
             case LW_MCMD_PING_SET:
