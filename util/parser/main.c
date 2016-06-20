@@ -12,9 +12,11 @@
 #include "conf.h"
 #include "str2hex.h"
 #include "log.h"
+#include "app.h"
 
-static config_t config;
-static int logflag;
+#define VMAJOR          (0)
+#define VMINOR          (1)
+#define VPATCH          (0)
 
 /**
     JR: Join Request
@@ -34,7 +36,7 @@ void usage(char *name)
     log_puts(LOG_NORMAL, " -c           <file>      Get configuration from json format file");
     log_puts(LOG_NORMAL, " -m           <hex>       Parse MAC command");
     log_puts(LOG_NORMAL, " -p                       Parse packet");
-    log_puts(LOG_NORMAL, " -g                       Generate one packet");
+    log_puts(LOG_NORMAL, " -g                       Generate packet");
     log_line();
     log_puts(LOG_NORMAL, " -B           <string>    Physical band EU868/US915/EU434/AU920/CN780/CN470");
     log_puts(LOG_NORMAL, " -N           <hex>       NwkSKey");
@@ -67,7 +69,6 @@ void usage(char *name)
 
 int main(int argc, char **argv)
 {
-    int i;
     int ret;
     char *pfile = NULL;
     message_t * ll_head;
@@ -77,37 +78,51 @@ int main(int argc, char **argv)
     lw_netid_t netid;
     uint8_t jappskey[LW_KEY_LEN];
     uint8_t jnwkskey[LW_KEY_LEN];
+    config_t config;
+    int logflag;
+
+    app_opt_t opt;
 
     memset(&config, 0, sizeof(config_t));
 
-//    for(i=0; i<argc; i++){
-//        log_puts(LOG_NORMAL, "arg%d %s", i, argv[i]);
-//    }
+    if(argc == 1){
+        usage(basename(argv[0]));
+        return 0;
+    }
 
     logflag = lw_log(LW_LOG_ON);
 
-    while ((i = getopt (argc, argv, "hc:")) != -1) {
-        switch (i) {
-        case 'h':
-            usage(basename(argv[0]));
-            return 0;
-        case 'c':
-            pfile = optarg;
-            log_puts(LOG_NORMAL, "File name: %s", pfile);
-            if( access( pfile, F_OK ) != -1 ) {
-                // file exists
-                log_puts(LOG_NORMAL, "Found configuration file");
-            }else{
-                // file doesn't exist
-                log_puts(LOG_FATAL, "Can't open %s", pfile);
-                return -1;
-            }
-            break;
-        default:
-            log_puts(LOG_FATAL, "PARAMETER ERROR");
-            usage(basename(argv[0]));
-            return -1;
-        }
+    ret = app_getopt(&opt, argc, argv);
+    if(ret < 0){
+        log_puts(LOG_FATAL, "PARAMETER ERROR");
+        usage(basename(argv[0]));
+        return -1;
+    }
+
+    switch(opt.mode){
+    case APP_MODE_HELP:
+        usage(basename(argv[0]));
+        return 0;
+    case APP_MODE_VER:
+        log_puts(LOG_NORMAL, "%d.%d.%d", VMAJOR, VMINOR, VPATCH);
+        return 0;
+    case APP_MODE_MACCMD:
+        break;
+    case APP_MODE_PARSE:
+        break;
+    case APP_MODE_BURST_PARSE:
+        pfile = opt.cfile;
+        break;
+    case APP_MODE_GENERATE:
+        break;
+    default:
+        log_puts(LOG_FATAL, "UNKNOWN MODE");
+        usage(basename(argv[0]));
+        return -1;
+    }
+
+    if(opt.mode != APP_MODE_BURST_PARSE){
+        log_puts(LOG_WARN, "Mode is not supported");
     }
 
     ret = config_parse(pfile, &config);
