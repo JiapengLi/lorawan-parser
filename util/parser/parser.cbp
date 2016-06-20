@@ -62,6 +62,10 @@
 		</Unit>
 		<Unit filename="../../lw/lorawan.h" />
 		<Unit filename="../../lw/lw-macro.h" />
+		<Unit filename="app.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="app.h" />
 		<Unit filename="conf.c">
 			<Option compilerVar="CC" />
 		</Unit>
