@@ -28,7 +28,11 @@ typedef enum{
 typedef struct{
     app_mode_t mode;
     char *cfile;
-
+    struct{
+        int len;
+        uint8_t buf[256];
+    }maccmd;
+    uint8_t hdr;
 }app_opt_t;
 
 int app_getopt(app_opt_t *opt, int argc, char **argv);

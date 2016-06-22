@@ -1,5 +1,6 @@
 #include "app.h"
 #include "log.h"
+#include "str2hex.h"
 #include <getopt.h>
 
 #define OPT_ACK                         (1)
@@ -31,10 +32,21 @@ struct option app_long_options[] = {
     {"rxdelay",     required_argument,      0,      OPT_RXDELAY},
     {0,             0,                      0,      0},
  };
-
+const char *mac_type_tab[] = {
+    "JR",
+    "JA",
+    "UU",
+    "UD",
+    "CU",
+    "CD",
+    "",
+    "P",
+};
 int app_getopt(app_opt_t *opt, int argc, char **argv)
 {
-    int ret, index;
+    int ret, index, hlen, i;
+
+    memset(opt, 0, sizeof(app_opt_t));
 
     opt->mode = APP_MODE_IDLE;
 
@@ -49,31 +61,36 @@ int app_getopt(app_opt_t *opt, int argc, char **argv)
                 return APP_ERR_MODE_DUP;
             }
             opt->mode = APP_MODE_VER;
-            return APP_OK;
+            break;
         case 'h':
             if(opt->mode != APP_MODE_IDLE){
                 return APP_ERR_MODE_DUP;
             }
             opt->mode = APP_MODE_HELP;
-            return APP_OK;
+            break;
         case 'p':
             if(opt->mode != APP_MODE_IDLE){
                 return APP_ERR_MODE_DUP;
             }
             opt->mode = APP_MODE_VER;
-            return APP_OK;
+            break;
         case 'g':
             if(opt->mode != APP_MODE_IDLE){
                 return APP_ERR_MODE_DUP;
             }
             opt->mode = APP_MODE_GENERATE;
-            return APP_OK;
+            break;
         case 'm':
             if(opt->mode != APP_MODE_IDLE){
                 return APP_ERR_MODE_DUP;
             }
+            hlen = str2hex(optarg, opt->maccmd.buf, 256);
+            if( (hlen<0) || (hlen > 256) ){
+                return APP_ERR_PARA;
+            }
+            opt->maccmd.len = hlen;
             opt->mode = APP_MODE_MACCMD;
-            return APP_OK;
+            break;
         case 'c':
             if(opt->mode != APP_MODE_IDLE){
                 return APP_ERR_MODE_DUP;
@@ -89,6 +106,17 @@ int app_getopt(app_opt_t *opt, int argc, char **argv)
                 log_puts(LOG_FATAL, "Can't open %s", opt->cfile);
                 return APP_ERR_CFILE;
             }
+            break;
+        case 'T':
+            for(i=0; i<8; i++){
+                if(0 == strcasecmp(mac_type_tab[i], optarg) ){
+                    break;
+                }
+            }
+            if(i==8){
+                return APP_ERR_PARA;
+            }
+            opt->hdr = i<<5;
             break;
         case OPT_ACK:
             break;

@@ -46,12 +46,20 @@ Refer to `util/test/main.c` to know the usage of lorawan API.
 
 After compile find `lwp.exe/lwp` under `util/parser/` directory to parse the LoRaWAN frame.
 
+## Burst Parse LoRaWAN Frame
     # WIN
     lwp.exe -c lwp-config.json
     # Linux
     lwp -c lwp-config.json
 
 To go further, user could fill their own LoRaWAN frames in a json file to parse it.
+
+## Parse LoRaWAN MACCMD
+    $ ./util/parser/lwp.exe -T CD -m "02 30 01"
+    MACCMD: 02 30 01
+    MACCMD ( LinkCheckAns )
+    Margin: 48dB
+    GwCnt: 1
 
 ## Limitation
 

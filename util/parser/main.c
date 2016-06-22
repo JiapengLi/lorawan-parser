@@ -107,7 +107,12 @@ int main(int argc, char **argv)
         log_puts(LOG_NORMAL, "%d.%d.%d", VMAJOR, VMINOR, VPATCH);
         return 0;
     case APP_MODE_MACCMD:
-        break;
+        ret = lw_maccmd(opt.hdr, opt.maccmd.buf, opt.maccmd.len);
+        if(ret < 0){
+            log_puts(LOG_ERROR, "MACCMD error(%d)", ret);
+            return -1;
+        }
+        return 0;
     case APP_MODE_PARSE:
         break;
     case APP_MODE_BURST_PARSE:
@@ -123,6 +128,7 @@ int main(int argc, char **argv)
 
     if(opt.mode != APP_MODE_BURST_PARSE){
         log_puts(LOG_WARN, "Mode is not supported");
+        return -1;
     }
 
     ret = config_parse(pfile, &config);
