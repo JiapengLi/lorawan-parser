@@ -17,45 +17,70 @@
 
 #define LW_BAND_MAX_NUM                         (5)
 
+//#define BIG_ENDIAN
+
 typedef union{
     uint8_t data;
     struct{
+    #ifdef BIG_ENDIAN
+        uint8_t mtype           : 3;
+        uint8_t rfu             : 3;
+        uint8_t major           : 2;
+    #else
         uint8_t major           : 2;
         uint8_t rfu             : 3;
         uint8_t mtype           : 3;
+
+    #endif
     }bits;
 }PACKED lw_mhdr_t;
 
 typedef union{
     uint8_t data;
     struct{
+    #ifdef BIG_ENDIAN
+        uint8_t adr             : 1;
+        uint8_t adrackreq       : 1;
+        uint8_t ack             : 1;
+        uint8_t fpending        : 1;
+        uint8_t foptslen        : 4;
+    #else
         uint8_t foptslen        : 4;
         uint8_t fpending        : 1;
         uint8_t ack             : 1;
         uint8_t adrackreq       : 1;
         uint8_t adr             : 1;
+    #endif
     }bits;
 }PACKED lw_dl_fctrl_t;
 
 typedef union{
     uint8_t data;
     struct{
+    #ifdef BIG_ENDIAN
+        uint8_t adr             : 1;
+        uint8_t adrackreq       : 1;
+        uint8_t ack             : 1;
+        uint8_t classb          : 1;
+        uint8_t foptslen        : 4;
+    #else
         uint8_t foptslen        : 4;
         uint8_t classb          : 1;
         uint8_t ack             : 1;
         uint8_t adrackreq       : 1;
         uint8_t adr             : 1;
+    #endif
     }bits;
 }PACKED lw_ul_fctrl_t;
 
-typedef union{
-    uint32_t data;
-    uint8_t buf[4];
-    struct{
-        uint32_t nwkid          : 7;
-        uint32_t nwkaddr        : 25;
-    }bits;
-}PACKED lw_devaddr_t;
+//typedef union{
+//    uint32_t data;
+//    uint8_t buf[4];
+//    struct{
+//        uint32_t nwkid          : 7;
+//        uint32_t nwkaddr        : 25;
+//    }bits;
+//}PACKED lw_devaddr_t;
 
 typedef union{
     uint32_t data;
@@ -97,7 +122,7 @@ typedef struct{
     uint8_t *aeskey;
     uint8_t *in;
     uint16_t len;
-    lw_devaddr_t devaddr;
+    uint8_t devaddr[4];
     lw_link_t link;
     uint32_t fcnt32;
 }lw_key_t;
@@ -171,8 +196,15 @@ enum{
 typedef union{
     uint8_t data;
     struct{
+    #ifdef BIG_ENDIAN
+        uint8_t rfu             : 2;
+        uint8_t bw              : 2;
+        uint8_t sf              : 4;
+    #else
         uint8_t sf              : 4;
         uint8_t bw              : 2;
+        uint8_t rfu             : 2;
+    #endif
     }bits;
 }lw_dr_t;
 

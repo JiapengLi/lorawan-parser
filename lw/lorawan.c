@@ -452,7 +452,7 @@ int lw_mtype_msg_up(uint8_t *msg, int len, lw_parse_key_t *pkey, uint32_t fcnt16
     lw_key.in = msg;
     lw_key.len = len-4;
     lw_key.link = LW_UPLINK;
-    memcpy(lw_key.devaddr.buf, msg+LW_DATA_OFF_DEVADDR, 4);
+    memcpy(lw_key.devaddr, msg+LW_DATA_OFF_DEVADDR, 4);
     lw_key.fcnt32 = ((uint32_t)msg[LW_DATA_OFF_FCNT+1]<<8) + msg[LW_DATA_OFF_FCNT] + (fcnt16_msb<<16);
     lw_msg_mic(&mic, &lw_key);
 
@@ -464,7 +464,7 @@ int lw_mtype_msg_up(uint8_t *msg, int len, lw_parse_key_t *pkey, uint32_t fcnt16
     }
     if(lw_log_flag){
         log_puts(LOG_NORMAL, "MIC is OK [ %02X %02X %02X %02X ]", mic.buf[0], mic.buf[1], mic.buf[2], mic.buf[3]);
-        log_puts(LOG_NORMAL, "DEVADDR: %02X:%02X:%02X:%02X", lw_key.devaddr.buf[3], lw_key.devaddr.buf[2], lw_key.devaddr.buf[1], lw_key.devaddr.buf[0]);
+        log_puts(LOG_NORMAL, "DEVADDR: %02X:%02X:%02X:%02X", lw_key.devaddr[3], lw_key.devaddr[2], lw_key.devaddr[1], lw_key.devaddr[0]);
     }
 
     fctrl.data = msg[LW_DATA_OFF_FCTRL];
@@ -560,7 +560,7 @@ int lw_mtype_msg_down(uint8_t *msg, int len, lw_parse_key_t *pkey, uint32_t fcnt
     lw_key.in = msg;
     lw_key.len = len-4;
     lw_key.link = LW_DOWNLINK;
-    memcpy(lw_key.devaddr.buf, msg+LW_DATA_OFF_DEVADDR, 4);
+    memcpy(lw_key.devaddr, msg+LW_DATA_OFF_DEVADDR, 4);
     lw_key.fcnt32 = ((uint32_t)msg[LW_DATA_OFF_FCNT+1]<<8) + msg[LW_DATA_OFF_FCNT] + (fcnt16_msb<<16);
     lw_msg_mic(&mic, &lw_key);
 
@@ -573,7 +573,7 @@ int lw_mtype_msg_down(uint8_t *msg, int len, lw_parse_key_t *pkey, uint32_t fcnt
 
     if(lw_log_flag){
         log_puts(LOG_NORMAL, "MIC is OK [ %02X %02X %02X %02X ]", mic.buf[0], mic.buf[1], mic.buf[2], mic.buf[3]);
-        log_puts(LOG_NORMAL, "DEVADDR: %02X:%02X:%02X:%02X", lw_key.devaddr.buf[3], lw_key.devaddr.buf[2], lw_key.devaddr.buf[1], lw_key.devaddr.buf[0]);
+        log_puts(LOG_NORMAL, "DEVADDR: %02X:%02X:%02X:%02X", lw_key.devaddr[3], lw_key.devaddr[2], lw_key.devaddr[1], lw_key.devaddr[0]);
     }
 
     fctrl.data = msg[LW_DATA_OFF_FCTRL];
@@ -1105,7 +1105,7 @@ void lw_msg_mic(lw_mic_t* mic, lw_key_t *key)
     b0[0] = 0x49;
     b0[5] = key->link;
 
-    lw_write_dw(b0+6, key->devaddr.data);
+    memcpy(b0+6, key->devaddr, 4);
     lw_write_dw(b0+10, key->fcnt32);
     b0[15] = (uint8_t)key->len;
 
@@ -1208,7 +1208,7 @@ int lw_encrypt(uint8_t *out, lw_key_t *key)
 	A[0] = 0x01; //encryption flags
 	A[5] = key->link;
 
-	lw_write_dw(A+6, key->devaddr.data);
+	memcpy(A+6, key->devaddr, 4);
 	lw_write_dw(A+10, key->fcnt32);
 
 	uint8_t const* blockInput = key->in;

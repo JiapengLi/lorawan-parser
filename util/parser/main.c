@@ -13,10 +13,7 @@
 #include "str2hex.h"
 #include "log.h"
 #include "app.h"
-
-#define VMAJOR          (0)
-#define VMINOR          (1)
-#define VPATCH          (0)
+#include "version.h"
 
 /**
     JR: Join Request

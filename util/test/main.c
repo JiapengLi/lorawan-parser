@@ -124,10 +124,10 @@ int main(int argc, char **argv)
     lw_key.in = PL;
     lw_key.len = PL_LEN-4;
     lw_key.link = LW_UPLINK;
-    lw_key.devaddr.buf[0] = 0xAD;
-    lw_key.devaddr.buf[1] = 0x91;
-    lw_key.devaddr.buf[2] = 0x92;
-    lw_key.devaddr.buf[3] = 0x00;
+    lw_key.devaddr[0] = 0xAD;
+    lw_key.devaddr[1] = 0x91;
+    lw_key.devaddr[2] = 0x92;
+    lw_key.devaddr[3] = 0x00;
     lw_key.fcnt32 = 0x00000001;
 
     lw_msg_mic(&mic, &lw_key);
@@ -147,10 +147,10 @@ int main(int argc, char **argv)
     lw_key.in = PL + 13 - 4;
     lw_key.len = PL_LEN - 13;
     lw_key.link = LW_UPLINK;
-    lw_key.devaddr.buf[0] = 0xAD;
-    lw_key.devaddr.buf[1] = 0x91;
-    lw_key.devaddr.buf[2] = 0x92;
-    lw_key.devaddr.buf[3] = 0x00;
+    lw_key.devaddr[0] = 0xAD;
+    lw_key.devaddr[1] = 0x91;
+    lw_key.devaddr[2] = 0x92;
+    lw_key.devaddr[3] = 0x00;
     lw_key.fcnt32 = 0x00000001;
 
     len = lw_encrypt(out, &lw_key);
