@@ -116,6 +116,20 @@ int main(int argc, char **argv)
     lw_key_t lw_key;
     lw_skey_seed_t lw_skey_seed;
     int len;
+    union{
+        uint16_t word;
+        struct{
+            uint8_t a;
+            uint8_t b;
+        }bytes;
+    }endian;
+    endian.word = 0x0001;
+    if(endian.bytes.a == 0x00){
+        log_puts(LOG_WARN, "Big endian\n");
+    }else{
+        log_puts(LOG_WARN, "Little endian\n");
+    }
+
 
     log_line();
     log_puts(LOG_NORMAL, "Test Normal Message MIC\n");

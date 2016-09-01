@@ -1,6 +1,5 @@
 #ifndef __LORAWAN_H
 #define __LORAWAN_H
-
 #include <stdint.h>
 #include "lw-macro.h"
 
@@ -17,12 +16,10 @@
 
 #define LW_BAND_MAX_NUM                         (5)
 
-//#define BIG_ENDIAN
-
 typedef union{
     uint8_t data;
     struct{
-    #ifdef BIG_ENDIAN
+    #ifdef ENABLE_BIG_ENDIAN
         uint8_t mtype           : 3;
         uint8_t rfu             : 3;
         uint8_t major           : 2;
@@ -38,7 +35,7 @@ typedef union{
 typedef union{
     uint8_t data;
     struct{
-    #ifdef BIG_ENDIAN
+    #ifdef ENABLE_BIG_ENDIAN
         uint8_t adr             : 1;
         uint8_t adrackreq       : 1;
         uint8_t ack             : 1;
@@ -57,7 +54,7 @@ typedef union{
 typedef union{
     uint8_t data;
     struct{
-    #ifdef BIG_ENDIAN
+    #ifdef ENABLE_BIG_ENDIAN
         uint8_t adr             : 1;
         uint8_t adrackreq       : 1;
         uint8_t ack             : 1;
@@ -196,7 +193,7 @@ enum{
 typedef union{
     uint8_t data;
     struct{
-    #ifdef BIG_ENDIAN
+    #ifdef ENABLE_BIG_ENDIAN
         uint8_t rfu             : 2;
         uint8_t bw              : 2;
         uint8_t sf              : 4;

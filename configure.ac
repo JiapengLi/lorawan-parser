@@ -35,6 +35,15 @@ AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
 AC_TYPE_UINT8_T
 
+# Big endina support (default:no)
+AC_ARG_ENABLE([big-endian],AS_HELP_STRING([--enable-big-endian],[Define ENABLE_BIG_ENDIAN macro]),[enable_big_endian=$enableval],[enable_big_endian="no"])
+AC_MSG_CHECKING(for big endian flag)
+AC_MSG_RESULT($enable_big_endian)
+if test x"$enable_big_endian" = "xyes"
+then
+  CFLAGS="$CFLAGS -DENABLE_BIG_ENDIAN"
+fi
+
 LWP_CFLAGS='-I$(top_srcdir)/lib/libloragw/inc -I$(top_srcdir)/lib -I$(top_srcdir)/lw'
 AC_SUBST(LWP_CFLAGS)
 
