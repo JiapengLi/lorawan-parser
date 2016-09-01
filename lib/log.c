@@ -114,11 +114,11 @@ void log_puts(int priority, const char *format, ...)
     }
 #endif
 
-    va_list va;
-    va_start(va, format);
-    //printf("%s\t", category);
-    vprintf(format, va);
-
+    if(format != NULL){
+        va_list va;
+        va_start(va, format);
+        vprintf(format, va);
+    }
 #ifdef WIN32
     /* Restore original attributes */
     SetConsoleTextAttribute(hConsole, saved_attributes);
@@ -210,13 +210,13 @@ void log_hex(int priority, const uint8_t *buf, int len, const char *format, ...)
     }
 #endif
 
-    va_list va;
-    va_start(va, format);
-    //printf("%s\t", category);
-    vprintf(format, va);
-
-    if( (format != NULL) && (0 != strlen(format)) ){
-        printf(" ");
+    if(format != NULL){
+        va_list va;
+        va_start(va, format);
+        vprintf(format, va);
+        if( 0 != strlen(format) ){
+            printf(" ");
+        }
     }
 
     for(i=0; i<len; i++){
