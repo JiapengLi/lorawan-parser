@@ -40,6 +40,12 @@ lorawan-parser supports [Codeblocks](http://www.codeblocks.org/) project. One co
     ./configure
     make
 
+## Big Endian Platform (untested)
+
+    autoreconf -i
+    ./configure --enable-big-endian
+    make
+
 # Usage
 
 Refer to `util/test/main.c` to know the usage of lorawan API.
