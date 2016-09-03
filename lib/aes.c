@@ -233,7 +233,7 @@ static uint_8t hibit(const uint_8t x)
 static uint_8t gf_inv(const uint_8t x)
 {   uint_8t p1 = x, p2 = BPOLY, n1 = hibit(x), n2 = 0x80, v1 = 1, v2 = 0;
 
-	if(x < 2) 
+	if(x < 2)
 		return x;
 
 	for( ; ; )
@@ -241,20 +241,20 @@ static uint_8t gf_inv(const uint_8t x)
 		if(n1)
 			while(n2 >= n1)             /* divide polynomial p2 by p1    */
 			{
-				n2 /= n1;               /* shift smaller polynomial left */ 
+				n2 /= n1;               /* shift smaller polynomial left */
 				p2 ^= (p1 * n2) & 0xff; /* and remove from larger one    */
-				v2 ^= (v1 * n2);        /* shift accumulated value and   */ 
+				v2 ^= (v1 * n2);        /* shift accumulated value and   */
 				n2 = hibit(p2);         /* add into result               */
 			}
 		else
 			return v1;
 
-		if(n2)                          /* repeat with values swapped    */ 
+		if(n2)                          /* repeat with values swapped    */
 			while(n1 >= n2)
 			{
-				n1 /= n2; 
-				p1 ^= p2 * n1; 
-				v1 ^= v2 * n1; 
+				n1 /= n2;
+				p1 ^= p2 * n1;
+				v1 ^= v2 * n1;
 				n1 = hibit(p1);
 			}
 		else
@@ -264,13 +264,13 @@ static uint_8t gf_inv(const uint_8t x)
 
 /* The forward and inverse affine transformations used in the S-box */
 uint_8t fwd_affine(const uint_8t x)
-{   
+{
 #if defined( HAVE_UINT_32T )
 	uint_32t w = x;
 	w ^= (w << 1) ^ (w << 2) ^ (w << 3) ^ (w << 4);
 	return 0x63 ^ ((w ^ (w >> 8)) & 0xff);
 #else
-	return 0x63 ^ x ^ (x << 1) ^ (x << 2) ^ (x << 3) ^ (x << 4) 
+	return 0x63 ^ x ^ (x << 1) ^ (x << 2) ^ (x << 3) ^ (x << 4)
 					^ (x >> 7) ^ (x >> 6) ^ (x >> 5) ^ (x >> 4);
 #endif
 }
@@ -282,7 +282,7 @@ uint_8t inv_affine(const uint_8t x)
 	w = (w << 1) ^ (w << 3) ^ (w << 6);
 	return 0x05 ^ ((w ^ (w >> 8)) & 0xff);
 #else
-	return 0x05 ^ (x << 1) ^ (x << 3) ^ (x << 6) 
+	return 0x05 ^ (x << 1) ^ (x << 3) ^ (x << 6)
 				^ (x >> 7) ^ (x >> 5) ^ (x >> 2);
 #endif
 }
@@ -304,7 +304,6 @@ uint_8t inv_affine(const uint_8t x)
 #else
 #  define block_copy_nn(d, s, l)    copy_block_nn(d, s, l)
 #  define block_copy(d, s)          copy_block(d, s)
-#endif
 
 static void copy_block( void *d, const void *s )
 {
@@ -339,6 +338,8 @@ static void copy_block_nn( uint_8t * d, const uint_8t *s, uint_8t nn )
 		//*((uint_8t*)d)++ = *((uint_8t*)s)++;
 		*d++ = *s++;
 }
+
+#endif /* HAVE_MEMCPY */
 
 static void xor_block( void *d, const void *s )
 {
@@ -506,8 +507,8 @@ return_type aes_set_key( const unsigned char key[], length_type keylen, aes_cont
 	case 24:
 	case 32:
 		break;
-	default: 
-		ctx->rnd = 0; 
+	default:
+		ctx->rnd = 0;
 		return -1;
 	}
 	block_copy_nn(ctx->ksch, key, keylen);
@@ -634,10 +635,10 @@ return_type aes_decrypt( const unsigned char in[N_BLOCK], unsigned char out[N_BL
 
 return_type aes_cbc_decrypt( const unsigned char *in, unsigned char *out,
 						 int n_block, unsigned char iv[N_BLOCK], const aes_context ctx[1] )
-{   
+{
 	while(n_block--)
 	{   uint_8t tmp[N_BLOCK];
-		
+
 		//memcpy(tmp, in, N_BLOCK);
 		block_copy(tmp, in);
 		if(aes_decrypt(in, out, ctx) != EXIT_SUCCESS)
