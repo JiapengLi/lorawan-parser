@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include "log.h"
 
+#define LOG_STRFMT_LEN              (10)
+
 #if defined _WIN32 || defined __CYGWIN__
 #ifndef WIN32
 #define WIN32
@@ -44,7 +46,7 @@ int log_puts(int priority, char *fmt, ...)
     char c, *s;
     uint8_t *hbuf;
     double f;
-    char strfmt[10];
+    char strfmt[LOG_STRFMT_LEN+2];
     va_list ap;
 
 #ifndef WIN32
@@ -131,6 +133,9 @@ int log_puts(int priority, char *fmt, ...)
                       ( fmt[j]== '-' ) || ( fmt[j]== '+' ) || ( fmt[j]== '.' ) ){
                     strfmt[j] = fmt[j];
                     j++;
+                    if(j == LOG_STRFMT_LEN){
+                        break;
+                    }
                 }
                 strfmt[j] = fmt[j];
                 fmt += j;
