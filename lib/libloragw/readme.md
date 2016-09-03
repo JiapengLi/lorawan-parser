@@ -5,350 +5,335 @@
 	(______/|_____)_|_|_| \__)_____)\____)_| |_|
 	  (C)2013 Semtech-Cycleo
 
-LoRa concentrator HAL user manual
-============================
+LoRa Gateway project
+=====================
 
-1. Introduction
----------------
+1. Core library: libloragw
+---------------------------
 
-The LoRa concentrator Hardware Abstraction Layer is a C library that allow you
-to use a Semtech concentrator chip through a reduced number of high level C
-functions to configure the hardware, send and receive packets.
+This directory contains the sources of the library to build a gateway based on 
+a Semtech LoRa multi-channel RF receiver (a.k.a. concentrator).
+Once compiled all the code is contained in the libloragw.a file that will be 
+statically linked (ie. integrated in the final executable).
 
-The Semtech LoRa concentrator is a digital multi-channel multi-standard packet
-radio used to send and receive packets wirelessly using LoRa or FSK modulations.
+The library also comes with a bunch of basic tests programs that are used to 
+test the different sub-modules of the library.
 
-2. Components of the library
-----------------------------
+2. Helper programs
+-------------------
 
-The library is composed of 5 modules:
+Those programs are included in the project to provide examples on how to use 
+the HAL library, and to help the system builder test different parts of it.
 
-* loragw_hal
-* loragw_reg
-* loragw_spi
-* loragw_aux
-* loragw_gps
+### 2.1. util_pkt_logger ###
 
-The library also contains 4 test programs to demonstrate code use and check
-functionality.
+This software is used to set up a LoRa concentrator using a JSON configuration
+file and then record all the packets received in a log file, indefinitely, until
+the user stops the application.
 
-### 2.1. loragw_hal ###
+### 2.2. util_spi_stress ###
 
-This is the main module and contains the high level functions to configure and
-use the LoRa concentrator:
+This software is used to check the reliability of the link between the host
+platform (on which the program is run) and the LoRa concentrator register file
+that is the interface through which all interaction with the LoRa concentrator
+happens.
 
-* lgw_board_setconf, to set the configuration of the concentrator 
-* lgw_rxrf_setconf, to set the configuration of the radio channels
-* lgw_rxif_setconf, to set the configuration of the IF+modem channels
-* lgw_txgain_setconf, to set the configuration of the concentrator gain table
-* lgw_start, to apply the set configuration to the hardware and start it
-* lgw_stop, to stop the hardware
-* lgw_receive, to fetch packets if any was received
-* lgw_send, to send a single packet (non-blocking, see warning in usage section)
-* lgw_status, to check when a packet has effectively been sent
+### 2.3. util_tx_test ###
 
-For an standard application, include only this module.
-The use of this module is detailed on the usage section.
+This software is used to send test packets with a LoRa concentrator. The packets
+contain little information, on no protocol (ie. MAC address) information but
+can be used to assess the functionality of a gateway downlink using other
+gateways as receivers.
 
-/!\ When sending a packet, there is a 1.5 ms delay for the analog circuitry to
-start and be stable (TX_START_DELAY).
+### 2.4. util_tx_continuous ###
 
-In 'timestamp' mode, this is transparent: the modem is started 1.5ms before the
-user-set timestamp value is reached, the preamble of the packet start right when
-the internal timestamp counter reach target value.
+This software is used to set LoRa concentrator in Tx continuous mode,
+for spectral measurement.
 
-In 'immediate' mode, the packet is emitted as soon as possible: transferring the
-packet (and its parameters) from the host to the concentrator takes some time,
-then there is the TX_START_DELAY, then the packet is emitted.
+### 2.5. util_spectral_scan ###
 
-In 'triggered' mode (aka PPS/GPS mode), the packet, typically a beacon, is 
-emitted 1.5ms after a rising edge of the trigger signal. Because there is no
-way to anticipate the triggering event and start the analog circuitry
-beforehand, that delay must be taken into account in the protocol.
+This software is used to scan the spectral band in background, where the LoRa
+gateway operates.
 
-### 2.2. loragw_reg ###
+### 2.6. util_lbt_test ###
 
-This module is used to access to the LoRa concentrator registers by name instead
-of by address:
+This software is used to test "Listen-Before-Talk" channels timestamps.
+
+3. Helper scripts
+-----------------
+
+### 3.1. reset_lgw.sh
+
+This script must be launched on IoT Start Kit platform to reset concentrator
+chip through GPIO, before starting any application using the concentrator.
+
+4. Changelog
+-------------
 
-* lgw_connect, to initialise and check the connection with the hardware
-* lgw_disconnect, to disconnect the hardware
-* lgw_soft_reset, to reset the whole hardware by resetting the register array
-* lgw_reg_check, to check all registers vs. their default value and output the
-result to a file
-* lgw_reg_r, read a named register
-* lgw_reg_w, write a named register
-* lgw_reg_rb, read a name register in burst
-* lgw_reg_wb, write a named register in burst
-
-This module handles pagination, read-only registers protection, multi-byte
-registers management, signed registers management, read-modify-write routines
-for sub-byte registers and read/write burst fragmentation to respect SPI
-maximum burst length constraints.
-
-It make the code much easier to read and to debug.
-Moreover, if registers are relocated between different hardware revisions but
-keep the same function, the code written using register names can be reused "as
-is".
-
-If you need access to all the registers, include this module in your
-application.
-
-**/!\ Warning** please be sure to have a good understanding of the LoRa
-concentrator inner working before accessing the internal registers directly.
-
-### 2.3. loragw_spi ###
-
-This module contains the functions to access the LoRa concentrator register
-array through the SPI interface:
-
-* lgw_spi_r to read one byte
-* lgw_spi_w to write one byte
-* lgw_spi_rb to read two bytes or more
-* lgw_spi_wb to write two bytes or more
-
-Please *do not* include that module directly into your application.
-
-**/!\ Warning** Accessing the LoRa concentrator register array without the
-checks and safety provided by the functions in loragw_reg is not recommended.
-
-### 2.4. loragw_aux ###
-
-This module contains a single host-dependant function wait_ms to pause for a
-defined amount of milliseconds.
-
-The procedure to start and configure the LoRa concentrator hardware contained in
-the loragw_hal module requires to wait for several milliseconds at certain
-steps, typically to allow for supply voltages or clocks to stabilize after been
-switched on.
-
-An accuracy of 1 ms or less is ideal.
-If your system does not allow that level of accuracy, make sure that the actual
-delay is *longer* that the time specified when the function is called (ie.
-wait_ms(X) **MUST NOT** before X milliseconds under any circumstance).
-
-If the minimum delays are not guaranteed during the configuration and start
-procedure, the hardware might not work at nominal performance.
-Most likely, it will not work at all.
-
-### 2.5. loragw_gps ###
-
-This module contains functions to synchronize the concentrator internal 
-counter with an absolute time reference, in our case a GPS satellite receiver.
-
-The internal concentrator counter is used to timestamp incoming packets and to 
-triggers outgoing packets with a microsecond accuracy.
-In some cases, it might be useful to be able to transform that internal 
-timestamp (that is independent for each concentrator running in a typical 
-networked system) into an absolute UTC time.
-
-In a typical implementation a GPS specific thread will be called, doing the
-following things after opening the serial port:
-
-* blocking reads on the serial port (using system read() function)
-* parse NMEA sentences (using lgw_parse_nmea)
-
-And each time an RMC sentence has been received:
-
-* get the concentrator timestamp (using lgw_get_trigcnt, mutex needed to 
-  protect access to the concentrator)
-* get the UTC time contained in the NMEA sentence (using lgw_gps_get)
-* call the lgw_gps_sync function (use mutex to protect the time reference that 
-  should be a global shared variable).
-
-Then, in other threads, you can simply used that continuously adjusted time 
-reference to convert internal timestamps to UTC time (using lgw_cnt2utc) or 
-the other way around (using lgw_utc2cnt).
-
-3. Software build process
---------------------------
-
-### 3.1. Details of the software ###
-
-The library is written following ANSI C conventions but using C99 explicit
-length data type for all data exchanges with hardware and for parameters.
-
-The loragw_aux module contains POSIX dependant functions for millisecond
-accuracy pause.
-For embedded platforms, the function could be rewritten using hardware timers.
-
-### 3.2. Building options ###
-
-All modules use a fprintf(stderr,...) function to display debug diagnostic
-messages if the DEBUG_xxx is set to 1 in library.cfg
-
-### 3.3. Building procedures ###
-
-For cross-compilation set the CROSS_COMPILE variable in the Makefile with the
-correct toolchain name.
-
-The Makefile in the libloragw directory will parse the library.cfg file and 
-generate a config.h C header file containing #define options.
-Those options enables and disables sections of code in the loragw_xxx.h files 
-and the *.c source files.
-
-The library.cfg is also used directly to select the proper set of dynamic 
-libraries to be linked with.
-
-### 3.4. Export ###
-
-Once build, to use that library on another system, you need to export the
-following files :
-
-* libloragw/library.cfg  -> root configuration file
-* libloragw/libloragw.a  -> static library, to be linked with a program
-* libloragw/readme.md  -> required for license compliance
-* libloragw/inc/config.h  -> C configuration flags, derived from library.cfg
-* libloragw/inc/loragw_*.h  -> take only the ones you need (eg. _hal and _gps)
-
-After statically linking the library to your application, only the license 
-is required to be kept or copied inside your program documentation.
-
-4. Hardware dependencies
-------------------------
-
-### 4.1. Hardware revision ###
-
-The loragw_reg and loragw_hal are written for a specific version on the Semtech
-hardware (IP and/or silicon revision).
-
-This code has been written for:
-
-* Semtech SX1301 chip
-* Semtech SX1257 or SX1255 I/Q transceivers
-
-The library will not work if there is a mismatch between the hardware version 
-and the library version. You can use the test program test_loragw_reg to check 
-if the hardware registers match their software declaration.
-
-### 4.2. SPI communication ###
-
-loragw_spi contains 4 SPI functions (read, write, burst read, burst write) that
-are platform-dependant.
-The functions must be rewritten depending on the SPI bridge you use:
-
-* SPI master matched to the Linux SPI device driver (provided)
-* SPI over USB using FTDI components (not provided)
-* native SPI using a microcontroller peripheral (not provided)
-
-You can use the test program test_loragw_spi to check with a logic analyser
-that the SPI communication is working
-
-### 4.3. GPS receiver (or other GNSS system) ###
-
-To use the GPS module of the library, the host must be connected to a GPS 
-receiver via a serial link (or an equivalent receiver using a different 
-satellite constellation).
-The serial link must appear as a "tty" device in the /dev/ directory, and the 
-user launching the program must have the proper system rights to read and 
-write on that device.
-Use `chmod a+rw` to allow all users to access that specific tty device, or use
-sudo to run all your programs (eg. `sudo ./test_loragw_gps`).
-
-In the current revision, the library only reads data from the serial port, 
-expecting to receive NMEA frames that are generally sent by GPS receivers as 
-soon as they are powered up.
-
-The GPS receiver **MUST** send RMC NMEA sentences (starting with "$G<any 
-character>RMC") shortly after sending a PPS pulse on to allow internal 
-concentrator timestamps to be converted to absolute UTC time.
-If the GPS receiver sends a GGA sentence, the gateway 3D position will also be 
-available.
-
-The PPS pulse must be sent to the pin 22 of connector CONN400 on the Semtech 
-FPGA-based nano-concentrator board. Ground is available on pins 2 and 12 of 
-the same connector.
-The pin is loaded by an FPGA internal pull-down, and the signal level coming 
-in the FPGA must be 3.3V.
-Timing is captured on the rising edge of the PPS signal.
-
-5. Usage
---------
-
-### 5.1. Setting the software environment ###
-
-For a typical application you need to:
-
-* include loragw_hal.h in your program source
-* link to the libloragw.a static library during compilation
-* link to the librt library due to loragw_aux dependencies (timing functions)
-* link to the libmpsse library if you use a FTDI SPI-over-USB bridge
-
-For an application that will also access the concentrator configuration 
-registers directly (eg. for advanced configuration) you also need to:
-
-* include loragw_reg.h in your program source
-
-### 5.2. Using the software API ###
-
-To use the HAL in your application, you must follow some basic rules:
-
-* configure the radios path and IF+modem path before starting the radio
-* the configuration is only transferred to hardware when you call the *start*
-  function
-* you cannot receive packets until one (or +) radio is enabled AND one (or +)
-  IF+modem part is enabled AND the concentrator is started
-* you cannot send packets until one (or +) radio is enabled AND the concentrator
-  is started
-* you must stop the concentrator before changing the configuration
-
-A typical application flow for using the HAL is the following:
-
-	<configure the radios and IF+modems>
-	<start the LoRa concentrator>
-	loop {
-		<fetch packets that were received by the concentrator>
-		<process, store and/or forward received packets>
-		<send packets through the concentrator>
-	}
-	<stop the concentrator>
-
-**/!\ Warning** The lgw_send function is non-blocking and returns while the
-LoRa concentrator is still sending the packet, or even before the packet has
-started to be transmitted if the packet is triggered on a future event.
-While a packet is emitted, no packet can be received (limitation intrinsic to
-most radio frequency systems).
-
-Your application *must* take into account the time it takes to send a packet or 
-check the status (using lgw_status) before attempting to send another packet.
-
-Trying to send a packet while the previous packet has not finished being send
-will result in the previous packet not being sent or being sent only partially
-(resulting in a CRC error in the receiver).
-
-### 5.3. Debugging mode ###
-
-To debug your application, it might help to compile the loragw_hal function
-with the debug messages activated (set DEBUG_HAL=1 in library.cfg).
-It then send a lot of details, including detailed error messages to *stderr*.
-
-6. License
------------
-
-Copyright (c) 2013, SEMTECH S.A.
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-* Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-* Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-* Neither the name of the Semtech corporation nor the
-  names of its contributors may be used to endorse or promote products
-  derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL SEMTECH S.A. BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+### v4.0.1 ###
+
+* HAL: SX1301AP2: Only FPGA v27 is supported, removed (v18,v19) from the list
+        of supported FPGA images.
+
+WARNING: If you are using a Semtech SX1301AP2 ref design (GW1.5), the FPGA must
+be reprogrammed with one of the images provided with this release (fpga/ dir).
+
+### v4.0.0 ###
+
+* HAL: Added "Listen-Before-Talk" support for Semtech SX1301AP2 Ref Design.
+       A description of the feature implementation can be found in
+       libloragw/readme.md.
+* HAL: Updated FSK RSSI calculation for better linearization
+* util_lbt_test: New utility provided for basic "Listen-Before-Talk" testing.
+* util_tx_test: Extended to configure and test "LBT" through the HAL.
+* Added a reset_lgw.sh script to be used with IoT Starter Kit (v1.0) to reset
+the concentrator through the HOST GPIO pin.
+
+### v3.2.1 ###
+
+* HAL: Fixed downlink support for SX1301AP2 reference design: soft reset of the
+FPGA was missing for proper IQ inversion configuration.
+* HAL: Added support for several versions of FPGA (currently v18 and v19)
+* HAL: Reduced radio TX PLL bandwidth to reduce the noise level.
+* util_tx_test: Added FSK support and added minimal TX gain LUT.
+* util_spectral_scan: Removed FPGA soft reset, now done by the HAL.
+* util_tx_continous: reworked to use HAL functions instead of 'manual' config,
+and use same SX1301 calibration firmware as the HAL.
+* Updated all makefiles to handle the creation of obj directory when necessary.
+* Change cs_change usage policy in SPI module to let the driver handle the chip
+select.
+
+### v3.2.0 ###
+
+* Added support for SX1301AP2 reference design (with FPGA and additional
+SX127x). When a FPGA is detected at startup, the HAL automatically adapts SPI
+communication requests (using SPI header or not).
+* Added util_spectral_scan diagnostic tool to scan the spectral band in
+background, where the LoRa gateway operates. (can only be used with SX1301AP2
+or similar design). By default it uses the same SPI device as the one used by
+the HAL, but it can be changed depending on the hardware architecture on which
+it is used by updating the SPI_DEV_PATH constant defined in file
+util_spectral_scan/src/loragw_fpga_spi.c.
+Note: when using same SPI device from 2 applications, we rely on the host SPI
+driver and OS to properly handle concurrent SPI requests. It has been tested on
+Raspberry Pi / Raspbian with spi_bcm2708 driver.* Removed SPI FTDI support due
+to lack of performances to properly handle heavy packet traffic. Only native
+SPI usage is recommended.
+* HAL: added a check that SX1301 firmwares have been properly loaded at startup.
+
+### v3.1.0 ###
+
+* Removed GPIO module from HAL, that was specific to IoT Starter Kit platform.
+GPIO configuration will be done from application script instead.
+* Removed CFG_BRD configuration from library.cfg, not needed anymore
+
+### v3.0.2 ###
+
+* Bugfix: Fixed frequency calculation on uplinks: lgw_receive() function was
+using a variable to calculate the frequency before it was initialized with
+correct value. 
+* Bugfix: util_pkt_logger crashed when no gateway_ID is not defined in
+global_conf.json
+
+### v3.0.1 ###
+
+* Bufgix: Fixed util_tx_continuous compilation issue, by adding empty obj
+directory
+* Bugfix: Fixed HAL compilation issue for CFG_SPI=ftdi, removed dependency on
+loragw_gpio in this case
+
+### v3.0.0 ###
+
+* Added new HAL function lgw_board_setconf() to configure board/concentrator
+specific parameters: network type (LoRa public or private), concentrator clock
+source. Note: those parameters are not any more set from the library.cfg file
+configuration (CFG_NET, CFG_BRD),
+and should be passed at initialization by the application.
+* Added new HAL function lgw_txgain_setconf() to configure concentrator TX gain
+table. It can now be dynamically set by the application at initialization time.
+* Changed HAL function lgw_rxrf_setconf(), it will now also configure the radio
+type (CFG_RADIO has been removed from library.cfg), the RSSI offset to be used
+for this radio and if TX is enabled or not on this radio.
+* Added support of IoT Starter Kit platform, which is now the default board.
+* Added util_tx_continuous utility for gateway TX power calibration and
+spectral emission measurements/qualification.
+* Removed CFG_BAND configuration from library.cfg. Band configuration is done
+by application and passed dynamically at initialization time.
+* Updated makefiles to allow cross compilation from environment variable (ARCH,
+CROSS_COMPILE).
+
+** WARNING: **
+** Known issue: a problem with carrier leakage calibration has been seen on
+433MHz boards. **
+
+### v2.0.0 ###
+
+* Added support for Kerlink 868 27dBm gateway
+* Updated global_conf.eu868.json (in packet logger) to new LoRaWAN frequency
+plan
+* Added version numbers to AGC, arbiter and calibration firmware (those
+versions are checked at startup)
+* Added test_loragw_cal to test radio calibrations
+* Fixed minor bug in error coverage in register read/write functions
+
+/!\ warning: Kerlink 868 27dBm gateway includes a FPGA that MUST be programmed
+before running any application
+
+### v1.7.0 ###
+
+* Added TX 'start delay' compensation for timestamp mode (fix time window
+alignment issue at low SF and/or high BW)
+* Added adaptive narrowband/wideband TX filtering for LoRa
+* Added a command-line option to set CR in util_tx_test
+* Added notes for TX 'start delay' in immediate and triggered mode
+
+/!\ warning: due to start delay compensation being implemented, TX that were 
+previously 1.5ms late will be sent on time. At low datarate, this is not an 
+issue. At high LoRa data rate (and FSK) you might have to adjust your timing.
+
+### v1.6.0 ###
+
+* Fixed bug with 250kHz and 500 kHz TX filtering
+* Adjusted FSK timestamp calibration in RX for accurate RX/TX alignment
+* Added lgw_abort_tx() function to stop a TX at any time (scheduled or ongoing)
+* Added support for user-settable FSK sync word (same for RX and TX)
+* Added support for the Chinese 780 MHz band
+* Added support for Kerlink 433 gateway
+* Added support for Cisco 433, 470 & 780 MHz concentrators boards
+
+### v1.5.0 ###
+
+* Adding option to isolate public LoRa MAC networks at PHY level.
+
+### v1.4.1 ###
+
+* Enabling support for FSK per LoRa MAC specification
+* Adjusting TX and RX calibration set on 868 reference board
+* Added specific RX/TX calibration set for Kerlink 868 "IoT station" gateway
+* Changed default SPI port for native driver to Kerlink SPI device number
+
+### v1.4.0 ###
+
+* Added calibration routine to optimize RF performance
+* Added support for SX1301 433 MHz reference board
+* Improved AGC firmware
+* Improved RSSI accuracy
+* Improved utilities Makefile
+
+### v1.3.0 ###
+
+* Added TX power management.
+* Added full support for SX1301 reference board.
+* Changed build system with configuration for multiple chip/radio/band support.
+* SX125x bandwidth set to 1MHz by default (was 800 kHz).
+* Solved warnings with 64b integer printf when compiling on x86_64.
+* Renamed helper programs to reduce the concentrator vs. gateway confusion.
+
+### v1.2.2 ###
+
+* Added a GPIO toggle on the FTDI SPI module to reset the SX1301 board.
+
+### v1.2.1 ###
+
+* Fixed 'floating point exception' crash when concentrator returned a packet
+with SF=0 (CRC error on LoRa header).
+* Fixed buggy timezone handling.
+
+### v1.2.0 ###
+
+* Added feature: new GPS module in the library for synchronization.
+* Removed feature: no more missed deadline detection in TX because of
+incompatibility with GPS.
+* Added documentation for GPS and legal notice.
+* Added flags in Makefiles for easier cross-compilation.
+
+### v1.1.0 ###
+
+* Fixed bug 'no TX on radio B' (rfch 1).
+* Added feature: concentrator processing delay compensation in the receive()
+function for accurate 'end of packet' even timestamping.
+* Added feature: TX 'start delay' compensation in the send() function to emit
+packet exactly on target timestamp.
+* Added feature: timestamp counter verification in send() function, return an
+error if scheduling was too late.
+* Switched license to 'Revised BSD'.
+
+### v1.0.0 (from beta 8) ###
+
+* Switched FTDI as default SPI phy layer in library.cfg.
+* Fixed a bug in TX power control; still only two TW power available, 14 and
+24dBm.
+* Changed library directory name from loragw_hal to libloragw to follow usual
+conventions.
+
+### Beta 8 (from beta 7) ###
+
+* API: lgw_receive now return info on RX frequency and RF path for each packet
+(no need to keep track of RF/IF settings).
+* Unified some portion of the code with the 470 MHz variant of the HAL (use
+SX1255 radios instead of SX1257).
+* Improved AGC and ARB firmwares.
+* Adding -Wall -Wextra for compilation, fixing all the new warnings for cleaner
+code.
+* Fixed bugs in handling of FSK datarate.
+* test_loragw_hal now dumps the content of all LoRa registers after
+configuration in reg_dump.log.
+
+### Beta 7 (from beta 5) ###
+
+* Reduced number of SPI transactions to fetch a packet (improved number a
+packets par second that can be downloaded from concentrator).
+* Streamlined build process, main target is now a static library: libloragw.a.
+* Change memory allocation for payload: they are now part of the struct for
+TX/RX, no need to malloc/free.
+* All RX chains can use any of the two radios now.
+* FSK is available and working in TX and RX (variable length mode).
+* Calibrated RSSI for FSK.
+* lgw_connect now check the CHIP_ID.
+* Added a license file and a changelog.
+* Added a function returning a version string to allow identification of the
+version/options once compiled.
+
+### Beta 6 ###
+
+Private release, not taken into account in that changelog.
+
+### Beta 5 (from beta 4) ###
+
+* Updated registers, firmware and configuration to align with r986 bitstream
+revision.
+* Calibrated RSSI for LoRa "multi" and LoRa "stand alone" modems.
+* Renamed some confusing TX status code.
+* Added preliminary FSK support.
+
+### Beta 4 (from beta 3) ###
+
+* Unified build environment with selectable SPI layer (Linux native or FTDI
+SPI-over-USB bridge).
+* Remove the 500 kHz limit on radio bandwith, back to the nominal 800 kHz.
+* Renamed debug flags.
+
+5. Legal notice
+----------------
+
+The information presented in this project documentation does not form part of 
+any quotation or contract, is believed to be accurate and reliable and may be 
+changed without notice. No liability will be accepted by the publisher for any 
+consequence of its use. Publication thereof does not convey nor imply any 
+license under patent or other industrial or intellectual property rights. 
+Semtech assumes no responsibility or liability whatsoever for any failure or 
+unexpected operation resulting from misuse, neglect improper installation, 
+repair or improper handling or unusual physical or electrical stress 
+including, but not limited to, exposure to parameters beyond the specified 
+maximum ratings or operation outside the specified range. 
+
+SEMTECH PRODUCTS ARE NOT DESIGNED, INTENDED, AUTHORIZED OR WARRANTED TO BE 
+SUITABLE FOR USE IN LIFE-SUPPORT APPLICATIONS, DEVICES OR SYSTEMS OR OTHER 
+CRITICAL APPLICATIONS. INCLUSION OF SEMTECH PRODUCTS IN SUCH APPLICATIONS IS 
+UNDERSTOOD TO BE UNDERTAKEN SOLELY AT THE CUSTOMER'S OWN RISK. Should a
+customer purchase or use Semtech products for any such unauthorized 
+application, the customer shall indemnify and hold Semtech and its officers, 
+employees, subsidiaries, affiliates, and distributors harmless against all 
+claims, costs damages and attorney fees which could arise.
 
 *EOF*
