@@ -1,5 +1,3 @@
-# There is plan to make some updates to make the LoRaWAN parser API more flexible, welcome to suggest.
-
 # Introduction
 
 This LoRaWAN tool is for LoRaWAN developers who need know the details of LoRaWAN protocol.
