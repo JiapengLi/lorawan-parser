@@ -46,7 +46,7 @@ void pl_print(message_t *head)
         char len[10];
         sprintf(buf, " %d MESSAGE:\t", i);
         sprintf(len, "<%d>", head->len);
-        log_hex(LOG_NORMAL, head->buf, head->len, "%15s%6s", buf, len);
+        log_puts(LOG_NORMAL, "%15s%6s %H", buf, len, head->buf, head->len);
         head = head->next;
         i++;
     }
@@ -61,7 +61,7 @@ void maccmd_print(message_t *head)
         char len[10];
         sprintf(buf, " %d MACCMD:\t", i);
         sprintf(len, "<%d>", head->len-1);
-        log_hex(LOG_NORMAL, head->buf+1, head->len-1, "%15s%6s [%02X]", buf, len, head->buf[0]);
+        log_puts(LOG_NORMAL, "%15s%6s [%02X] %H", buf, len, head->buf[0], head->buf+1, head->len-1);
         head = head->next;
         i++;
     }
@@ -299,19 +299,19 @@ int config_parse(const char *file, config_t *config)
     log_puts(LOG_NORMAL, "%15s %s","BAND:\t", config_band_tab[LW_BAND_EU868]);
     sprintf(sbuf, "NWKSKEY:\t");
     sprintf(slen, "<%d>", 16);
-    log_hex(LOG_NORMAL, config->nwkskey, 16, "%15s%6s", sbuf, slen);
+    log_puts(LOG_NORMAL, "%15s%6s %H", sbuf, slen, config->nwkskey, 16);
     sprintf(sbuf, "APPSKEY:\t");
     sprintf(slen, "<%d>", 16);
-    log_hex(LOG_NORMAL, config->appskey, 16, "%15s%6s", sbuf, slen);
+    log_puts(LOG_NORMAL, "%15s%6s %H", sbuf, slen, config->appskey, 16);
     sprintf(sbuf, "APPKEY:\t");
     sprintf(slen, "<%d>", 16);
-    log_hex(LOG_NORMAL, config->appkey, 16, "%15s%6s", sbuf, slen);
+    log_puts(LOG_NORMAL, "%15s%6s %H", sbuf, slen, config->appkey, 16);
     sprintf(sbuf, "JOINR:\t");
     sprintf(slen, "<%d>", config->joinr_size);
-    log_hex(LOG_NORMAL, config->joinr, config->joinr_size, "%15s%6s", sbuf, slen);
+    log_puts(LOG_NORMAL, "%15s%6s %H", sbuf, slen, config->joinr, config->joinr_size);
     sprintf(sbuf, "JOINA:\t");
     sprintf(slen, "<%d>", config->joina_size);
-    log_hex(LOG_NORMAL, config->joina, config->joina_size, "%15s%6s", sbuf, slen);
+    log_puts(LOG_NORMAL, "%15s%6s %H", sbuf, slen, config->joina, config->joina_size);
     pl_print(config->message);
     maccmd_print(config->maccmd);
 

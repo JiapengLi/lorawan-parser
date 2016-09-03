@@ -37,3 +37,4 @@ autoscan.log
 COPYING
 INSTALL
 json
+*.bak

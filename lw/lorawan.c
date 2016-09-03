@@ -168,7 +168,7 @@ void lw_log_data(uint8_t *buf, int len)
     str[len] = '\0';
 
     if(lw_log_flag){
-        log_hex(LOG_NORMAL, buf, len, "DATA(HEX):");
+        log_puts(LOG_NORMAL, "DATA(HEX): %H", buf, len);
     }
     for(i=0; i<len; i++){
         str[i] = buf[i];
@@ -248,7 +248,7 @@ int lw_parse(uint8_t *buf, int len, lw_parse_key_t *pkey, uint32_t fcnt16_msb)
 
     if(lw_log_flag){
         log_line();
-        log_hex(LOG_NORMAL, buf, len, "MSG:");
+        log_puts(LOG_NORMAL, "MSG: %H", buf, len);
     }
 
     if(mhdr.bits.major == LW_VERSION_MAJOR_R1){
@@ -274,7 +274,7 @@ int lw_parse(uint8_t *buf, int len, lw_parse_key_t *pkey, uint32_t fcnt16_msb)
     if(ret == LW_OK){
         lw_flag |= LW_FLAG_BUF_OK;
         if(lw_log_flag){
-            log_hex(LOG_NORMAL, lw_buf.buf, lw_buf.len, "DMSG:");
+            log_puts(LOG_NORMAL, "DMSG: %H", lw_buf.buf, lw_buf.len);
         }
     }
 
@@ -372,9 +372,9 @@ int lw_mtype_join_accept(uint8_t *buf, int len, lw_parse_key_t *pkey, uint32_t f
     if(pl_len>0){
         if(lw_log_flag){
             log_puts(LOG_NORMAL, "Join accept encrypted payload:(%d)", len);
-            log_hex(LOG_NORMAL, buf, len, 0);
+            log_puts(LOG_NORMAL, "%H", buf, len);
             log_puts(LOG_NORMAL, "Join accept decrypted payload:(%d)", len);
-            log_hex(LOG_NORMAL, out, len, 0);
+            log_puts(LOG_NORMAL, "%H", out, len);
         }
         memcpy(plmic.buf, out+len-4, 4);
         lw_key.aeskey = pkey->appkey;
@@ -412,13 +412,13 @@ int lw_mtype_join_accept(uint8_t *buf, int len, lw_parse_key_t *pkey, uint32_t f
     if(len == LW_JA_LEN_EXT){
         idx = LW_JA_OFF_CFLIST;
         if(lw_log_flag){
-            log_hex(LOG_NORMAL, out+idx, 16, "CFList:");
+            log_puts(LOG_NORMAL, "CFList: %H", out+idx, 16);
         }
     }
 
     if(lw_log_flag){
-        log_hex(LOG_NORMAL, lw_nwkskey, LW_KEY_LEN, "NWKSKEY:");
-        log_hex(LOG_NORMAL, lw_appskey, LW_KEY_LEN, "APPSKEY:");
+        log_puts(LOG_NORMAL, "NWKSKEY: %H", lw_nwkskey, LW_KEY_LEN);
+        log_puts(LOG_NORMAL, "APPSKEY: %H", lw_appskey, LW_KEY_LEN);
     }
     lw_buf.len = len;
     memcpy(lw_buf.buf, out, lw_buf.len);
@@ -899,7 +899,7 @@ int lw_maccmd(uint8_t mac_header, uint8_t *opts, int len)
     if(0  == lw_log_flag){
         return LW_OK;
     }
-    log_hex(LOG_NORMAL, opts, len, "MACCMD:");
+    log_puts(LOG_NORMAL, "MACCMD: %H", opts, len);
     i=0;
     while(i<len){
         if(lw_log_flag){

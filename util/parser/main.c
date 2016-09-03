@@ -171,8 +171,8 @@ int main(int argc, char **argv)
                 lw_get_skeys(jnwkskey, jappskey, &lw_skey_seed);
 
                 log_line();
-                log_hex(LOG_NORMAL, jnwkskey, LW_KEY_LEN, "J-NWKSKEY:\t");
-                log_hex(LOG_NORMAL, jappskey, LW_KEY_LEN, "J-APPSKEY:\t");
+                log_puts(LOG_NORMAL, "J-NWKSKEY:\t%H", jnwkskey, LW_KEY_LEN);
+                log_puts(LOG_NORMAL, "J-APPSKEY:\t%H", jappskey, LW_KEY_LEN);
 
                 if(config.joinkey){
                     /** Overwrite default session keys */
