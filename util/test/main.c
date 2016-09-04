@@ -84,20 +84,15 @@ uint8_t ja_pl[]={
 
 
 lw_netid_t netid = {
-    .buf[0] = 0x24,
-    .buf[1] = 0x00,
-    .buf[2] = 0x00,
+    .data = 0x000024,
 };
 
 lw_dnonce_t dnonce = {
-    .buf[0] = 0x21,
-    .buf[1] = 0xF8,
+    .data = 0xF821,
 };
 
 lw_anonce_t anonce = {
-    .buf[0] = 0xD2,
-    .buf[1] = 0xA5,
-    .buf[2] = 0xA9,
+    .data = 0xA9A5D2,
 };
 uint8_t rappskey[16] = {
     0x80, 0xA3, 0x4F, 0xC1, 0x8A, 0xF5, 0x61, 0xDC,
