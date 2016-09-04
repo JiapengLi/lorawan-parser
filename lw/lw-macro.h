@@ -24,7 +24,8 @@ enum{
     LW_ERR_TX_BUF_NOT_EMPTY = -16,
     LW_ERR_UNKOWN_DEVEUI    = -17,
     LW_ERR_NO_HEAP          = -18,
-    LW_ERR_UNKOWN_DATA_RATE = -17,
+    LW_ERR_UNKOWN_DATA_RATE = -19,
+    LW_ERR_FRAME_TOO_SHORT  = -20,
 };
 
 typedef enum{

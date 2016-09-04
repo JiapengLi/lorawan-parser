@@ -35,6 +35,9 @@ uint8_t lw_dft_appkey[16] = {
     0x2B, 0x7E, 0x15, 0x16, 0x28, 0xAE, 0xD2, 0xA6,
     0xAB, 0xF7, 0x15, 0x88, 0x09, 0xCF, 0x4F, 0x3c
 };
+
+lw_dnonce_t lw_dft_dnonce;
+
 lw_node_t *lw_node;
 lw_node_t *lw_node_latest_jr;
 lw_node_t lw_node_buf[LW_MAX_NODES];
@@ -160,6 +163,15 @@ const uint16_t lw_chmaskcntl_tab[][8]={
     }
 };
 
+const char *lw_band_str_tab[LW_BAND_STR_TAB_NUM]={
+    "EU868",
+    "EU434",
+    "US915",
+    "CN780",
+    "EU433",
+    "CUSTOM",
+};
+
 typedef struct{
     uint8_t cmd;
     uint8_t len;
@@ -240,10 +252,10 @@ void lw_set_deveui(uint8_t *deveui)
     deveui[1] = (uint8_t)(lw_deveui_cnt>>8);
     deveui[2] = (uint8_t)(lw_deveui_cnt>>16);
     deveui[3] = (uint8_t)(lw_deveui_cnt>>24);
-    deveui[4] = 0x46;
-    deveui[5] = 0x48;
-    deveui[6] = 0x58;
-    deveui[7] = 0x52;
+    deveui[4] = 0x00;
+    deveui[5] = 0x70;
+    deveui[6] = 0x77;
+    deveui[7] = 0x6c;
     lw_deveui_cnt++;
 }
 
@@ -268,11 +280,11 @@ int lw_add(lw_node_t *node)
 
     if( 0 == lw_check_zero(lw_node_buf[i].deveui, 8) ){
         lw_set_deveui(lw_node_buf[i].deveui);
-        lw_cpy(node->deveui, lw_node_buf[i].deveui, 8);
+        memcpy(node->deveui, lw_node_buf[i].deveui, 8);
     }else{
-        lw_cpy(lw_node_buf[i].deveui, node->deveui, 8);
+        memcpy(lw_node_buf[i].deveui, node->deveui, 8);
     }
-    lw_cpy(lw_node_buf[i].appeui, node->appeui, 8);
+    memcpy(lw_node_buf[i].appeui, node->appeui, 8);
 
     if(lw_node_buf[i].mode == OTAA){
         /* Allocate Devaddr, NetId, AppNonce */
@@ -531,22 +543,27 @@ int lw_pack(lw_frame_t *frame, uint8_t *msg, int *len)
     int i, pl_len;
     lw_mic_t mic;
     lw_key_t lw_key;
+    lw_skey_seed_t lw_skey_seed;
     lw_node_t *cur;
     uint8_t out[33];
 
     i=0;
     msg[i++] = frame->mhdr.data;
 
-    cur = lw_get_node(frame->deveui);
-    if( cur == NULL ){
-        return LW_ERR_NOT_AVALAIBLE;
+    if( frame->node == NULL){
+        cur = lw_get_node(frame->deveui);
+        if( cur == NULL ){
+            return LW_ERR_NOT_AVALAIBLE;
+        }
+    }else{
+        cur = frame->node;
     }
 
     switch(frame->mhdr.bits.mtype){
     case LW_MTYPE_JOIN_REQUEST:
-        memcpy(msg+i, frame->pl.jr.appeui, 8);
+        memcpy(msg+i, frame->appeui, 8);
         i+=8;
-        memcpy(msg+i, frame->pl.jr.deveui, 8);
+        memcpy(msg+i, frame->deveui, 8);
         i+=8;
         msg[i++] = (uint8_t)frame->pl.jr.devnonce.data;
         msg[i++] = (uint8_t)(frame->pl.jr.devnonce.data>>8);
@@ -555,6 +572,7 @@ int lw_pack(lw_frame_t *frame, uint8_t *msg, int *len)
         lw_key.len = i;
         lw_join_mic(&mic, &lw_key);
         memcpy(msg+i, mic.buf, 4);
+        frame->mic.data = mic.data;
         i += 4;
         *len = i;
         return i;
@@ -579,6 +597,7 @@ int lw_pack(lw_frame_t *frame, uint8_t *msg, int *len)
         lw_key.in = msg;
         lw_key.len = i;
         lw_join_mic(&mic, &lw_key);
+        frame->mic.data = mic.data;
         memcpy(msg+i, mic.buf, 4);
         i += 4;
         lw_key.aeskey = cur->appkey;
@@ -587,6 +606,12 @@ int lw_pack(lw_frame_t *frame, uint8_t *msg, int *len)
         lw_join_decrypt(out+1, &lw_key);
         memcpy(msg+1, out+1, lw_key.len);
         *len = i;
+
+        lw_skey_seed.aeskey = cur->appkey;
+        lw_skey_seed.anonce = frame->pl.ja.appnonce;
+        lw_skey_seed.dnonce = cur->devnonce;
+        lw_skey_seed.netid = frame->pl.ja.netid;
+        lw_get_skeys(frame->pl.ja.nwkskey, frame->pl.ja.appskey, &lw_skey_seed);
         return i;
     case LW_MTYPE_MSG_UP:
     case LW_MTYPE_MSG_DOWN:
@@ -636,6 +661,7 @@ int lw_pack(lw_frame_t *frame, uint8_t *msg, int *len)
 
         lw_msg_mic(&mic, &lw_key);
         memcpy(msg+i, mic.buf, 4);
+        frame->mic.data = mic.data;
         i += 4;
         *len = i;
         break;
@@ -668,23 +694,25 @@ int lw_auto_add(lw_frame_t *frame, uint8_t *msg, int len)
             return LW_ERR_UNKOWN_FRAME;
         }
 
+        //log_puts(LOG_NORMAL, "AUTO ADD OTAA DEVICE");
+
         id = LW_JR_OFF_APPEUI;
-        memcpy(frame->pl.jr.appeui, msg+id, 8);
+        memcpy(frame->appeui, msg+id, 8);
         id = LW_JR_OFF_DEVEUI;
-        memcpy(frame->pl.jr.deveui, msg+id, 8);
+        memcpy(frame->deveui, msg+id, 8);
 
         memset(&endnode, 0, sizeof(lw_node_t));
         endnode.mode = OTAA;
         id = LW_JR_OFF_APPEUI;
-        lw_cpy(endnode.appeui, msg+id, 8);
+        memcpy(endnode.appeui, msg+id, 8);
         id = LW_JR_OFF_DEVEUI;
-        lw_cpy(endnode.deveui, msg+id, 8);
+        memcpy(endnode.deveui, msg+id, 8);
         memcpy(endnode.appkey, lw_dft_appkey, 16);
         lw_add(&endnode);
 
-        ret = lw_mtype_join_request(frame, lw_get_node(frame->pl.jr.deveui), msg, len);
+        ret = lw_mtype_join_request(frame, lw_get_node(frame->deveui), msg, len);
         if(ret == LW_OK){
-            lw_node_latest_jr = lw_get_node(frame->pl.jr.deveui);
+            lw_node_latest_jr = lw_get_node(frame->deveui);
         }
         return ret;
     case LW_MTYPE_MSG_UP:
@@ -715,6 +743,8 @@ int lw_auto_add(lw_frame_t *frame, uint8_t *msg, int len)
             return LW_ERR_MIC;
         }
 
+        //log_puts(LOG_NORMAL, "AUTO ADD ABP DEVICE");
+
         endnode.mode = ABP;
         memset(endnode.appeui, 0, 8);
         memset(endnode.deveui, 0, 8);
@@ -729,7 +759,8 @@ int lw_auto_add(lw_frame_t *frame, uint8_t *msg, int len)
         endnode.rxdelay.bits.del = 1;
         lw_add(&endnode);
 
-        lw_mtype_msg_up(frame, lw_get_node(endnode.deveui), msg, len);
+        memcpy(frame->deveui, endnode.deveui, 8);
+        lw_mtype_msg_up(frame, lw_get_node(frame->deveui), msg, len);
         return LW_OK;
     }
     return LW_ERR_UNKOWN_FRAME;
@@ -759,18 +790,18 @@ int lw_parse(lw_frame_t *frame, uint8_t *msg, int len)
         }
 
         id = LW_JR_OFF_APPEUI;
-        memcpy(frame->pl.jr.appeui, msg+id, 8);
+        memcpy(frame->appeui, msg+id, 8);
 
         id = LW_JR_OFF_DEVEUI;
-        memcpy(frame->pl.jr.deveui, msg+id, 8);
+        memcpy(frame->deveui, msg+id, 8);
         for(; cur != NULL; cur = cur->next){
             if(cur->mode != OTAA){
                 continue;
             }
-            if(0 != memcmp(frame->pl.jr.appeui, cur->appeui, 8)){
+            if(0 != memcmp(frame->appeui, cur->appeui, 8)){
                 continue;
             }
-            if(0 != memcmp(frame->pl.jr.deveui, cur->deveui, 8)){
+            if(0 != memcmp(frame->deveui, cur->deveui, 8)){
                 continue;
             }
             ret = lw_mtype_join_request(frame, cur, msg, len);
@@ -853,9 +884,13 @@ int lw_mtype_join_accept(lw_frame_t *frame, lw_node_t *cur, uint8_t *buf, int le
     }
 
     lw_skey_seed.aeskey = cur->appkey;
-    memcpy(lw_skey_seed.anonce.buf, out+LW_JA_OFF_APPNONCE ,3);
+    lw_skey_seed.anonce.data = out[LW_JA_OFF_APPNONCE+0];
+    lw_skey_seed.anonce.data |= ((uint32_t)out[LW_JA_OFF_APPNONCE+1] << 8);
+    lw_skey_seed.anonce.data |= ((uint32_t)out[LW_JA_OFF_APPNONCE+2] << 16);
     lw_skey_seed.dnonce = cur->devnonce;
-    memcpy(lw_skey_seed.netid.buf, out+LW_JA_OFF_NETID ,3);
+    lw_skey_seed.netid.data = out[LW_JA_OFF_NETID+0];
+    lw_skey_seed.netid.data |= ((uint32_t)out[LW_JA_OFF_NETID+1] << 8);
+    lw_skey_seed.netid.data |= ((uint32_t)out[LW_JA_OFF_NETID+2] << 16);
     lw_get_skeys(frame->pl.ja.nwkskey, frame->pl.ja.appskey, &lw_skey_seed);
 
     id = LW_JA_OFF_APPNONCE;
@@ -900,6 +935,8 @@ int lw_mtype_join_accept(lw_frame_t *frame, lw_node_t *cur, uint8_t *buf, int le
     cur->netid.data = frame->pl.ja.netid.data;
     cur->appnonce.data = frame->pl.ja.appnonce.data;
 
+    frame->node = cur;
+
     return LW_OK;
 }
 
@@ -921,10 +958,10 @@ int lw_mtype_join_request(lw_frame_t *frame, lw_node_t *cur, uint8_t *msg, int l
             return LW_ERR_UNKOWN_FRAME;
         }
         id = LW_JR_OFF_APPEUI;
-        memcpy(frame->pl.jr.appeui, msg+id, 8);
+        memcpy(frame->appeui, msg+id, 8);
 
         id = LW_JR_OFF_DEVEUI;
-        memcpy(frame->pl.jr.deveui, msg+id, 8);
+        memcpy(frame->deveui, msg+id, 8);
 
         id = LW_JR_OFF_DEVNONCE;
         frame->pl.jr.devnonce.data = ( (uint32_t)msg[id++] << 0 );
@@ -941,6 +978,7 @@ int lw_mtype_join_request(lw_frame_t *frame, lw_node_t *cur, uint8_t *msg, int l
         memcpy(frame->deveui, cur->deveui, 8);
         memcpy(frame->appeui, cur->appeui, 8);
 
+        frame->node = cur;
         return LW_OK;
     }
 
@@ -954,7 +992,18 @@ int lw_mtype_msg_up(lw_frame_t *frame, lw_node_t *cur, uint8_t *msg, int len)
     lw_mic_t plmic;
     uint32_t diff;
     uint16_t fcnt16, fcntlsb, fcntmsb;
+    int pl_len = 0;
+    int pl_index = 0;
+    lw_mic_t mic;
+    lw_key_t lw_key;
+
     // TODO: check minimum len
+    if(len < 12){
+        return LW_ERR_UNKOWN_FRAME;
+    }
+    if(cur == NULL){
+        return LW_ERR_UNKOWN_FRAME;
+    }
 
     id = 1;
     devaddr.data = ( (uint32_t)msg[id++] << 0 );
@@ -963,116 +1012,109 @@ int lw_mtype_msg_up(lw_frame_t *frame, lw_node_t *cur, uint8_t *msg, int len)
     devaddr.data |= ( (uint32_t)msg[id++] << 24 );
     memcpy(plmic.buf, msg+len-4, 4);
 
-    if(cur != NULL){
-        int pl_len = 0;
-        int pl_index = 0;
-        lw_mic_t mic;
-        lw_key_t lw_key;
-
-        lw_key.aeskey = cur->nwkskey;
-        lw_key.in = msg;
-        lw_key.len = len-4;
-        lw_key.devaddr.data = devaddr.data;
-        switch(frame->mhdr.bits.mtype){
-        case LW_MTYPE_MSG_UP:
-        case LW_MTYPE_CMSG_UP:
-            lw_key.link = LW_UPLINK;
-            break;
-        case LW_MTYPE_CMSG_DOWN:
-        case LW_MTYPE_MSG_DOWN:
-            lw_key.link = LW_DOWNLINK;
-            break;
-        }
-
-        fcnt16 = ((uint32_t)msg[LW_DATA_OFF_FCNT+1]<<8) + msg[LW_DATA_OFF_FCNT];
-        fcntlsb = (uint16_t)cur->ufcnt;
-        fcntmsb = (uint16_t)(cur->ufcnt>>16);
-        if(fcnt16<fcntlsb){
-            fcntmsb++;
-        }
-        lw_key.fcnt32 = ((uint32_t)fcntmsb<<16) + fcnt16;
-
-        lw_msg_mic(&mic, &lw_key);
-        if(mic.data != plmic.data){
-            if(lw_key.fcnt32 == fcnt16){
-                return LW_ERR_MIC;
-            }
-            lw_key.fcnt32 = fcnt16;
-            lw_msg_mic(&mic, &lw_key);
-            if(mic.data != plmic.data){
-                return LW_ERR_MIC;
-            }
-        }
-
-        switch(frame->mhdr.bits.mtype){
-        case LW_MTYPE_MSG_UP:
-        case LW_MTYPE_CMSG_UP:
-            if(cur->ufsum == 0){
-                cur->ufsum++;
-            }else{
-                if(lw_key.fcnt32 > cur->ufcnt){
-                    diff = lw_key.fcnt32 - cur->ufcnt;
-                    if(diff == 0){
-
-                    }else{
-                        cur->uflost += (diff - 1);
-                        cur->ufsum++;
-                    }
-                }else if(lw_key.fcnt32 < cur->ufcnt){
-                    /* Counter is restarted  */
-                    cur->ufsum++;
-                }
-            }
-            cur->ufcnt = lw_key.fcnt32;
-            break;
-        }
-
-        frame->pl.mac.fcnt = lw_key.fcnt32;
-        frame->pl.mac.fctrl.data = msg[id++];
-        foptslen = frame->pl.mac.fctrl.ul.foptslen;
-        if( len > (8 + 4 + foptslen) ){
-            frame->pl.mac.fport = msg[LW_DATA_OFF_FOPTS + foptslen];
-            pl_index = LW_DATA_OFF_FOPTS + foptslen + 1;
-            pl_len  = len - 4 - pl_index;
-
-            if(frame->pl.mac.fport == 0){
-                lw_key.aeskey = cur->nwkskey;
-            }else{
-                lw_key.aeskey = cur->appskey;
-            }
-            lw_key.in = msg + pl_index;
-            lw_key.len = pl_len;
-            pl_len = lw_encrypt(frame->pl.mac.fpl, &lw_key);
-            if(pl_len<=0){
-                return LW_ERR_DECRYPT;
-            }
-            frame->pl.mac.flen = pl_len;
-        }else{
-            frame->pl.mac.flen = 0;
-        }
-
-        if( (foptslen != 0) && ( (frame->pl.mac.fport == 0) && (frame->pl.mac.flen > 0) ) ){
-            return LW_ERR_FOPTS_PORT0;
-        }
-
-        if(foptslen != 0){
-            memcpy(frame->pl.mac.fopts, msg+LW_DATA_OFF_FOPTS, foptslen);
-        }
-        frame->pl.mac.devaddr.data = devaddr.data;
-        frame->mic.data = plmic.data;
-
-        memcpy(frame->buf, msg, pl_index);        // until port, pl_index equals length of MHDR+FHDR+FPOR
-        memcpy(frame->buf + pl_index, frame->pl.mac.fpl, pl_len);   // payload
-        memcpy(frame->buf + len - 4, mic.buf, 4); // mic
-        frame->len = len;
-
-        memcpy(frame->deveui, cur->deveui, 8);
-        memcpy(frame->appeui, cur->appeui, 8);
-
-        return LW_OK;
+    lw_key.aeskey = cur->nwkskey;
+    lw_key.in = msg;
+    lw_key.len = len-4;
+    lw_key.devaddr.data = devaddr.data;
+    switch(frame->mhdr.bits.mtype){
+    case LW_MTYPE_MSG_UP:
+    case LW_MTYPE_CMSG_UP:
+        lw_key.link = LW_UPLINK;
+        break;
+    case LW_MTYPE_CMSG_DOWN:
+    case LW_MTYPE_MSG_DOWN:
+        lw_key.link = LW_DOWNLINK;
+        break;
     }
 
-    return LW_ERR_UNKOWN_FRAME;
+    fcnt16 = ((uint32_t)msg[LW_DATA_OFF_FCNT+1]<<8) + msg[LW_DATA_OFF_FCNT];
+    fcntlsb = (uint16_t)cur->ufcnt;
+    fcntmsb = (uint16_t)(cur->ufcnt>>16);
+    if(fcnt16<fcntlsb){
+        fcntmsb++;
+    }
+    lw_key.fcnt32 = ((uint32_t)fcntmsb<<16) + fcnt16;
+
+    lw_msg_mic(&mic, &lw_key);
+    if(mic.data != plmic.data){
+        if(lw_key.fcnt32 == fcnt16){
+            return LW_ERR_MIC;
+        }
+        lw_key.fcnt32 = fcnt16;
+        lw_msg_mic(&mic, &lw_key);
+        if(mic.data != plmic.data){
+            return LW_ERR_MIC;
+        }
+    }
+
+    switch(frame->mhdr.bits.mtype){
+    case LW_MTYPE_MSG_UP:
+    case LW_MTYPE_CMSG_UP:
+        if(cur->ufsum == 0){
+            cur->ufsum++;
+        }else{
+            if(lw_key.fcnt32 > cur->ufcnt){
+                diff = lw_key.fcnt32 - cur->ufcnt;
+                if(diff == 0){
+
+                }else{
+                    cur->uflost += (diff - 1);
+                    cur->ufsum++;
+                }
+            }else if(lw_key.fcnt32 < cur->ufcnt){
+                /* Counter is restarted  */
+                cur->ufsum++;
+            }
+        }
+        cur->ufcnt = lw_key.fcnt32;
+        break;
+    }
+
+    frame->pl.mac.fcnt = lw_key.fcnt32;
+    frame->pl.mac.fctrl.data = msg[id++];
+    foptslen = frame->pl.mac.fctrl.ul.foptslen;
+    if( len > (8 + 4 + foptslen) ){
+        frame->pl.mac.fport = msg[LW_DATA_OFF_FOPTS + foptslen];
+        pl_index = LW_DATA_OFF_FOPTS + foptslen + 1;
+        pl_len  = len - 4 - pl_index;
+
+        if(frame->pl.mac.fport == 0){
+            lw_key.aeskey = cur->nwkskey;
+        }else{
+            lw_key.aeskey = cur->appskey;
+        }
+        lw_key.in = msg + pl_index;
+        lw_key.len = pl_len;
+        pl_len = lw_encrypt(frame->pl.mac.fpl, &lw_key);
+        if(pl_len<=0){
+            return LW_ERR_DECRYPT;
+        }
+        frame->pl.mac.flen = pl_len;
+    }else{
+        frame->pl.mac.flen = 0;
+    }
+
+    if( (foptslen != 0) && ( (frame->pl.mac.fport == 0) && (frame->pl.mac.flen > 0) ) ){
+        return LW_ERR_FOPTS_PORT0;
+    }
+
+    if(foptslen != 0){
+        memcpy(frame->pl.mac.fopts, msg+LW_DATA_OFF_FOPTS, foptslen);
+    }
+    frame->pl.mac.devaddr.data = devaddr.data;
+    frame->mic.data = plmic.data;
+
+    memcpy(frame->buf, msg, pl_index);        // until port, pl_index equals length of MHDR+FHDR+FPOR
+    memcpy(frame->buf + pl_index, frame->pl.mac.fpl, pl_len);   // payload
+    memcpy(frame->buf + len - 4, mic.buf, 4); // mic
+    frame->len = len;
+
+    memcpy(frame->deveui, cur->deveui, 8);
+    memcpy(frame->appeui, cur->appeui, 8);
+
+    frame->node = cur;
+    return LW_OK;
+
 }
 
 int lw_mtype_msg_down(lw_frame_t *frame, lw_node_t *cur, uint8_t *buf, int len)
@@ -1162,7 +1204,7 @@ int lw_check_zero(uint8_t *src, int len)
     return 0;
 }
 
-uint8_t *lw_write_dw(uint8_t *output, uint32_t input)
+void lw_write_dw(uint8_t *output, uint32_t input)
 {
 	uint8_t* ptr = output;
 
@@ -1170,8 +1212,18 @@ uint8_t *lw_write_dw(uint8_t *output, uint32_t input)
 	*(ptr++) = (uint8_t)(input), input >>= 8;
 	*(ptr++) = (uint8_t)(input), input >>= 8;
 	*(ptr++) = (uint8_t)(input);
+}
 
-	return ptr;
+uint32_t lw_read_dw(uint8_t *buf)
+{
+	uint32_t ret;
+
+	ret = ( (uint32_t)buf[0] << 0 );
+    ret |= ( (uint32_t)buf[1] << 8 );
+    ret |= ( (uint32_t)buf[2] << 16 );
+    ret |= ( (uint32_t)buf[3] << 24 );
+
+	return ret;
 }
 
 void lw_msg_mic(lw_mic_t* mic, lw_key_t *key)
@@ -1311,9 +1363,14 @@ void lw_get_skeys(uint8_t *nwkskey, uint8_t *appskey, lw_skey_seed_t *seed)
 
     memset(&aesContext, 0, sizeof(aesContext));
     memset(b, 0, LW_KEY_LEN);
-    memcpy(b+1, seed->anonce.buf, 3);
-    memcpy(b+4, seed->netid.buf, 3);
-    memcpy(b+7, seed->dnonce.buf, 2);
+    b[1] = (uint8_t)(seed->anonce.data>>0);
+    b[2] = (uint8_t)(seed->anonce.data>>8);
+    b[3] = (uint8_t)(seed->anonce.data>>16);
+    b[4] = (uint8_t)(seed->netid.data>>0);
+    b[5] = (uint8_t)(seed->netid.data>>8);
+    b[6] = (uint8_t)(seed->netid.data>>16);
+    b[7] = (uint8_t)(seed->dnonce.data>>0);
+    b[8] = (uint8_t)(seed->dnonce.data>>8);
 
     b[0] = 0x01;
 	aes_set_key(seed->aeskey, LW_KEY_LEN, &aesContext);

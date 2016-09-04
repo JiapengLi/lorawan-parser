@@ -80,15 +80,6 @@ void config_free(config_t *config)
     pl_free(&config->maccmd);
 }
 
-const char *config_band_tab[]={
-    "EU868",
-    "EU434",
-    "US915",
-    "CN780",
-    "EU433",
-    "CUSTOM",
-};
-
 int config_parse(const char *file, config_t *config)
 {
     JSON_Value *jvroot;
@@ -119,8 +110,8 @@ int config_parse(const char *file, config_t *config)
     config->band = EU868;
     string = json_object_get_string(joroot, "band");
     if(string != NULL){
-        for(i=0; i<sizeof(config_band_tab)/sizeof(char *); i++){
-            if(0 == strcmp(string, config_band_tab[i])){
+        for(i=0; i<LW_BAND_STR_TAB_NUM; i++){
+            if(0 == strcmp(string, lw_band_str_tab[i])){
                 config->band = (lw_band_t)i;
                 break;
             }
@@ -293,7 +284,7 @@ int config_parse(const char *file, config_t *config)
     }
 
     log_line();
-    log_puts(LOG_NORMAL, "%15s %s","BAND:\t", config_band_tab[EU868]);
+    log_puts(LOG_NORMAL, "%15s %s","BAND:\t", lw_band_str_tab[config->band]);
     sprintf(sbuf, "NWKSKEY:\t");
     sprintf(slen, "<%d>", 16);
     log_puts(LOG_NORMAL, "%15s%6s %H", sbuf, slen, config->nwkskey, 16);

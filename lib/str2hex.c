@@ -28,7 +28,7 @@ int char2hex(char c)
 	return STR2HEX_ERR_CHAR_INVALID;
 }
 
-int word2hex(char *str, uint8_t *hex)
+int word2hex(char *str, uint8_t *hex, int max_len)
 {
 	int i, j, len;
 	int h;
@@ -46,6 +46,9 @@ int word2hex(char *str, uint8_t *hex)
 		i=0;
 	}
 	for(; i<len; i+=2){
+        if(j >= max_len){
+            return STR2HEX_ERR_TOO_LONG;
+        }
 		h = char2hex(str[i]);
 		if(h<0){
 			return h;
@@ -109,10 +112,13 @@ int str2hex(char *str, uint8_t *hex, int max_len)
                 }else{
                     len_tmp = para_len;
                 }
+                if(j>=max_len){
+                    return STR2HEX_ERR_TOO_LONG;
+                }
                 memcpy(word, str+start_index, len_tmp);
                 start_index += len_tmp;
                 word[len_tmp] = '\0';
-                num = word2hex(word, hex+j);
+                num = word2hex(word, hex+j, max_len-j);
                 if(num < 0){
                     return num;
                 }

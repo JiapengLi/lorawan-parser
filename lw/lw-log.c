@@ -320,6 +320,9 @@ void lw_log(lw_frame_t *frame, uint8_t *msg, int len)
         break;
     case LW_MTYPE_JOIN_ACCEPT:
         log_puts(LOG_NORMAL, "APPNONCE: 0x%06X", frame->pl.ja.appnonce.data);
+        if(frame->node != NULL){
+            log_puts(LOG_NORMAL, "DEVNONCE: 0x%04X", frame->node->devnonce.data);
+        }
         log_puts(LOG_NORMAL, "NETID: 0x%06X", frame->pl.ja.netid.data);
         log_puts(LOG_NORMAL, "DEVADDR: %08X", frame->pl.ja.devaddr.data);
         log_puts(LOG_NORMAL, "RX2DataRate: %d", frame->pl.ja.dlsettings.bits.rx2dr);
@@ -351,6 +354,11 @@ void lw_log(lw_frame_t *frame, uint8_t *msg, int len)
         if( (frame->pl.mac.flen > 0) && (frame->pl.mac.fport > 0) ){
             log_puts(LOG_NORMAL, "PORT: %d", frame->pl.mac.fport);
             log_puts(LOG_NORMAL, "DATA: %H", frame->pl.mac.fpl, frame->pl.mac.flen);
+        }else if( (frame->pl.mac.flen > 0) && (frame->pl.mac.fport == 0) ){
+            log_puts(LOG_NORMAL, "Port 0 MACCMD");
+            if( LW_OK != lw_log_maccmd(frame->mhdr.data, frame->pl.mac.fpl, frame->pl.mac.flen) ){
+                log_puts(LOG_ERROR, "MACCMD INVALID: %H", frame->pl.mac.fpl, frame->pl.mac.flen);
+            }
         }else{
             log_puts(LOG_NORMAL, "No Port and FRMPayload in message");
         }
@@ -359,12 +367,6 @@ void lw_log(lw_frame_t *frame, uint8_t *msg, int len)
             log_puts(LOG_NORMAL, "FOPTS MACCMD");
             lw_log_maccmd(frame->mhdr.data, frame->pl.mac.fopts, frame->pl.mac.fctrl.ul.foptslen);
         }
-
-        if( (frame->pl.mac.flen > 0) && (frame->pl.mac.fport == 0) ){
-            log_puts(LOG_NORMAL, "Port 0 MACCMD");
-            lw_log_maccmd(frame->mhdr.data, frame->pl.mac.fpl, frame->pl.mac.flen);
-        }
-
         break;
     case LW_MTYPE_RFU:
 
@@ -374,7 +376,7 @@ void lw_log(lw_frame_t *frame, uint8_t *msg, int len)
         break;
     }
 
-    log_puts(LOG_NORMAL, "DMSG: %H", frame->buf, frame->len);
+    //log_puts(LOG_NORMAL, "DMSG: %H", frame->buf, frame->len);
 }
 
 void lw_log_all_node()

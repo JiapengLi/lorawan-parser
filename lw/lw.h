@@ -122,15 +122,13 @@ typedef union{
 }PACKED lw_mic_t;
 
 typedef union{
-    uint8_t buf[3];
-    uint32_t data               :24;
+    uint32_t data;
 }PACKED lw_anonce_t;
 
 typedef lw_anonce_t lw_netid_t;
 
 typedef union{
     uint16_t data;
-    uint8_t buf[2];
 }PACKED lw_dnonce_t;
 
 typedef union{
@@ -183,7 +181,7 @@ typedef struct{
         struct{
     #ifdef ENABLE_BIG_ENDIAN
             uint8_t adr             : 1;
-            uint8_t adrackreq       : 1;
+            uint8_t rfu             : 1;
             uint8_t ack             : 1;
             uint8_t fpending        : 1;
             uint8_t foptslen        : 4;
@@ -191,7 +189,7 @@ typedef struct{
             uint8_t foptslen        : 4;
             uint8_t fpending        : 1;
             uint8_t ack             : 1;
-            uint8_t adrackreq       : 1;
+            uint8_t rfu             : 1;
             uint8_t adr             : 1;
     #endif
         }PACKED dl;
@@ -204,8 +202,8 @@ typedef struct{
 }lw_pl_mac_t;
 
 typedef struct{
-    uint8_t appeui[8];
-    uint8_t deveui[8];
+    //uint8_t appeui[8];
+    //uint8_t deveui[8];
     lw_dnonce_t devnonce;
 }lw_pl_jr_t;
 
@@ -220,20 +218,6 @@ typedef struct{
     uint8_t nwkskey[16];
     uint8_t appskey[16];
 }lw_pl_ja_t;
-
-typedef struct{
-    uint8_t deveui[8];
-    uint8_t appeui[8];
-    lw_mhdr_t mhdr;
-    union{
-        lw_pl_mac_t mac;
-        lw_pl_jr_t jr;
-        lw_pl_ja_t ja;
-    }pl;
-    lw_mic_t mic;
-    uint8_t buf[256];
-    int len;
-}lw_frame_t;
 
 //lw.node.abp.devaddr;
 typedef struct lw{
@@ -269,6 +253,21 @@ typedef struct lw{
 
     struct lw *next;
 }lw_node_t;
+
+typedef struct{
+    lw_node_t *node;
+    uint8_t deveui[8];
+    uint8_t appeui[8];
+    lw_mhdr_t mhdr;
+    union{
+        lw_pl_mac_t mac;
+        lw_pl_jr_t jr;
+        lw_pl_ja_t ja;
+    }pl;
+    lw_mic_t mic;
+    uint8_t buf[256];
+    int len;
+}lw_frame_t;
 
 typedef struct{
     uint8_t *aeskey;
@@ -416,6 +415,9 @@ typedef struct lgw_pkt_tx_s lw_txpkt_t;
 
 #include "lw-log.h"
 
+#define LW_BAND_STR_TAB_NUM          (6)
+extern const char *lw_band_str_tab[];
+
 int lw_init(lw_band_t band);
 int lw_add(lw_node_t *node);
 lw_node_t *lw_get_node(uint8_t *deveui);
@@ -432,6 +434,8 @@ int lw_maccmd_valid(uint8_t mac_header, uint8_t *opts, int len);
 
 int8_t lw_get_dr(uint8_t mod, uint32_t datarate, uint8_t bw);
 int8_t lw_get_rf(uint8_t dr, uint8_t *mod, uint32_t *datarate, uint8_t *bw, uint8_t *fdev);
+
+uint32_t lw_read_dw(uint8_t *buf);
 
 /** crypto functions */
 void lw_msg_mic(lw_mic_t* mic, lw_key_t *key);

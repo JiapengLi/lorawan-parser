@@ -1,7 +1,8 @@
+#include <stdlib.h>
+#include <getopt.h>
 #include "app.h"
 #include "log.h"
 #include "str2hex.h"
-#include <getopt.h>
 
 #define OPT_ACK                         (1)
 #define OPT_AAREQ                       (2)
@@ -15,12 +16,39 @@
 #define OPT_RX1DROFT                    (10)
 #define OPT_RX2DR                       (11)
 #define OPT_RXDELAY                     (12)
+#define OPT_COUNTER                     (13)
+#define OPT_PORT                        (14)
+#define OPT_MOTES                       (15)
+#define OPT_CLASSB                      (16)
+#define OPT_FPENDING                    (17)
+#define OPT_PARSE                       (18)
+#define OPT_PACK                        (19)
 
 struct option app_long_options[] = {
+    {"help",        no_argument,            0,      'h'},
+    {"version",     no_argument,            0,      'v'},
+
+    {"burst-parse", required_argument,      0,      'c'},
+    {"maccmd",      required_argument,      0,      'm'},
+    {"parse",       optional_argument,      0,      OPT_PARSE},
+    {"pack",        optional_argument,      0,      OPT_PACK},
+
+    {"band",        required_argument,      0,      'B'},
+    {"nwkskey",     required_argument,      0,      'N'},
+    {"appskey",     required_argument,      0,      'A'},
+    {"appkey",      required_argument,      0,      'K'},
+
+    {"type",        required_argument,      0,      'T'},
     {"devaddr",     required_argument,      0,      'D'},
     {"ack",         no_argument,            0,      OPT_ACK},
     {"aareq",       no_argument,            0,      OPT_AAREQ},
     {"adr",         no_argument,            0,      OPT_ADR},
+    {"classb",      no_argument,            0,      OPT_CLASSB},
+    {"fpending",    no_argument,            0,      OPT_FPENDING},
+    {"fopts",       required_argument,      0,      'O'},
+    {"counter",     required_argument,      0,      OPT_COUNTER},
+    {"port",        required_argument,      0,      OPT_PORT},
+
     {"appeui",      required_argument,      0,      OPT_APPEUI},
     {"deveui",      required_argument,      0,      OPT_DEVEUI},
     {"anonce",      required_argument,      0,      OPT_ANONCE},
@@ -30,9 +58,14 @@ struct option app_long_options[] = {
     {"rx1droft",    required_argument,      0,      OPT_RX1DROFT},
     {"rx2dr",       required_argument,      0,      OPT_RX2DR},
     {"rxdelay",     required_argument,      0,      OPT_RXDELAY},
+
+
+    {"motes",       required_argument,      0,      OPT_MOTES},
+    {"nodes",       required_argument,      0,      OPT_MOTES},
     {0,             0,                      0,      0},
- };
-const char *mac_type_tab[] = {
+};
+
+const char *app_mac_type_tab[] = {
     "JR",
     "JA",
     "UU",
@@ -42,19 +75,58 @@ const char *mac_type_tab[] = {
     "",
     "P",
 };
+
+const uint8_t app_dft_key[] = {
+    0x2B, 0x7E, 0x15, 0x16, 0x28, 0xAE, 0xD2, 0xA6,
+    0xAB, 0xF7, 0x15, 0x88, 0x09, 0xCF, 0x4F, 0x3C
+};
+
+const char * app_err_str_tab[] = {
+    "OK",
+    "MODE DUPLICATED",
+    "FILE NOT FOUND",
+    "MODE IMPLICIT",
+    "PARAMETER INVALID",
+};
+
+const char *app_err(int err)
+{
+    if(err >= 0){
+        return app_err_str_tab[0];
+    }
+    err = 0 - err;
+    if(err > sizeof(app_err_str_tab)/sizeof(char *)){
+        return "Unknown";
+    }
+    return app_err_str_tab[err];
+}
+
+void app_setopt_dft(app_opt_t *opt)
+{
+    opt->mode = APP_MODE_IDLE;
+    memset(opt, 0, sizeof(app_opt_t));
+    memcpy(opt->nwkskey, app_dft_key, APP_KEY_LEN);
+    memcpy(opt->appskey, app_dft_key, APP_KEY_LEN);
+    memcpy(opt->appkey, app_dft_key, APP_KEY_LEN);
+    opt->hdr.bits.mtype = LW_MTYPE_MSG_UP;
+}
+
 int app_getopt(app_opt_t *opt, int argc, char **argv)
 {
     int ret, index, hlen, i;
+    uint8_t buf[50], addr[4] = {0};
+    char *ptr;
+    uint32_t tmp;
 
-    memset(opt, 0, sizeof(app_opt_t));
+    app_setopt_dft(opt);
 
-    opt->mode = APP_MODE_IDLE;
-
+    opterr = 0;
     while(1){
-        ret = getopt_long(argc, argv, "hvc:m:pgB:N:A:K:T:D:O:C:P:F", app_long_options, &index);
+        ret = getopt_long(argc, argv, ":hvc:m:p:g:B:N:A:K:T:D:O:C:P:", app_long_options, &index);
         if(ret == -1){
             break;
         }
+        //printf("OPT %d\n", ret);
         switch(ret){
         case 'v':
             if(opt->mode != APP_MODE_IDLE){
@@ -69,16 +141,40 @@ int app_getopt(app_opt_t *opt, int argc, char **argv)
             opt->mode = APP_MODE_HELP;
             break;
         case 'p':
+        case OPT_PARSE:
             if(opt->mode != APP_MODE_IDLE){
                 return APP_ERR_MODE_DUP;
             }
-            opt->mode = APP_MODE_VER;
+            opt->mode = APP_MODE_PARSE;
+            if(optarg != NULL){
+                if(optarg[0] == '-'){
+                    optind--;
+                }else{
+                    hlen = str2hex(optarg, opt->frame.buf, 256);
+                    if( ( hlen > 256 ) || ( hlen <= 0 ) ){
+                        return APP_ERR_PARA;
+                    }
+                    opt->frame.len = hlen;
+                }
+            }
             break;
         case 'g':
+        case OPT_PACK:
             if(opt->mode != APP_MODE_IDLE){
                 return APP_ERR_MODE_DUP;
             }
             opt->mode = APP_MODE_GENERATE;
+            if(optarg != NULL){
+                if(optarg[0] == '-'){
+                    optind--;
+                }else{
+                    hlen = str2hex(optarg, opt->frame.buf, 242);
+                    if( ( hlen > 242 ) || ( hlen <= 0 ) ){
+                        return APP_ERR_PARA;
+                    }
+                    opt->frame.len = hlen;
+                }
+            }
             break;
         case 'm':
             if(opt->mode != APP_MODE_IDLE){
@@ -107,22 +203,223 @@ int app_getopt(app_opt_t *opt, int argc, char **argv)
                 return APP_ERR_CFILE;
             }
             break;
+
+        case 'B':
+            opt->band = EU868;
+            for(i=0; i<LW_BAND_STR_TAB_NUM; i++){
+                if(0 == strcmp(optarg, lw_band_str_tab[i])){
+                    opt->band = (lw_band_t)i;
+                    break;
+                }
+            }
+            break;
+        case OPT_DEVEUI:
+            hlen = str2hex(optarg, opt->deveui, APP_EUI_LEN);
+            if( hlen != APP_EUI_LEN ){
+                return APP_ERR_PARA;
+            }
+            break;
+        case OPT_APPEUI:
+            hlen = str2hex(optarg, opt->appeui, APP_EUI_LEN);
+            if( hlen != APP_EUI_LEN ){
+                return APP_ERR_PARA;
+            }
+            break;
+        case 'N':
+            hlen = str2hex(optarg, opt->nwkskey, APP_KEY_LEN);
+            if( hlen != APP_KEY_LEN ){
+                return APP_ERR_PARA;
+            }
+            break;
+        case 'A':
+            hlen = str2hex(optarg, opt->appskey, APP_KEY_LEN);
+            if( hlen != APP_KEY_LEN ){
+                return APP_ERR_PARA;
+            }
+            break;
+        case 'K':
+            hlen = str2hex(optarg, opt->appkey, APP_KEY_LEN);
+            if( hlen != APP_KEY_LEN ){
+                return APP_ERR_PARA;
+            }
+            break;
+
         case 'T':
             for(i=0; i<8; i++){
-                if(0 == strcasecmp(mac_type_tab[i], optarg) ){
+                if(0 == strcasecmp(app_mac_type_tab[i], optarg) ){
                     break;
                 }
             }
             if(i==8){
                 return APP_ERR_PARA;
             }
-            opt->hdr = i<<5;
+            opt->hdr.bits.mtype = i;
+            break;
+        case 'D':
+            hlen = str2hex(optarg, buf, 4);
+            if( ( hlen > 4 ) || ( hlen <= 0 ) ){
+                return APP_ERR_PARA;
+            }
+            for(i=0; i<hlen; i++){
+                addr[i] = buf[hlen-1-i];
+            }
+            i=0;
+            opt->devaddr.data = ( (uint32_t)addr[i++] << 0 );
+            opt->devaddr.data |= ( (uint32_t)addr[i++] << 8 );
+            opt->devaddr.data |= ( (uint32_t)addr[i++] << 16 );
+            opt->devaddr.data |= ( (uint32_t)addr[i++] << 24 );
             break;
         case OPT_ACK:
+            opt->ack = true;
             break;
         case OPT_AAREQ:
+            opt->adrackreq = true;
+            break;
+        case OPT_ADR:
+            opt->adr = true;
+            break;
+        case OPT_FPENDING:
+            opt->fpending = true;
+            break;
+        case OPT_CLASSB:
+            opt->classb = true;
+            break;
+        case 'C':
+            hlen = str2hex(optarg, buf, 4);
+            if( ( hlen > 4 ) || ( hlen <= 0 ) ){
+                return APP_ERR_PARA;
+            }
+            opt->counter = 0;
+            for(i=0; i<hlen; i++){
+                opt->counter <<=8;
+                opt->counter |= buf[i];
+            }
+            break;
+        case OPT_COUNTER:
+            tmp = strtoul(optarg, &ptr, 10);
+            if( (*ptr != '\0') || (tmp < 0) ){
+                return APP_ERR_PARA;
+            }
+            opt->counter = tmp;
+            break;
+        case 'O':
+            hlen = str2hex(optarg, opt->fopts, 15);
+            if( ( hlen >= APP_KEY_LEN ) || ( hlen < 0 ) ){
+                return APP_ERR_PARA;
+            }
+            opt->foptslen = hlen;
+            break;
+        case 'P':
+            hlen = str2hex(optarg, buf, 1);
+            if( ( hlen > 1 ) || ( hlen <= 0 ) ){
+                return APP_ERR_PARA;
+            }
+            opt->port = buf[0];
+            break;
+        case OPT_PORT:
+            tmp = strtoul(optarg, &ptr, 10);
+            if( ( *ptr != '\0' ) || ( tmp > 255 ) ){
+                return APP_ERR_PARA;
+            }
+            opt->port = tmp;
+            break;
+
+        case OPT_ANONCE:
+            hlen = str2hex(optarg, buf, 3);
+            if( hlen != 3 ){
+                return APP_ERR_PARA;
+            }
+            opt->anonce.data = 0;
+            for(i=0; i<hlen; i++){
+                opt->anonce.data <<=8;
+                opt->anonce.data |= buf[i];
+            }
+            break;
+        case OPT_DNONCE:
+            hlen = str2hex(optarg, buf, 2);
+            if( hlen != 2 ){
+                return APP_ERR_PARA;
+            }
+            opt->dnonce.data = 0;
+            for(i=0; i<hlen; i++){
+                opt->dnonce.data <<=8;
+                opt->dnonce.data |= buf[i];
+            }
+            break;
+        case OPT_NETID:
+            hlen = str2hex(optarg, buf, 3);
+            if( hlen != 3 ){
+                return APP_ERR_PARA;
+            }
+            opt->netid.data = 0;
+            for(i=0; i<hlen; i++){
+                opt->netid.data <<=8;
+                opt->netid.data |= buf[i];
+            }
+            break;
+        case OPT_CFLIST:
+            hlen = str2hex(optarg, opt->cflist.buf, 16);
+            if( hlen != 16 ){
+                return APP_ERR_PARA;
+            }
+            opt->cflist.len = 16;
+            break;
+        case OPT_RX1DROFT:
+            tmp = strtoul(optarg, &ptr, 10);
+            if(*ptr != '\0'){
+                return APP_ERR_PARA;
+            }
+            if(tmp > 7){
+                return APP_ERR_PARA;
+            }
+            opt->rx1droft = tmp;
+            break;
+        case OPT_RX2DR:
+            tmp = strtoul(optarg, &ptr, 10);
+            if(*ptr != '\0'){
+                return APP_ERR_PARA;
+            }
+            if(tmp > 15){
+                return APP_ERR_PARA;
+            }
+            opt->rx2dr = tmp;
+            break;
+        case OPT_RXDELAY:
+            tmp = strtoul(optarg, &ptr, 10);
+            if(*ptr != '\0'){
+                return APP_ERR_PARA;
+            }
+            if(tmp > 15){
+                return APP_ERR_PARA;
+            }
+            opt->rxdelay = tmp;
+            break;
+        case ':':
+            log_puts(LOG_NORMAL, "Optional options");
+            switch(optopt){
+            case 'p':
+            case OPT_PARSE:
+                if(opt->mode != APP_MODE_IDLE){
+                    return APP_ERR_MODE_DUP;
+                }
+                opt->mode = APP_MODE_PARSE;
+                break;
+            case 'g':
+            case OPT_PACK:
+                if(opt->mode != APP_MODE_IDLE){
+                    return APP_ERR_MODE_DUP;
+                }
+                opt->mode = APP_MODE_GENERATE;
+                break;
+            default:
+                return APP_ERR_PARA;
+            }
+            break;
+        case '?':
+            log_puts(LOG_NORMAL, "Unknown options");
             break;
         default:
+            log_puts(LOG_NORMAL, "ret %d", ret);
             return APP_ERR_PARA;
         }
     }
@@ -133,4 +430,61 @@ int app_getopt(app_opt_t *opt, int argc, char **argv)
 
     return APP_OK;
 }
+const char *app_mode_str_tab[] = {
+    "IDLE",
+    "HELP",
+    "VERSION",
+    "MACCMD",
+    "PACK",
+    "PARSE",
+    "BATCH PARSE",
+};
 
+const char *app_ft_str_tab[] = {
+    "Join Request",
+    "Join Accept",
+    "Unconfirmed Uplink",
+    "Unconfirmed Downlink",
+    "Confirmed Uplink",
+    "Confirmed Downlink",
+    "RFU",
+    "Proprietary",
+};
+
+void app_log_opt(app_opt_t *opt)
+{
+    log_line();
+    log_puts(LOG_NORMAL, "MODE:          %s", app_mode_str_tab[opt->mode]);
+    if(opt->cfile != NULL){
+        log_puts(LOG_NORMAL, "CONF FILE:     %s", opt->cfile);
+    }
+    log_puts(LOG_INFO, "BAND:          %s", lw_band_str_tab[opt->band]);
+    log_puts(LOG_INFO, "DEVEUI:        %h", opt->deveui, APP_EUI_LEN);
+    log_puts(LOG_INFO, "APPEUI:        %h", opt->appeui, APP_EUI_LEN);
+    log_puts(LOG_INFO, "APPKEY:        %h", opt->appkey, APP_KEY_LEN);
+    log_puts(LOG_INFO, "NWKSKEY:       %h", opt->nwkskey, APP_KEY_LEN);
+    log_puts(LOG_INFO, "APPSKEY:       %h", opt->appskey, APP_KEY_LEN);
+    log_puts(LOG_INFO, "FRAME TYPE:    %s", app_ft_str_tab[opt->hdr.bits.mtype]);
+    log_puts(LOG_INFO, "DEVADDR:       %08X", opt->devaddr.data);
+    log_puts(LOG_INFO, "ADR:           %s", opt->adr?"true":"false");
+    log_puts(LOG_INFO, "ACK:           %s", opt->ack?"true":"false");
+    log_puts(LOG_INFO, "ADRACKREQ:     %s", opt->adrackreq?"true":"false");
+    log_puts(LOG_INFO, "CLASSB:        %s", opt->classb?"true":"false");
+    log_puts(LOG_INFO, "FPENDING:      %s", opt->fpending?"true":"false");
+    log_puts(LOG_INFO, "FOPTS:         <%u> %H", opt->foptslen, opt->fopts, opt->foptslen);
+    log_puts(LOG_INFO, "COUNTER:       %u <0x%08X>", opt->counter, opt->counter);
+    log_puts(LOG_INFO, "PORT:          %u <0x%02X>", opt->port, opt->port);
+    if(opt->frame.len > 0){
+        log_puts(LOG_INFO, "PAYLOAD:       <%u> %H", opt->frame.len, opt->frame.buf, opt->frame.len);
+    }
+    log_puts(LOG_INFO, "ANONCE:        %06X", opt->anonce.data);
+    log_puts(LOG_INFO, "DNONCE:        %04X", opt->dnonce.data);
+    log_puts(LOG_INFO, "NETID:         %06X", opt->netid.data);
+    if(opt->cflist.len > 0){
+        log_puts(LOG_INFO, "CFLIST:        %H", opt->cflist.buf, opt->cflist.len);
+    }
+    log_puts(LOG_INFO, "RX1DROFT:      %u", opt->rx1droft);
+    log_puts(LOG_INFO, "RX2DR:         %u", opt->rx2dr);
+    log_puts(LOG_INFO, "RX1DELAY:      %u", opt->rxdelay);
+    log_line();
+}
