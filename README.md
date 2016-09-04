@@ -6,11 +6,12 @@ With lorawan-parser, one could see all details of LoRaWAN, like how frames are d
 
 ## Features
 
-+ Support LoRaWAN 1.0 protocol
-+ Support both ABP and OTAA mode device
-+ Colorful terminal outputs
-+ Cross platform (Tested on Ubuntu, Lubuntu, Raspberry Pi, Windows)
-+ (TODO) Live parse LoRaWAN motes message (To support Semtech IoT Start Kit)
+- [x] Support LoRaWAN 1.0 protocol
+- [x] Support both ABP and OTAA mode device
+- [x] Colorful terminal outputs (Windows MiniTTY not supported)
+- [ ] Cross platform (Tested on Ubuntu, Lubuntu, Raspberry Pi, Windows)
+- [ ] Support LoRaWAN 1.0.2 protocol
+- [ ] Live parse LoRaWAN motes message (To support Semtech IoT Start Kit)
 
 # Compile
 

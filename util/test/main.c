@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "lorawan.h"
+#include "lw.h"
 #include "log.h"
 
 #define PL_LEN                      (sizeof(msg_pl))
@@ -16,6 +16,7 @@
 #define JAPL                        (ja_pl)
 #define JAPL_LEN                    (sizeof(ja_pl))
 
+void check_endian(void);
 
 uint8_t appskey[]={
     0x2B, 0x7E, 0x15, 0x16, 0x28, 0xAE, 0xD2, 0xA6,
@@ -106,30 +107,21 @@ uint8_t rnwkskey[16] = {
     0xDE, 0x07, 0xEF, 0xE7, 0xFF, 0x92, 0xF8, 0x19,
     0x08, 0x38, 0x09, 0x0D, 0xB4, 0xEE, 0xA5, 0x01,
 };
-
 uint8_t out[64];
 
 int main(int argc, char **argv)
 {
+    lw_frame_t frame;
+    lw_node_t endnode;
+
     lw_mic_t mic;
     lw_mic_t plmic;
     lw_key_t lw_key;
     lw_skey_seed_t lw_skey_seed;
     int len;
-    union{
-        uint16_t word;
-        struct{
-            uint8_t a;
-            uint8_t b;
-        }bytes;
-    }endian;
-    endian.word = 0x0001;
-    if(endian.bytes.a == 0x00){
-        log_puts(LOG_WARN, "Big endian");
-    }else{
-        log_puts(LOG_WARN, "Little endian");
-    }
 
+    check_endian();
+    lw_init(EU868);
 
     log_line();
     log_puts(LOG_NORMAL, "Test Normal Message MIC");
@@ -138,21 +130,14 @@ int main(int argc, char **argv)
     lw_key.in = PL;
     lw_key.len = PL_LEN-4;
     lw_key.link = LW_UPLINK;
-    lw_key.devaddr[0] = 0xAD;
-    lw_key.devaddr[1] = 0x91;
-    lw_key.devaddr[2] = 0x92;
-    lw_key.devaddr[3] = 0x00;
+    lw_key.devaddr.data = 0x009291AD;
     lw_key.fcnt32 = 0x00000001;
-
     lw_msg_mic(&mic, &lw_key);
-
-    log_puts(LOG_NORMAL, "%08X len:%d", mic.data, lw_key.len);
     if(mic.data == plmic.data){
         log_puts(LOG_NORMAL, "MIC is OK");
     }else{
         log_puts(LOG_NORMAL, "MIC is ERROR");
     }
-
 
     log_line();
     log_puts(LOG_NORMAL, "Test Normal Message Decrypt");
@@ -161,10 +146,7 @@ int main(int argc, char **argv)
     lw_key.in = PL + 13 - 4;
     lw_key.len = PL_LEN - 13;
     lw_key.link = LW_UPLINK;
-    lw_key.devaddr[0] = 0xAD;
-    lw_key.devaddr[1] = 0x91;
-    lw_key.devaddr[2] = 0x92;
-    lw_key.devaddr[3] = 0x00;
+    lw_key.devaddr.data = 0x009291AD;
     lw_key.fcnt32 = 0x00000001;
 
     len = lw_encrypt(out, &lw_key);
@@ -260,15 +242,20 @@ int main(int argc, char **argv)
     log_puts(LOG_DEBUG, "HI%d %H", 5, buf, 5);
     log_puts(LOG_NORMAL, "HI%d %H", 5, buf, 5);
 
+    #if 1
     /** Example to show how to use lorawan parser find frame counter most-significant bits */
     uint32_t fcnt = 0;
     do{
-        lw_parse_key_t pkey;
+        uint8_t appeui_dft[8] = {
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03,
+        };
+        uint8_t deveui_dft[] = {
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xAA,
+        };
         uint8_t askey[]={
             0x3B, 0x7E, 0x15, 0x16, 0x28, 0xAE, 0xD2, 0xA6,
             0xAB, 0xF7, 0x15, 0x88, 0x09, 0xCF, 0x4F, 0x3C
         };
-
         uint8_t nskey[]={
             0x3B, 0x7E, 0x15, 0x16, 0x28, 0xAE, 0xD2, 0xA6,
             0xAB, 0xF7, 0x15, 0x88, 0x09, 0xCF, 0x4F, 0x3C
@@ -278,21 +265,52 @@ int main(int argc, char **argv)
             0x92 , 0x08 , 0xBA , 0x82 , 0x5C , 0x67 , 0x5E ,
             0x36 , 0x80 , 0x59 , 0x52 , 0x62 , 0xAC , 0x9A , 0xEC
         };
+
         int ret;
 
-        pkey.nwkskey = nskey;
-        pkey.flag.bits.nwkskey = 1;
-        pkey.appskey = askey;
-        pkey.flag.bits.appskey = 1;
+        endnode.mode = ABP;
+        memcpy(endnode.appeui, appeui_dft, 8);
+        memcpy(endnode.deveui, deveui_dft, 8);
+        endnode.devaddr.data = 0x00000001;
+        memcpy(endnode.nwkskey, nskey, 16);
+        memcpy(endnode.appskey, askey, 16);
+        endnode.ufcnt = (uint32_t)fcnt<<16;     // Increase frame counter high 16bits
+        endnode.dfcnt = 0;
+        endnode.rxwin = CLASS_A_RX2;
+        endnode.dlsettings.bits.rx1droft = 0;
+        endnode.dlsettings.bits.rx2dr = 0;      // 0 ~ 7
+        endnode.rxdelay.bits.del = 1;
+        lw_add(&endnode);
 
-        ret = lw_parse(buf, 22, &pkey, fcnt++);
-        if(ret < 0){
+        ret = lw_parse(&frame, buf, 22);
+        if(ret != LW_OK){
             //log_puts(LOG_ERROR, "DATA MESSAGE PARSE error(%d)", ret);
+            lw_del(deveui_dft);
         }else{
-            log_puts(LOG_INFO, "FRAME COUNTER 0x%08X", fcnt<<16);
+            log_line();
+            lw_log(&frame, buf, sizeof(buf));
             return 0;
         }
-    }while(fcnt<1000);
+        fcnt++;
+    }while(fcnt<10);
+    #endif
 
     return 0;
+}
+
+void check_endian(void)
+{
+    union{
+        uint16_t word;
+        struct{
+            uint8_t a;
+            uint8_t b;
+        }bytes;
+    }endian;
+    endian.word = 0x0001;
+    if(endian.bytes.a == 0x00){
+        log_puts(LOG_WARN, "Big endian");
+    }else{
+        log_puts(LOG_WARN, "Little endian");
+    }
 }

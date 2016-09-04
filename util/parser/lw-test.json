@@ -1,0 +1,62 @@
+{
+    /* LoRaWAN Parser Configuration File */
+
+    /* Default EU868 when absent, available band EU868, US915 */
+    /* Region Specific: DataRate, TXPower, JoinResp CFList, RX1DROffset */
+    "band": "EU868",
+
+    /* nwkskey, appskey, appkey */
+    "key":{
+        "nwkskey":"2B 7E 15 16 28 AE D2 A6 AB F7 15 88 09 CF 4F 3c",
+        "appskey":"2B7E151628AED2A6ABF7158809CF4F3C",
+        "appkey":"0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00"
+    },
+
+    /* Join trasaction use to extract keys, set "key" true to overwrite default session keys */
+    "join":{
+        "key": true,
+        "request":" 00 01 00 00 00 00 00 00 86 01 00 00 00 00 00 00 86 F7 9F B4 C2 06 60",
+        "accept":" 20 2D 95 83 AB A7 36 C8 0F 97 00 DB 42 0A 01 05 54"
+    },
+
+    /* payload array, add all payload which need parse here */
+    "messages": [
+        " 00 01 00 00 00 00 00 00 86 01 00 00 00 00 00 00 86 F7 9F B4 C2 06 60",
+        " 20 2D 95 83 AB A7 36 C8 0F 97 00 DB 42 0A 01 05 54",
+        " 40 97 01 00 48 80 00 00 01 2E 3A 00 DE 42 F0 72 D2",
+        " A0 97 01 00 48 05 00 00 03 01 07 00 61 56 ED BA 18",
+        " 40 97 01 00 48 80 01 00 01 63 8B 0E 20 9D E4 87 49",
+        " A0 97 01 00 48 05 00 00 03 01 07 00 61 56 ED BA 18",
+        " 40 97 01 00 48 E2 02 00 03 06 01 C9 B6 A5 8A 32 0E C7 37",
+        " 60 97 01 00 48 00 01 00 35 9C 2E 00",
+        " 40 97 01 00 48 80 03 00 01 C7 9D FC E7 D5 D3 D7 FA",
+        " A0 97 01 00 48 05 02 00 03 01 07 00 61 5D 83 B2 FB",
+        " 40 97 01 00 48 E2 04 00 03 06 01 F6 A5 65 EB C0 FC FB 7B",
+        " 60 97 01 00 48 00 03 00 F8 26 10 45",
+        " 40 97 01 00 48 80 05 00 01 A8 D6 54 2C 24 C2 CB F3",
+        " 40 97 01 00 48 80 06 00 01 22 00 58 C3 79 D7 D3 5B"
+    ]
+}
+
+// Note: Hex string supports mixed mode
+// "0xAA 55, B6AC9" => "AA 55 0B 6A C9"
+
+// 40 unconfirmed message up
+// 80 confirmed message up
+// 60 unconfirmed message down
+// A0 confirmed message down
+
+// 0x02  LinkCheckReq               ND    UP        1
+// 0x02  LinkCheckAns               GW    DOWN      3
+// 0x03  LinkADRReq                 GW    DOWN      5
+// 0x03  LinkADRAns                 ND    UP        2
+// 0x04  DutyCycleReq               GW    DOWN      2
+// 0x04  DutyCycleAns               ND    UP        1
+// 0x05  RXParamSetupReq            GW    DOWN      5
+// 0x05  RXParamSetupAns            ND    UP        2
+// 0x06  DevStatusReq               GW    DOWN      1
+// 0x06  DevStatusAns               ND    UP        3
+// 0x07  NewChannelReq              GW    DOWN      6
+// 0x07  NewChannelAns              ND    UP        2
+// 0x08  RXTimingSetupReq           GW    DOWN      2
+// 0x08  RXTimingSetupAns           ND    UP        1

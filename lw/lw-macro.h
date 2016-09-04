@@ -18,6 +18,13 @@ enum{
     LW_ERR_MALLOC           = -10,
     LW_ERR_NOT_AVALAIBLE    = -11,
     LW_ERR_BAND             = -12,
+    LW_ERR_PARA             = -13,
+    LW_ERR_NODE_USED_UP     = -14,
+    LW_ERR_UNKOWN_FRAME     = -15,
+    LW_ERR_TX_BUF_NOT_EMPTY = -16,
+    LW_ERR_UNKOWN_DEVEUI    = -17,
+    LW_ERR_NO_HEAP          = -18,
+    LW_ERR_UNKOWN_DATA_RATE = -17,
 };
 
 typedef enum{

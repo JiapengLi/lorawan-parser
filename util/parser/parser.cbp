@@ -17,6 +17,7 @@
 					<Add directory="../../lw" />
 					<Add directory="../test" />
 					<Add directory="../../lib" />
+					<Add directory="../../lib/libloragw/inc" />
 				</Compiler>
 			</Target>
 			<Target title="Release">
@@ -57,11 +58,15 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../../lib/str2hex.h" />
-		<Unit filename="../../lw/lorawan.c">
+		<Unit filename="../../lw/lw-log.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="../../lw/lorawan.h" />
+		<Unit filename="../../lw/lw-log.h" />
 		<Unit filename="../../lw/lw-macro.h" />
+		<Unit filename="../../lw/lw.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../lw/lw.h" />
 		<Unit filename="app.c">
 			<Option compilerVar="CC" />
 		</Unit>

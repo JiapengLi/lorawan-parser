@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <libgen.h>     // dirname, basename
 
-#include "lorawan.h"
+#include "lw.h"
 #include "parson.h"
 #include "conf.h"
 #include "str2hex.h"
@@ -69,16 +69,10 @@ int main(int argc, char **argv)
     int ret;
     char *pfile = NULL;
     message_t * ll_head;
-    lw_skey_seed_t lw_skey_seed;
-    lw_dnonce_t devnonce;
-    lw_anonce_t appnonce;
-    lw_netid_t netid;
-    uint8_t jappskey[LW_KEY_LEN];
-    uint8_t jnwkskey[LW_KEY_LEN];
+    lw_frame_t frame;
     config_t config;
-    int logflag;
-
     app_opt_t opt;
+    lw_key_grp_t kgrp;
 
     memset(&config, 0, sizeof(config_t));
 
@@ -86,8 +80,6 @@ int main(int argc, char **argv)
         usage(basename(argv[0]));
         return 0;
     }
-
-    logflag = lw_log(LW_LOG_ON);
 
     ret = app_getopt(&opt, argc, argv);
     if(ret < 0){
@@ -104,7 +96,7 @@ int main(int argc, char **argv)
         log_puts(LOG_NORMAL, "%d.%d.%d", VMAJOR, VMINOR, VPATCH);
         return 0;
     case APP_MODE_MACCMD:
-        ret = lw_maccmd(opt.hdr, opt.maccmd.buf, opt.maccmd.len);
+        ret = lw_log_maccmd(opt.hdr, opt.maccmd.buf, opt.maccmd.len);
         if(ret < 0){
             log_puts(LOG_ERROR, "MACCMD error(%d)", ret);
             return -1;
@@ -134,65 +126,55 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    if(lw_set_band(config.band) < 0){
-        log_puts(LOG_NORMAL, "Band error");
-    }
+    lw_init(config.band);
+//    if(lw_set_band(config.band) < 0){
+//        log_puts(LOG_NORMAL, "Band error");
+//    }
 
-    lw_parse_key_t pkey;
+
+    memset(&kgrp, 0, sizeof(lw_key_grp_t));
     if(config.flag&CFLAG_NWKSKEY){
-        pkey.nwkskey = config.nwkskey;
-        pkey.flag.bits.nwkskey = 1;
+        kgrp.nwkskey = config.nwkskey;
+        kgrp.flag.bits.nwkskey = 1;
     }
     if(config.flag&CFLAG_APPSKEY){
-        pkey.appskey = config.appskey;
-        pkey.flag.bits.appskey = 1;
+        kgrp.appskey = config.appskey;
+        kgrp.flag.bits.appskey = 1;
     }
     if(config.flag&CFLAG_APPKEY){
-        pkey.appkey = config.appkey;
-        pkey.flag.bits.appkey = 1;
+        kgrp.appkey = config.appkey;
+        kgrp.flag.bits.appkey = 1;
     }
+    lw_set_key(&kgrp);
 
     /** try to parse join request/accept message */
     if(config.flag&CFLAG_JOINR){
-        if(0==lw_parse(config.joinr, config.joinr_size, &pkey, 0)){
-
+        log_line();
+        if(LW_OK == lw_parse(&frame, config.joinr, config.joinr_size)){
+            lw_log(&frame, config.joinr, config.joinr_size);
         }
     }
+
     if(config.flag&CFLAG_JOINA){
+        log_line();
         /** If get join request and accept is parsed,
         then try to generate new key with JION transaction,
         the new generated key will be used to parse message */
-        if(0==lw_parse(config.joina, config.joina_size, &pkey, 0)){
-            if( 0==lw_get_devnonce(&devnonce) && 0==lw_get_appnonce(&appnonce) && 0==lw_get_netid(&netid) ){
-                lw_skey_seed.aeskey = config.appkey;
-                lw_skey_seed.anonce = appnonce;
-                lw_skey_seed.dnonce = devnonce;
-                lw_skey_seed.netid = netid;
-                lw_get_skeys(jnwkskey, jappskey, &lw_skey_seed);
-
-                log_line();
-                log_puts(LOG_NORMAL, "J-NWKSKEY:\t%H", jnwkskey, LW_KEY_LEN);
-                log_puts(LOG_NORMAL, "J-APPSKEY:\t%H", jappskey, LW_KEY_LEN);
-
-                if(config.joinkey){
-                    /** Overwrite default session keys */
-                    pkey.nwkskey = jnwkskey;
-                    pkey.flag.bits.nwkskey = 1;
-                    pkey.appskey = jappskey;
-                    pkey.flag.bits.appskey = 1;
-                    log_puts(LOG_WARN, "Force use session keys get from join request");
-                }
-            }else{
-                log_puts(LOG_WARN, "Can't get DEVNONCE/APPNONCE/NETID");
-            }
+        if(LW_OK == lw_parse(&frame, config.joina, config.joina_size)){
+            lw_log(&frame, config.joina, config.joina_size);
+        }else{
+            log_puts(LOG_WARN, "JOIN REQUEST PARSE ERROR");
         }
     }
 
     /** parse all data message */
     ll_head = config.message;
     while(ll_head != NULL){
-        ret = lw_parse(ll_head->buf, ll_head->len, &pkey, 0);
-        if(ret < 0){
+        log_line();
+        ret = lw_parse(&frame, ll_head->buf, ll_head->len);
+        if(ret == LW_OK){
+            lw_log(&frame, ll_head->buf, ll_head->len);
+        }else{
             log_puts(LOG_ERROR, "DATA MESSAGE PARSE error(%d)", ret);
         }
         ll_head = ll_head->next;
@@ -201,16 +183,16 @@ int main(int argc, char **argv)
     /** parse command list */
     ll_head = config.maccmd;
     while(ll_head != NULL){
-        if(logflag){
-            log_line();
-        }
+        log_line();
         /** buf[0] -> MHDR, buf[1] ~ buf[n] -> maccmd */
-        ret = lw_maccmd(ll_head->buf[0], ll_head->buf+1, ll_head->len-1);
+        ret = lw_log_maccmd(ll_head->buf[0], ll_head->buf+1, ll_head->len-1);
         if(ret < 0){
             log_puts(LOG_ERROR, "MACCMD error(%d)", ret);
         }
         ll_head = ll_head->next;
     }
+
+    lw_log_all_node();
 
     config_free(&config);
 
