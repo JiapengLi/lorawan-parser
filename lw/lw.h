@@ -90,9 +90,15 @@ typedef enum{
 typedef union{
     uint8_t data;
     struct{
+    #ifdef ENABLE_BIG_ENDIAN
+        uint8_t mtype           : 3;
+        uint8_t rfu             : 3;
+        uint8_t major           : 2;
+    #else
         uint8_t major           : 2;
         uint8_t rfu             : 3;
         uint8_t mtype           : 3;
+    #endif
     }bits;
 }PACKED lw_mhdr_t;
 
@@ -100,8 +106,13 @@ typedef union{
     uint32_t data;
     uint8_t buf[4];
     struct{
+    #ifdef ENABLE_BIG_ENDIAN
+        uint32_t nwkaddr        : 25;
+        uint32_t nwkid          : 7;
+    #else
         uint32_t nwkid          : 7;
         uint32_t nwkaddr        : 25;
+    #endif
     }bits;
 }PACKED lw_devaddr_t;
 
@@ -111,8 +122,8 @@ typedef union{
 }PACKED lw_mic_t;
 
 typedef union{
-    uint32_t data               :24;
     uint8_t buf[3];
+    uint32_t data               :24;
 }PACKED lw_anonce_t;
 
 typedef lw_anonce_t lw_netid_t;
@@ -125,16 +136,28 @@ typedef union{
 typedef union{
     uint8_t data;
     struct{
+    #ifdef ENABLE_BIG_ENDIAN
+        uint8_t rfu             : 4;
+        uint8_t del             : 4;
+    #else
         uint8_t del             : 4;
         uint8_t rfu             : 4;
+    #endif
     }bits;
 }PACKED lw_rxdelay_t;
 
 typedef union{
     uint8_t data;
     struct{
+    #ifdef ENABLE_BIG_ENDIAN
+        uint8_t rfu             : 1;
+        uint8_t rx1droft        : 3;
+        uint8_t rx2dr           : 4;
+    #else
         uint8_t rx2dr           : 4;
         uint8_t rx1droft        : 3;
+        uint8_t rfu             : 1;
+    #endif
     }bits;
 }PACKED lw_dlset_t;
 
@@ -143,18 +166,34 @@ typedef struct{
     union{
         uint8_t data;
         struct{
+    #ifdef ENABLE_BIG_ENDIAN
+            uint8_t adr             : 1;
+            uint8_t adrackreq       : 1;
+            uint8_t ack             : 1;
+            uint8_t classb          : 1;
+            uint8_t foptslen        : 4;
+    #else
             uint8_t foptslen        : 4;
             uint8_t classb          : 1;
             uint8_t ack             : 1;
             uint8_t adrackreq       : 1;
             uint8_t adr             : 1;
+    #endif
         }PACKED ul;
         struct{
+    #ifdef ENABLE_BIG_ENDIAN
+            uint8_t adr             : 1;
+            uint8_t adrackreq       : 1;
+            uint8_t ack             : 1;
+            uint8_t fpending        : 1;
+            uint8_t foptslen        : 4;
+    #else
             uint8_t foptslen        : 4;
             uint8_t fpending        : 1;
             uint8_t ack             : 1;
             uint8_t adrackreq       : 1;
             uint8_t adr             : 1;
+    #endif
         }PACKED dl;
     }PACKED fctrl;
     uint32_t fcnt;
@@ -265,17 +304,29 @@ typedef struct{
             union{
                 uint8_t data;
                 struct{
+                #ifdef ENABLE_BIG_ENDIAN
+                    uint8_t dr              : 4;
+                    uint8_t txpow           : 4;
+                #else
                     uint8_t txpow           : 4;
                     uint8_t dr              : 4;
+                #endif
                 }bits;
             }dr_txpow;
             uint8_t chmsk[2];
             union{
                 uint8_t data;
                 struct{
+                #ifdef ENABLE_BIG_ENDIAN
+                    uint8_t rfu             : 1;
+                    uint8_t chmaskcntl      : 3;
+                    uint8_t nbtrans         : 4;
+                #else
                     uint8_t nbtrans         : 4;
                     uint8_t chmaskcntl      : 3;
                     uint8_t rfu             : 1;
+                #endif
+
                 }bits;
             }redundancy;
         }ladr_req;
@@ -284,8 +335,13 @@ typedef struct{
             union{
                 uint8_t data;
                 struct{
+                #ifdef ENABLE_BIG_ENDIAN
+                    uint8_t rfu             : 4;
+                    uint8_t maxdc           : 4;
+                #else
                     uint8_t maxdc           : 4;
                     uint8_t rfu             : 4;
+                #endif
                 }bits;
             }dcpl;
         }dcap_req;
@@ -304,8 +360,14 @@ typedef struct{
             union{
                 uint8_t data;
                 struct{
+                #ifdef ENABLE_BIG_ENDIAN
+                    uint8_t max             : 4;
+                    uint8_t min             : 4;
+                #else
                     uint8_t min             : 4;
                     uint8_t max             : 4;
+                #endif
+
                 }bits;
             }drrange;
         }snch_req;
@@ -314,8 +376,13 @@ typedef struct{
             union{
                 uint8_t data;
                 struct{
+                #ifdef ENABLE_BIG_ENDIAN
+                    uint8_t rfu             : 4;
+                    uint8_t del             : 4;
+                #else
                     uint8_t del             : 4;
                     uint8_t rfu             : 4;
+                #endif
                 }bits;
             }rxtspl;
         }rxts_req;

@@ -9,7 +9,7 @@ With lorawan-parser, one could see all details of LoRaWAN, like how frames are d
 - [x] Support LoRaWAN 1.0 protocol
 - [x] Support both ABP and OTAA mode device
 - [x] Colorful terminal outputs (Windows MiniTTY not supported)
-- [ ] Cross platform (Tested on Ubuntu, Lubuntu, Raspberry Pi, Windows)
+- [X] Cross platform (Tested on Ubuntu, Lubuntu, Raspberry Pi, OpenWRT, Windows)
 - [ ] Support LoRaWAN 1.0.2 protocol
 - [ ] Live parse LoRaWAN motes message (To support Semtech IoT Start Kit)
 
@@ -85,8 +85,8 @@ lorawan-paser and is licensed under [The MIT License](http://opensource.org/lice
 parson, AES, CMAC have its own licenses. Please follow links below to get the details.
 
 # Acknowledgement
-
 + Semtech LoRa http://www.semtech.com/wireless-rf/lora.html
++ IBM LoRaWAN IN C http://www.research.ibm.com/labs/zurich/ics/lrsc/lmic.html
 + LoRa Alliance https://www.lora-alliance.org/
 + kgabis. parson (JSON parser) https://github.com/kgabis/parson
 + Semtech LoRa Net lora_gateway https://github.com/lora-net/lora_gateway
