@@ -13,38 +13,6 @@ With lorawan-parser, one could see all details of LoRaWAN, like how frames are d
 - [ ] Support LoRaWAN 1.0.2 protocol
 - [ ] Live parse LoRaWAN motes message (To support Semtech IoT Start Kit)
 
-## Compile
-
-### Linux
-
-Depends on tools *libtool*, *automake*. To build:
-
-    cd lorawan-parser
-    autoreconf -i
-    ./configure
-    make
-
-### Windows
-
-#### Codeblocks
-lorawan-parser supports [Codeblocks](http://www.codeblocks.org/) project. One could download Codeblocks from its official website.
-
-#### CMake
-*Not supported yet. You are welcome to submit CMake patches.*
-
-### Raspberry Pi
-
-    sudo apt-get install autoconf libtool
-    autoreconf -i
-    ./configure
-    make
-
-### Big Endian Platform (untested)
-
-    autoreconf -i
-    ./configure --enable-big-endian
-    make
-
 ## Usage
 
 Refer to `util/test/main.c` to know the usage of lorawan API.
@@ -103,45 +71,78 @@ Default AppKey/NwkSKey/AppSKey 2B7E151628AED2A6ABF7158809CF4F3C
 
 ### Burst Parse LoRaWAN Frame
 ```
-    $ ./lwp -c lwp-config.json
+$ ./lwp -c lwp-config.json
 ```
 
 To go further, user could fill their own LoRaWAN frames in a json file to parse it.
 
 ### Pack LoRaWAN frame
 ```
-    # Unconfirmed uplink
-    $ ./lwp --pack="00112233" -T UU --devaddr 01111111 --adr --ack --counter 1113 --port 2
+# Unconfirmed uplink
+$ ./lwp --pack="00112233" -T UU --devaddr 01111111 --adr --ack --counter 1113 --port 2
 
-    # Confirmed uplink without payload
-    $ ./lwp --pack -T CU --devaddr 01111111 --adr --ack --aareq --counter 1113
+# Confirmed uplink without payload
+$ ./lwp --pack -T CU --devaddr 01111111 --adr --ack --aareq --counter 1113
 
-    # Unconfirmed downlink
-    $ ./lwp --pack="00112233" -T UD --devaddr 01111111 --adr --ack --port 2 --counter 1113
+# Unconfirmed downlink
+$ ./lwp --pack="00112233" -T UD --devaddr 01111111 --adr --ack --port 2 --counter 1113
 
-    # Confirmed downlink without payload, frame pending set
-    $ ./lwp --pack -T CD --devaddr 01111111 --adr --ack --pending --counter 1113
+# Confirmed downlink without payload, frame pending set
+$ ./lwp --pack -T CD --devaddr 01111111 --adr --ack --pending --counter 1113
 
-    # Join request
-    $ ./lwp --pack -T JR --deveui 0123456789ABCDEF --appeui 0000000000000001 --dnonce ABCD
+# Join request
+$ ./lwp --pack -T JR --deveui 0123456789ABCDEF --appeui 0000000000000001 --dnonce ABCD
 
-    # Join accept, --dnonce is used to generate NwkSKey and AppSKey
-    $ ./lwp --pack -T JA --devaddr 0123456 --anonce ABCDEF --netid 000008 --rx1droft 0 --rx2dr 0 --rxdelay 1 --dnonce ABCD
+# Join accept, --dnonce is used to generate NwkSKey and AppSKey
+$ ./lwp --pack -T JA --devaddr 0123456 --anonce ABCDEF --netid 000008 --rx1droft 0 --rx2dr 0 --rxdelay 1 --dnonce ABCD
 ```
 
 ### Parse LoRaWAN frame
 ```
-    # Parser with specified keys
-    $ ./lwp --parse "40 11 11 11 01 A0 59 04 02 0F A0 9D 7C 61 F3 FA B7" --nwkskey 2B7E151628AED2A6ABF7158809CF4F3C --appskey 2B7E151628AED2A6ABF7158809CF4F3C --appkey 2B7E151628AED2A6ABF7158809CF4F3C
+# Parser with specified keys
+$ ./lwp --parse "40 11 11 11 01 A0 59 04 02 0F A0 9D 7C 61 F3 FA B7" --nwkskey 2B7E151628AED2A6ABF7158809CF4F3C --appskey 2B7E151628AED2A6ABF7158809CF4F3C --appkey 2B7E151628AED2A6ABF7158809CF4F3C
 
-    # Parse with default key
-    $ ./lwp --parse "40 11 11 11 01 A0 59 04 02 0F A0 9D 7C 61 F3 FA B7"
+# Parse with default key
+$ ./lwp --parse "40 11 11 11 01 A0 59 04 02 0F A0 9D 7C 61 F3 FA B7"
 ```
 
 ### Parse LoRaWAN MACCMD
 ```
-    $ lwp -T CD -m "02 30 01"
+$ lwp -T CD -m "02 30 01"
 ```
+
+## Compile
+
+### Linux
+
+Depends on tools *libtool*, *automake*. To build:
+
+    cd lorawan-parser
+    autoreconf -i
+    ./configure
+    make
+
+### Windows
+
+#### Codeblocks
+lorawan-parser supports [Codeblocks](http://www.codeblocks.org/) project. One could download Codeblocks from its official website.
+
+#### CMake
+*Not supported yet. You are welcome to submit CMake patches.*
+
+### Raspberry Pi
+
+    sudo apt-get install autoconf libtool
+    autoreconf -i
+    ./configure
+    make
+
+### Big Endian Platform (untested)
+
+    autoreconf -i
+    ./configure --enable-big-endian
+    make
+
 
 ## Limitation
 
