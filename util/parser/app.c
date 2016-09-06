@@ -30,8 +30,8 @@ struct option app_long_options[] = {
 
     {"burst-parse", required_argument,      0,      'c'},
     {"maccmd",      required_argument,      0,      'm'},
-    {"parse",       optional_argument,      0,      OPT_PARSE},
-    {"pack",        optional_argument,      0,      OPT_PACK},
+    {"parse",       required_argument,      0,      OPT_PARSE},
+    {"pack",        required_argument,      0,      OPT_PACK},
 
     {"band",        required_argument,      0,      'B'},
     {"nwkskey",     required_argument,      0,      'N'},

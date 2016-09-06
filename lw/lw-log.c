@@ -349,7 +349,7 @@ void lw_log(lw_frame_t *frame, uint8_t *msg, int len)
                 log_puts(LOG_NORMAL, "FPENDING is on");
             }
         }
-        log_puts(LOG_NORMAL, "FCNT: %d [0x%08X]", frame->pl.mac.fcnt, frame->pl.mac.fcnt);
+        log_puts(LOG_NORMAL, "FCNT: %u [0x%08X]", frame->pl.mac.fcnt, frame->pl.mac.fcnt);
 
         if( (frame->pl.mac.flen > 0) && (frame->pl.mac.fport > 0) ){
             log_puts(LOG_NORMAL, "PORT: %d", frame->pl.mac.fport);
