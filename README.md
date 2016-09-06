@@ -11,6 +11,7 @@ With lorawan-parser, one could see all details of LoRaWAN, like how frames are d
 - [x] Colorful terminal outputs (Windows MiniTTY not supported)
 - [X] Cross platform (Tested on Ubuntu, Lubuntu, Raspberry Pi, OpenWRT, Windows)
 - [ ] Support LoRaWAN 1.0.2 protocol
+- [ ] Support Semtech packet forwarder v1 and v2 protocol
 - [ ] Live parse LoRaWAN motes message (To support Semtech IoT Start Kit)
 
 ## Usage
@@ -79,13 +80,13 @@ To go further, user could fill their own LoRaWAN frames in a json file to parse 
 ### Pack LoRaWAN frame
 ```
 # Unconfirmed uplink
-$ ./lwp --pack="00112233" -T UU --devaddr 01111111 --adr --ack --counter 1113 --port 2
+$ ./lwp --pack "00112233" -T UU --devaddr 01111111 --adr --ack --counter 1113 --port 2
 
 # Confirmed uplink without payload
 $ ./lwp --pack -T CU --devaddr 01111111 --adr --ack --aareq --counter 1113
 
 # Unconfirmed downlink
-$ ./lwp --pack="00112233" -T UD --devaddr 01111111 --adr --ack --port 2 --counter 1113
+$ ./lwp --pack "00112233" -T UD --devaddr 01111111 --adr --ack --port 2 --counter 1113
 
 # Confirmed downlink without payload, frame pending set
 $ ./lwp --pack -T CD --devaddr 01111111 --adr --ack --pending --counter 1113
