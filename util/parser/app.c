@@ -21,8 +21,8 @@
 #define OPT_MOTES                       (15)
 #define OPT_CLASSB                      (16)
 #define OPT_FPENDING                    (17)
-#define OPT_PARSE                       (18)
-#define OPT_PACK                        (19)
+//#define OPT_PARSE                       (18)
+//#define OPT_PACK                        (19)
 
 struct option app_long_options[] = {
     {"help",        no_argument,            0,      'h'},
@@ -30,8 +30,8 @@ struct option app_long_options[] = {
 
     {"burst-parse", required_argument,      0,      'c'},
     {"maccmd",      required_argument,      0,      'm'},
-    {"parse",       required_argument,      0,      OPT_PARSE},
-    {"pack",        required_argument,      0,      OPT_PACK},
+    {"parse",       required_argument,      0,      'p'},
+    {"pack",        required_argument,      0,      'g'},
 
     {"band",        required_argument,      0,      'B'},
     {"nwkskey",     required_argument,      0,      'N'},
@@ -141,7 +141,6 @@ int app_getopt(app_opt_t *opt, int argc, char **argv)
             opt->mode = APP_MODE_HELP;
             break;
         case 'p':
-        case OPT_PARSE:
             if(opt->mode != APP_MODE_IDLE){
                 return APP_ERR_MODE_DUP;
             }
@@ -159,7 +158,6 @@ int app_getopt(app_opt_t *opt, int argc, char **argv)
             }
             break;
         case 'g':
-        case OPT_PACK:
             if(opt->mode != APP_MODE_IDLE){
                 return APP_ERR_MODE_DUP;
             }
@@ -398,14 +396,12 @@ int app_getopt(app_opt_t *opt, int argc, char **argv)
             log_puts(LOG_NORMAL, "Optional options");
             switch(optopt){
             case 'p':
-            case OPT_PARSE:
                 if(opt->mode != APP_MODE_IDLE){
                     return APP_ERR_MODE_DUP;
                 }
                 opt->mode = APP_MODE_PARSE;
                 break;
             case 'g':
-            case OPT_PACK:
                 if(opt->mode != APP_MODE_IDLE){
                     return APP_ERR_MODE_DUP;
                 }
