@@ -35,6 +35,7 @@ void usage(char *name)
     log_puts(LOG_NORMAL, " -m, --maccmd       <hex>       Parse MAC command");
     log_puts(LOG_NORMAL, " -p, --parse        [hex]       Parse packet");
     log_puts(LOG_NORMAL, " -g, --pack         [hex]       Generate packet");
+    log_puts(LOG_NORMAL, " -f, --pktfwd       [file]      Packet forwarder mode");
     log_line();
     log_puts(LOG_NORMAL, " -B, --band         <string>    PHY band EU868/US915/EU434/AU920/CN780/CN470");
     log_puts(LOG_NORMAL, " -N, --nwkskey      <hex>       NwkSKey");
@@ -64,8 +65,10 @@ void usage(char *name)
     log_puts(LOG_NORMAL, "     --rx2dr        <int>       RX2DataRate (0~15)");
     log_puts(LOG_NORMAL, "     --rxdelay      <int>       RxDelay (0~15)");
     log_line();
-    log_puts(LOG_NORMAL, "     --motes        <file>      Motes JSON file. Or --nodes");
-
+    log_puts(LOG_NORMAL, "     --motes        <file>      Motes/Nodes JSON file");
+    log_puts(LOG_NORMAL, "     --nodes        <file>      Same as --motes");
+    log_line();
+    log_puts(LOG_NORMAL, " -b, --board        <file>      Board specific TX power table and RSSI offset");
     log_line();
     log_puts(LOG_INFO, "Default AppKey/NwkSKey/AppSKey 2B7E151628AED2A6ABF7158809CF4F3C");
 }
@@ -134,6 +137,8 @@ int main(int argc, char **argv)
     case APP_MODE_BURST_PARSE:
         pfile = opt.cfile;
         break;
+    case APP_MODE_PKT_FWD:
+        return app_pkt_fwd(&opt);
     case APP_MODE_GENERATE:
         memset( (uint8_t *)&endnode, 0, sizeof(lw_node_t) );
         lw_cpy(endnode.appeui, opt.appeui, 8);

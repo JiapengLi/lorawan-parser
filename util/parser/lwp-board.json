@@ -1,0 +1,27 @@
+// Board specific RSSI calibration value and TX power table
+{
+    "SX1301_conf": {
+        "radio_0": {
+            "rssi_offset": -165.0
+        },
+        "radio_1": {
+            "rssi_offset": -165.0
+        },
+        "tx_lut_0":  { "rf_power": -6, "dig_gain": 0, "mix_gain": 8,  "pa_gain": 0 },
+        "tx_lut_1":  { "rf_power": -3, "dig_gain": 0, "mix_gain": 10, "pa_gain": 0 },
+        "tx_lut_2":  { "rf_power": 0,  "dig_gain": 0, "mix_gain": 12, "pa_gain": 0 },
+        "tx_lut_3":  { "rf_power": 3,  "dig_gain": 0, "mix_gain": 8,  "pa_gain": 1 },
+        "tx_lut_4":  { "rf_power": 6,  "dig_gain": 0, "mix_gain": 10, "pa_gain": 1 },
+        "tx_lut_5":  { "rf_power": 10, "dig_gain": 0, "mix_gain": 12, "pa_gain": 1 },
+        "tx_lut_6":  { "rf_power": 11, "dig_gain": 0, "mix_gain": 13, "pa_gain": 1 },
+        "tx_lut_7":  { "rf_power": 12, "dig_gain": 0, "mix_gain": 9,  "pa_gain": 2 },
+        "tx_lut_8":  { "rf_power": 13, "dig_gain": 0, "mix_gain": 15, "pa_gain": 1 },
+        "tx_lut_9":  { "rf_power": 14, "dig_gain": 0, "mix_gain": 10, "pa_gain": 2 },
+        "tx_lut_10": { "rf_power": 16, "dig_gain": 0, "mix_gain": 11, "pa_gain": 2 },
+        "tx_lut_11": { "rf_power": 20, "dig_gain": 0, "mix_gain": 9,  "pa_gain": 3 },
+        "tx_lut_12": { "rf_power": 23, "dig_gain": 0, "mix_gain": 10, "pa_gain": 3 },
+        "tx_lut_13": { "rf_power": 25, "dig_gain": 0, "mix_gain": 11, "pa_gain": 3 },
+        "tx_lut_14": { "rf_power": 26, "dig_gain": 0, "mix_gain": 12, "pa_gain": 3 },
+        "tx_lut_15": { "rf_power": 27, "dig_gain": 0, "mix_gain": 14, "pa_gain": 3 }
+    }
+}

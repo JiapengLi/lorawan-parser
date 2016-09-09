@@ -2,6 +2,7 @@
 #include <getopt.h>
 #include "app.h"
 #include "log.h"
+#include "conf.h"
 #include "str2hex.h"
 
 #define OPT_ACK                         (1)
@@ -32,6 +33,7 @@ struct option app_long_options[] = {
     {"maccmd",      required_argument,      0,      'm'},
     {"parse",       required_argument,      0,      'p'},
     {"pack",        required_argument,      0,      'g'},
+    {"pktfwd",      required_argument,      0,      'f'},
 
     {"band",        required_argument,      0,      'B'},
     {"nwkskey",     required_argument,      0,      'N'},
@@ -62,6 +64,7 @@ struct option app_long_options[] = {
 
     {"motes",       required_argument,      0,      OPT_MOTES},
     {"nodes",       required_argument,      0,      OPT_MOTES},
+    {"board",       required_argument,      0,      'b'},
     {0,             0,                      0,      0},
 };
 
@@ -122,7 +125,7 @@ int app_getopt(app_opt_t *opt, int argc, char **argv)
 
     opterr = 0;
     while(1){
-        ret = getopt_long(argc, argv, ":hvc:m:p:g:B:N:A:K:T:D:O:C:P:", app_long_options, &index);
+        ret = getopt_long(argc, argv, ":hvc:m:p:g:B:N:A:K:T:D:O:C:P:f:b:", app_long_options, &index);
         if(ret == -1){
             break;
         }
@@ -199,6 +202,46 @@ int app_getopt(app_opt_t *opt, int argc, char **argv)
                 // file doesn't exist
                 log_puts(LOG_FATAL, "Can't open %s", opt->cfile);
                 return APP_ERR_CFILE;
+            }
+            break;
+        case 'f':
+            if(opt->mode != APP_MODE_IDLE){
+                return APP_ERR_MODE_DUP;
+            }
+            opt->mode = APP_MODE_PKT_FWD;
+            if(optarg != NULL){
+                if(optarg[0] == '-'){
+                    optind--;
+                }else{
+                    opt->ffile = optarg;
+                    log_puts(LOG_NORMAL, "File name: %s", opt->ffile);
+                    if( access( opt->ffile, F_OK ) != -1 ){
+                        // file exists
+                        log_puts(LOG_NORMAL, "Found packet forwarder configuration file");
+                    }else{
+                        // file doesn't exist
+                        log_puts(LOG_FATAL, "Can't open %s", opt->ffile);
+                        return APP_ERR_CFILE;
+                    }
+                }
+            }
+            break;
+        case 'b':
+            if(optarg != NULL){
+                if(optarg[0] == '-'){
+                    optind--;
+                }else{
+                    opt->bfile = optarg;
+                    log_puts(LOG_NORMAL, "File name: %s", opt->bfile);
+                    if( access( opt->bfile, F_OK ) != -1 ){
+                        // file exists
+                        log_puts(LOG_NORMAL, "Found packet forwarder configuration file");
+                    }else{
+                        // file doesn't exist
+                        log_puts(LOG_FATAL, "Can't open %s", opt->bfile);
+                        return APP_ERR_CFILE;
+                    }
+                }
             }
             break;
 
@@ -426,6 +469,18 @@ int app_getopt(app_opt_t *opt, int argc, char **argv)
 
     return APP_OK;
 }
+
+int app_pkt_fwd(app_opt_t *opt)
+{
+    config_lgw_t lgw;
+
+    app_log_opt(opt);
+
+    config_lgw_parse(opt->ffile, &lgw);
+
+    return 0;
+}
+
 const char *app_mode_str_tab[] = {
     "IDLE",
     "HELP",
@@ -434,6 +489,7 @@ const char *app_mode_str_tab[] = {
     "PACK",
     "PARSE",
     "BATCH PARSE",
+    "PACKET FORWARDER"
 };
 
 const char *app_ft_str_tab[] = {
@@ -453,6 +509,9 @@ void app_log_opt(app_opt_t *opt)
     log_puts(LOG_NORMAL, "MODE:          %s", app_mode_str_tab[opt->mode]);
     if(opt->cfile != NULL){
         log_puts(LOG_NORMAL, "CONF FILE:     %s", opt->cfile);
+    }
+    if(opt->ffile != NULL){
+        log_puts(LOG_NORMAL, "PKTFWD FILE:   %s", opt->ffile);
     }
     log_puts(LOG_INFO, "BAND:          %s", lw_band_str_tab[opt->band]);
     log_puts(LOG_INFO, "DEVEUI:        %h", opt->deveui, APP_EUI_LEN);

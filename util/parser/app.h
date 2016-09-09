@@ -19,6 +19,7 @@ typedef enum {
     APP_MODE_GENERATE,
     APP_MODE_PARSE,
     APP_MODE_BURST_PARSE,
+    APP_MODE_PKT_FWD,
 }app_mode_t;
 
 typedef enum{
@@ -33,6 +34,8 @@ typedef struct{
     app_mode_t mode;
 
     char *cfile;
+    char *ffile;
+    char *bfile;
 
     lw_band_t band;
     uint8_t appeui[APP_EUI_LEN];
@@ -73,8 +76,9 @@ typedef struct{
     uint8_t rxdelay;
 }app_opt_t;
 
-const char *app_err(int err);
 int app_getopt(app_opt_t *opt, int argc, char **argv);
+int app_pkt_fwd(app_opt_t *opt);
 void app_log_opt(app_opt_t *opt);
+const char *app_err(int err);
 
 #endif // __APP_H

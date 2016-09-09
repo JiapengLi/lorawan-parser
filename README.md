@@ -22,21 +22,22 @@ After compile find `lwp.exe/lwp` under `util/parser/` directory to parse the LoR
 
 ```
 --------------------------------------------------------------------------------
-Usage: lwp.exe [OPTIONS]
+Usage: lwp [OPTIONS]
  -h, --help                     Help
  -v, --version                  Version 0.2.0
 
 --------------------------------------------------------------------------------
- -c  --burst-parse  <file>      Parse lwp json format file
+ -c, --burst-parse  <file>      Parse lwp json format file
  -m, --maccmd       <hex>       Parse MAC command
  -p, --parse        [hex]       Parse packet
  -g, --pack         [hex]       Generate packet
+ -f, --pktfwd       [file]      Packet forwarder mode
 
 --------------------------------------------------------------------------------
- -B  --band         <string>    PHY band EU868/US915/EU434/AU920/CN780/CN470
- -N  --nwkskey      <hex>       NwkSKey
- -A  --appskey      <hex>       AppSKey
- -K  --appkey       <hex>       AppKey
+ -B, --band         <string>    PHY band EU868/US915/EU434/AU920/CN780/CN470
+ -N, --nwkskey      <hex>       NwkSKey
+ -A, --appskey      <hex>       AppSKey
+ -K, --appkey       <hex>       AppKey
 
 --------------------------------------------------------------------------------
  -T, --type         <string>    Frame type (JR/JA/UU/UD/CU/CD/P)
@@ -64,10 +65,15 @@ Usage: lwp.exe [OPTIONS]
      --rxdelay      <int>       RxDelay (0~15)
 
 --------------------------------------------------------------------------------
-     --motes        <file>      Motes JSON file. Or --nodes
+     --motes        <file>      Motes/Nodes JSON file
+     --nodes        <file>      Same as --motes
+
+--------------------------------------------------------------------------------
+ -b, --board        <file>      Board specific TX power table and RSSI offset
 
 --------------------------------------------------------------------------------
 Default AppKey/NwkSKey/AppSKey 2B7E151628AED2A6ABF7158809CF4F3C
+
 ```
 
 ### Burst Parse LoRaWAN Frame
