@@ -38,68 +38,47 @@
     ],
 
     "maccommands":[
-        {   // LinkCheckReq
-            "direction": "up",
-            "command":"02"
-        },
-        {   // LinkCheckAns
-            "direction": "down",
-            "command":"02 30 01"
-        },
+        // LinkCheckReq
+        { "direction": "up",   "command":"02" },
 
-        {   // LinkADRReq
-            "direction": "down",
-            "command":"03 51 07 00 61"
-        },
-        {   // LinkADRAns
-            "direction": "up",
-            "command":"03 07"
-        },
+        // LinkCheckAns
+        { "direction": "down", "command":"02 30 01" },
 
-        {   // DutyCycleReq
-            "direction": "down",
-            "command":"04 04"
-        },
-        {   // DutyCycleAns
-            "direction": "up",
-            "command":"04"
-        },
+        // LinkADRReq
+        { "direction": "down", "command":"03 51 07 00 61" },
 
-        {   // RXParamSetupReq
-            "direction": "down",
-            "command":"05 07 01 02 03"
-        },
-        {   // RXParamSetupReq
-            "direction": "up",
-            "command":"05 07"
-        },
+        // LinkADRAns
+        { "direction": "up",   "command":"03 07" },
 
-        {   // DevStatusReq
-            "direction": "down",
-            "command":"06"
-        },
-        {   // DevStatusReq
-            "direction": "up",
-            "command":"06 FF 30"
-        },
+        // DutyCycleReq
+        { "direction": "down", "command":"04 04" },
 
-        {   // NewChannelReq
-            "direction": "down",
-            "command":"07 00 01 23 45 11"
-        },
-        {   // NewChannelAns
-            "direction": "up",
-            "command":"07 03"
-        },
+        // DutyCycleAns
+        { "direction": "up",   "command":"04" },
 
-        {   // RXTimingSetupReq
-            "direction": "down",
-            "command":"08 01"
-        },
-        {   // RXTimingSetupAns
-            "direction": "up",
-            "command":"08"
-        }
+        // RXParamSetupReq
+        { "direction": "down", "command":"05 07 01 02 03" },
+
+        // RXParamSetupReq
+        { "direction": "up",   "command":"05 07" },
+
+        // DevStatusReq
+        { "direction": "down", "command":"06" },
+
+        // DevStatusReq
+        { "direction": "up",   "command":"06 FF 30" },
+
+        // NewChannelReq
+        { "direction": "down", "command":"07 00 01 23 45 11" },
+
+        // NewChannelAns
+        { "direction": "up",   "command":"07 03" },
+
+        // RXTimingSetupReq
+        { "direction": "down", "command":"08 01" },
+
+        // RXTimingSetupAns
+        { "direction": "up",   "command":"08" }
     ]
 }
 

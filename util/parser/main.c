@@ -31,15 +31,15 @@ void usage(char *name)
     log_puts(LOG_NORMAL, " -h, --help                     Help");
     log_puts(LOG_NORMAL, " -v, --version                  Version %d.%d.%d", VMAJOR, VMINOR, VPATCH);
     log_line();
-    log_puts(LOG_NORMAL, " -c  --burst-parse  <file>      Parse lwp json format file");
+    log_puts(LOG_NORMAL, " -c, --burst-parse  <file>      Parse lwp json format file");
     log_puts(LOG_NORMAL, " -m, --maccmd       <hex>       Parse MAC command");
     log_puts(LOG_NORMAL, " -p, --parse        [hex]       Parse packet");
     log_puts(LOG_NORMAL, " -g, --pack         [hex]       Generate packet");
     log_line();
-    log_puts(LOG_NORMAL, " -B  --band         <string>    PHY band EU868/US915/EU434/AU920/CN780/CN470");
-    log_puts(LOG_NORMAL, " -N  --nwkskey      <hex>       NwkSKey");
-    log_puts(LOG_NORMAL, " -A  --appskey      <hex>       AppSKey");
-    log_puts(LOG_NORMAL, " -K  --appkey       <hex>       AppKey");
+    log_puts(LOG_NORMAL, " -B, --band         <string>    PHY band EU868/US915/EU434/AU920/CN780/CN470");
+    log_puts(LOG_NORMAL, " -N, --nwkskey      <hex>       NwkSKey");
+    log_puts(LOG_NORMAL, " -A, --appskey      <hex>       AppSKey");
+    log_puts(LOG_NORMAL, " -K, --appkey       <hex>       AppKey");
     log_line();
     log_puts(LOG_NORMAL, " -T, --type         <string>    Frame type (JR/JA/UU/UD/CU/CD/P)");
     log_puts(LOG_NORMAL, " -D, --devaddr      <hex>       DevAddr");
@@ -222,9 +222,6 @@ int main(int argc, char **argv)
     }
 
     lw_init(config.band);
-//    if(lw_set_band(config.band) < 0){
-//        log_puts(LOG_NORMAL, "Band error");
-//    }
 
     memset(&kgrp, 0, sizeof(lw_key_grp_t));
     if(config.flag&CFLAG_NWKSKEY){
