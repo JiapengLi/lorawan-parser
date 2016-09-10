@@ -175,5 +175,7 @@ parson, AES, CMAC have its own licenses. Please follow links below to get the de
 + LoRa Alliance https://www.lora-alliance.org/
 + kgabis. parson (JSON parser) https://github.com/kgabis/parson
 + Semtech LoRa Net lora_gateway https://github.com/lora-net/lora_gateway
++ Semtech LoRa Net packet_forwarder https://github.com/Lora-net/packet_forwarder
++ TTN poly_pkt_fwd https://github.com/TheThingsNetwork/packet_forwarder
 + Brian Gladman. AES library http://www.gladman.me.uk/
 + Lander Casado, Philippas Tsigas. CMAC library http://www.cse.chalmers.se/research/group/dcs/masters/contikisec/
