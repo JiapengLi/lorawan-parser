@@ -144,7 +144,9 @@ lorawan-parser supports [Codeblocks](http://www.codeblocks.org/) project. One co
     ./configure
     make
 
-### Big Endian Platform (untested)
+### Big Endian Platform
+
+Thank @huzhifeng help test on MIPS platform
 
     autoreconf -i
     ./configure --enable-big-endian

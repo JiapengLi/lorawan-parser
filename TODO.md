@@ -6,8 +6,9 @@
 + Refer poly_pkt_fwd configuration
 + Detect RF chip reset (https://github.com/TheThingsNetwork/packet_forwarder/pull/2)
 + Auto detect RF front end (SX1255/SX1257)
++ gateway_conf add packet_forwarder v1/v2 option
 
 ## Possible
-	+ https://github.com/brocaar/loraserver mqtt protocol
++ https://github.com/brocaar/loraserver mqtt protocol
 
 ## Log level control
