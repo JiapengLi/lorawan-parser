@@ -61,7 +61,6 @@ struct option app_long_options[] = {
     {"rx2dr",       required_argument,      0,      OPT_RX2DR},
     {"rxdelay",     required_argument,      0,      OPT_RXDELAY},
 
-
     {"motes",       required_argument,      0,      OPT_MOTES},
     {"nodes",       required_argument,      0,      OPT_MOTES},
     {"board",       required_argument,      0,      'b'},

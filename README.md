@@ -181,3 +181,5 @@ parson, AES, CMAC have its own licenses. Please follow links below to get the de
 + TTN poly_pkt_fwd https://github.com/TheThingsNetwork/packet_forwarder
 + Brian Gladman. AES library http://www.gladman.me.uk/
 + Lander Casado, Philippas Tsigas. CMAC library http://www.cse.chalmers.se/research/group/dcs/masters/contikisec/
++ diabloneo timespec_diff gitst https://gist.github.com/diabloneo/9619917
++ CCAN (json libary is from CCAN project) https://ccodearchive.net/

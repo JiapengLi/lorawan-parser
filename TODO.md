@@ -7,8 +7,14 @@
 + Detect RF chip reset (https://github.com/TheThingsNetwork/packet_forwarder/pull/2)
 + Auto detect RF front end (SX1255/SX1257)
 + gateway_conf add packet_forwarder v1/v2 option
++ percentage of each channel of the total 10 channels
++ Packet lost ananlyze
 
 ## Possible
 + https://github.com/brocaar/loraserver mqtt protocol
++ support both IPV4 and IPV6 address
 
 ## Log level control
+
+# Common
++ Replace parson with CCAN json library (think about how to solve comment json)
