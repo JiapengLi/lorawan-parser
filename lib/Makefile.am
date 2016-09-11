@@ -8,4 +8,6 @@ lib_la_SOURCES = parson.c \
 				log.c \
 				str2hex.c \
 				aes.c \
-				cmac.c
+				cmac.c \
+				base64.c \
+				json.c
