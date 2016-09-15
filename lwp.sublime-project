@@ -1,0 +1,49 @@
+{
+	"folders":
+	[
+		{
+			"path": ".",
+			"folder_exclude_patterns":[
+				".libs",
+				".deps",
+				"aclocal.m4",
+				"autom4te.cache",
+				"autoscan.log",
+				"bak",
+				"bin",
+			],
+			"file_exclude_patterns": [
+				"ar-lib",
+				"compile",
+				"config.guess",
+				"config.status",
+				"config.sub",
+				"configure",
+				"COPYING",
+				"depcomp",
+				"INSTALL",
+				"install-sh",
+				"libtool",
+				"ltmain.sh",
+				"missing",
+				"obj",
+				"stamp-*",
+				"test-driver",
+				"*.a",
+				"*.bak",
+				"*.depend",
+				"*.exe",
+				"*.in",
+				"*.la",
+				"*.layout",
+				"*.lo",
+				"*.log",
+				"*.o",
+				"*.patch",
+				"*.Po",
+				"*~",
+				"*.m4",
+			]
+		}
+	]
+}

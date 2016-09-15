@@ -1,0 +1,8 @@
+-I/home/rxhf/.config/sublime-text-3/Packages/EasyClangComplete
+-I/usr/include
+-Ilib
+-Ilib/libloragw/inc
+-Ilib/libloragw/src
+-Ilw
+-Iutil/parser
+-Iutil/test
