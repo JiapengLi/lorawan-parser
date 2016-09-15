@@ -223,5 +223,13 @@ int log_puts(int priority, char *fmt, ...)
 
 void log_line(void)
 {
+#ifndef WIN32
+    pthread_mutex_lock(&log_mutex);
+#endif // WIN32
+
     printf("\n--------------------------------------------------------------------------------\n");
+
+#ifndef WIN32
+    pthread_mutex_unlock(&log_mutex);
+#endif // WIN32
 }

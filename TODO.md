@@ -18,3 +18,4 @@
 
 # Common
 + Replace parson with CCAN json library (think about how to solve comment json)
++ Add support to parse JoinAccept message

@@ -88,6 +88,8 @@ int main(int argc, char **argv)
 
     memset(&config, 0, sizeof(config_t));
 
+    log_init(LOG_NORMAL);
+
     if(argc == 1){
         usage(basename(argv[0]));
         return 0;
