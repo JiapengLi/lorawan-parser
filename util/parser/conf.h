@@ -3,9 +3,15 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+
+#include "loragw_reg.h"
 #include "loragw_hal.h"
 #include "loragw_aux.h"
-#include "loragw_reg.h"
+#if ! defined _WIN32 && ! defined __CYGWIN__
+#include "loragw_gps.h"
+#include "loragw_lbt.h"
+#endif
+
 
 typedef enum{
     CFLAG_NWKSKEY = (1<<0),

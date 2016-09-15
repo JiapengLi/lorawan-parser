@@ -5,6 +5,12 @@
 #include "conf.h"
 #include "str2hex.h"
 
+#if defined _WIN32 || defined __CYGWIN__
+#ifndef WIN32
+#define WIN32
+#endif // WIN32
+#endif // __MINGW32__
+
 #define OPT_ACK                         (1)
 #define OPT_AAREQ                       (2)
 #define OPT_ADR                         (3)
@@ -476,6 +482,57 @@ int app_pkt_fwd(app_opt_t *opt)
     app_log_opt(opt);
 
     config_lgw_parse(opt->ffile, &lgw);
+
+#ifndef WIN32
+    int i, ret;
+
+    if (lgw_board_setconf(lgw.board.conf) != LGW_HAL_SUCCESS) {
+        log_puts(LOG_NORMAL, "WARNING: Failed to configure board");
+    }
+
+    if (lgw_lbt_setconf(lgw.lbt.conf) != LGW_HAL_SUCCESS) {
+        log_puts(LOG_NORMAL, "WARNING: Failed to configure lbt");
+    }
+
+    if (lgw_txgain_setconf(&lgw.txlut.conf) != LGW_HAL_SUCCESS) {
+        log_puts(LOG_NORMAL, "WARNING: Failed to configure concentrator TX Gain LUT");
+    }
+
+    for (i=0; i<LGW_RF_CHAIN_NB; i++) {
+        if (lgw_rxrf_setconf(i, lgw.radio[i].conf) != LGW_HAL_SUCCESS) {
+            log_puts(LOG_NORMAL, "WARNING: invalid configuration for radio %i", i);
+        }
+    }
+
+    for (i = 0; i < LGW_MULTI_NB; ++i) {
+        if (lgw_rxif_setconf(i, lgw.chan[i].conf) != LGW_HAL_SUCCESS) {
+             log_puts(LOG_NORMAL, "WARNING: invalid configuration for Lora multi-SF channel %i", i);
+        }
+    }
+
+    if (lgw_rxif_setconf(8, lgw.chan[8].conf) != LGW_HAL_SUCCESS) {
+        log_puts(LOG_NORMAL, "WARNING: invalid configuration for Lora multi-SF channel %i", i);
+    }
+
+    if (lgw_rxif_setconf(9, lgw.chan[9].conf) != LGW_HAL_SUCCESS) {
+        log_puts(LOG_NORMAL, "WARNING: invalid configuration for Lora multi-SF channel %i", i);
+    }
+
+    ret = lgw_start();
+    if (ret == LGW_HAL_SUCCESS) {
+        log_puts(LOG_NORMAL, "INFO: [main] concentrator started, packet can now be received");
+    } else {
+        log_puts(LOG_NORMAL, "ERROR: [main] failed to start the concentrator");
+        exit(EXIT_FAILURE);
+    }
+
+    ret = lgw_stop();
+    if (ret == LGW_HAL_SUCCESS) {
+        log_puts(LOG_NORMAL, "INFO: concentrator stopped successfully\n");
+    } else {
+        log_puts(LOG_NORMAL, "WARNING: failed to stop concentrator successfully\n");
+    }
+#endif
 
     return 0;
 }

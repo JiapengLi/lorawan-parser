@@ -44,11 +44,15 @@ then
   CFLAGS="$CFLAGS -DENABLE_BIG_ENDIAN"
 fi
 
+ARFLAGS='rcs'
+
 LWP_CFLAGS='-I$(top_srcdir)/lib/libloragw/inc -I$(top_srcdir)/lib -I$(top_srcdir)/lw'
 AC_SUBST(LWP_CFLAGS)
 
 # Checks for library functions.
-AC_FUNC_MALLOC
+
+# rpl_malloc problem AC_FUNC_MALLOC
+AC_CHECK_FUNCS([malloc])
 AC_FUNC_MMAP
 AC_CHECK_FUNCS([munmap memset])
 
