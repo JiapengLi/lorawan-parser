@@ -39,3 +39,5 @@ INSTALL
 json
 *.bak
 bak
+*.sublime-project
+*.sublime-workspace
