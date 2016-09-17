@@ -159,6 +159,7 @@ Thank @huzhifeng help test on MIPS platform
     git clone --depth 1 https://github.com/raspberrypi/tools
 
 Add below path to system $PATH
+
     // 64bits
     $YOUR_PATH/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin
 
@@ -166,6 +167,7 @@ Add below path to system $PATH
     $YOUR_PATH/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin
 
 Generate Makefile
+
     ./configure --host=arm-linux CC=arm-linux-gnueabihf-gcc
 
 ## Limitation
