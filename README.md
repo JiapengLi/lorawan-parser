@@ -120,7 +120,7 @@ $ lwp -T CD -m "02 30 01"
 
 ### Packet Forwarder Mode
 ```
-$ ./lwp --pktfwd global_conf.template.json --board lwp-board.json
+$ ./lwp --pktfwd global_conf.template.json --board lwp-board.json --iface eth0
 ```
 
 ## Compile

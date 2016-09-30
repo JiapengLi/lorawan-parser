@@ -13,6 +13,7 @@
 
 #ifndef WIN32
 #include "pktfwd.h"
+#include "netutil.h"
 #endif
 
 #define OPT_ACK                         (1)
@@ -74,6 +75,7 @@ struct option app_long_options[] = {
     {"motes",       required_argument,      0,      OPT_MOTES},
     {"nodes",       required_argument,      0,      OPT_MOTES},
     {"board",       required_argument,      0,      'b'},
+    {"iface",       required_argument,      0,      'i'},
     {0,             0,                      0,      0},
 };
 
@@ -121,6 +123,7 @@ void app_setopt_dft(app_opt_t *opt)
     memcpy(opt->appskey, app_dft_key, APP_KEY_LEN);
     memcpy(opt->appkey, app_dft_key, APP_KEY_LEN);
     opt->hdr.bits.mtype = LW_MTYPE_MSG_UP;
+    opt->iface = "eth0";
 }
 
 int app_getopt(app_opt_t *opt, int argc, char **argv)
@@ -134,7 +137,7 @@ int app_getopt(app_opt_t *opt, int argc, char **argv)
 
     opterr = 0;
     while(1){
-        ret = getopt_long(argc, argv, ":hvc:m:p:g:B:N:A:K:T:D:O:C:P:f:b:", app_long_options, &index);
+        ret = getopt_long(argc, argv, ":hvc:m:p:g:B:N:A:K:T:D:O:C:P:f:b:i:", app_long_options, &index);
         if(ret == -1){
             break;
         }
@@ -250,6 +253,15 @@ int app_getopt(app_opt_t *opt, int argc, char **argv)
                         log_puts(LOG_FATAL, "Can't open %s", opt->bfile);
                         return APP_ERR_CFILE;
                     }
+                }
+            }
+            break;
+        case 'i':
+            if(optarg != NULL){
+                if(optarg[0] == '-'){
+                    optind--;
+                }else{
+                    opt->iface = optarg;
                 }
             }
             break;
@@ -482,6 +494,7 @@ int app_getopt(app_opt_t *opt, int argc, char **argv)
 int app_pkt_fwd(app_opt_t *opt)
 {
     config_lgw_t lgw;
+    int ret;
 
     app_log_opt(opt);
 
@@ -490,11 +503,21 @@ int app_pkt_fwd(app_opt_t *opt)
     //Overwrite board specified parameters
     config_lgw_board_parse(opt->bfile, &lgw);
 
+#ifndef WIN32
+    lgw.mac_addr.flag = true;
+    ret = netutil_get_mac_addr(opt->iface, lgw.mac_addr.buf);
+    if(ret == NETUTIL_IF_DEFAULT){
+        log_puts(LOG_WARN, "Can't find %s, force use default interface", opt->iface);
+    }else if(ret < 0){
+        log_puts(LOG_WARN, "Can't find %s, use 00:00:00:00:00:00", opt->iface);
+        memset(lgw.mac_addr.buf, 0, 6);
+    }
+    netutil_eui48_to_eui64(EUI_FMT_IEEE_FFFE, lgw.mac_addr.buf, lgw.gwid.buf);
+#endif
+
     conf_log_lgw(&lgw);
 
 #ifndef WIN32
-    int i, ret;
-
     pktfwd_init(&lgw);
 
     // Infinite loop
@@ -529,12 +552,18 @@ const char *app_ft_str_tab[] = {
 void app_log_opt(app_opt_t *opt)
 {
     log_line();
-    log_puts(LOG_NORMAL, "MODE:          %s", app_mode_str_tab[opt->mode]);
+    log_puts(LOG_INFO, "MODE:          %s", app_mode_str_tab[opt->mode]);
     if(opt->cfile != NULL){
-        log_puts(LOG_NORMAL, "CONF FILE:     %s", opt->cfile);
+        log_puts(LOG_INFO, "CONF FILE:     %s", opt->cfile);
     }
     if(opt->ffile != NULL){
-        log_puts(LOG_NORMAL, "PKTFWD FILE:   %s", opt->ffile);
+        log_puts(LOG_INFO, "PKTFWD FILE:   %s", opt->ffile);
+    }
+    if(opt->bfile != NULL){
+        log_puts(LOG_INFO, "BOARD FILE:    %s", opt->bfile);
+    }
+    if(opt->iface != NULL){
+        log_puts(LOG_INFO, "IFACE:         %s", opt->iface);
     }
     log_puts(LOG_INFO, "BAND:          %s", lw_band_str_tab[opt->band]);
     log_puts(LOG_INFO, "DEVEUI:        %h", opt->deveui, APP_EUI_LEN);

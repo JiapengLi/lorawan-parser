@@ -823,4 +823,8 @@ void conf_log_lgw(config_lgw_t *lgw)
         log_puts(LOG_NORMAL, "BEACON PERIOD %d", lgw->beacon.period);
         log_puts(LOG_NORMAL, "BEACON FREQ %d", lgw->beacon.freq);
     }
+
+    if(lgw->mac_addr.flag){
+        log_puts(LOG_NORMAL, "MACADDR %h", lgw->mac_addr.buf, 6);
+    }
 }

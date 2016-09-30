@@ -19,6 +19,7 @@
 #include "pktfwd.h"
 #include "conf.h"
 #include "log.h"
+#include "lw.h"
 
 #if defined _WIN32 || defined __CYGWIN__
 #ifndef WIN32
@@ -96,10 +97,6 @@ int pktfwd_init(config_lgw_t *lgw)
         exit(EXIT_FAILURE);
     }
 
-    while(1){
-
-    }
-
     return 0;
 }
 
@@ -121,9 +118,29 @@ static void pktfwd_sig_handler(int sigio)
     exit(EXIT_SUCCESS);
 }
 
+void pktfwd_test(void)
+{
+    struct lgw_pkt_rx_s rxpkt[8]; /* array containing inbound packets + metadata */
+    struct lgw_pkt_rx_s *p; /* pointer on a RX packet */
+    int i, nb_pkt;
+
+    nb_pkt = lgw_receive(8, rxpkt);
+    if(nb_pkt == LGW_HAL_ERROR){
+        exit(EXIT_FAILURE);
+    }
+    if(nb_pkt > 0){
+        for (i=0; i < nb_pkt; ++i) {
+            p = &rxpkt[i];
+            lw_log_rxpkt(p);
+        }
+    }
+
+}
+
 void pktfwd_evt(void)
 {
-
-
+    while(1){
+        pktfwd_test();
+    }
 }
 

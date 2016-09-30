@@ -69,6 +69,7 @@ void usage(char *name)
     log_puts(LOG_NORMAL, "     --nodes        <file>      Same as --motes");
     log_line();
     log_puts(LOG_NORMAL, " -b, --board        <file>      Board specific TX power table and RSSI offset");
+    log_puts(LOG_NORMAL, " -i, --iface        <string>    Network interface, default eth0");
     log_line();
     log_puts(LOG_INFO, "Default AppKey/NwkSKey/AppSKey 2B7E151628AED2A6ABF7158809CF4F3C");
 }

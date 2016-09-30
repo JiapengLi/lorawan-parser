@@ -119,6 +119,11 @@ typedef struct{
         float altitude;
         char *device;
     }gps;
+
+    struct{
+        bool flag;
+        uint8_t buf[6];
+    }mac_addr;
 }config_lgw_t;
 
 int config_parse(const char *file, config_t *config);

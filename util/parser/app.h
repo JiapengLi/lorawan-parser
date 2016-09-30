@@ -36,6 +36,7 @@ typedef struct{
     char *cfile;
     char *ffile;
     char *bfile;
+    char *iface;
 
     lw_band_t band;
     uint8_t appeui[APP_EUI_LEN];

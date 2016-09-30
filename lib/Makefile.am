@@ -10,4 +10,5 @@ lib_la_SOURCES = parson.c \
 				aes.c \
 				cmac.c \
 				base64.c \
-				json.c
+				json.c \
+				netutil.c
