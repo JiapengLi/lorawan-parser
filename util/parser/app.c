@@ -494,7 +494,6 @@ int app_getopt(app_opt_t *opt, int argc, char **argv)
 int app_pkt_fwd(app_opt_t *opt)
 {
     config_lgw_t lgw;
-    int ret;
 
     app_log_opt(opt);
 
@@ -504,6 +503,7 @@ int app_pkt_fwd(app_opt_t *opt)
     config_lgw_board_parse(opt->bfile, &lgw);
 
 #ifndef WIN32
+    int ret;
     lgw.mac_addr.flag = true;
     ret = netutil_get_mac_addr(opt->iface, lgw.mac_addr.buf);
     if(ret == NETUTIL_IF_DEFAULT){

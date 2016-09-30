@@ -684,13 +684,10 @@ int config_lgw_board_parse(char *file, config_lgw_t *lgw)
 {
     JSON_Value *jroot;
     JSON_Object *josx1301;
-    JSON_Object *jogw;
     JSON_Value *jv;
     JSON_Object *jo;
-    const char *string;
     char param_name[32];
-    uint32_t sf, bw, fdev;
-    int i, hlen;
+    int i;
     bool txlut_flag = false;
 
     if(file == NULL){
@@ -757,6 +754,7 @@ int config_lgw_board_parse(char *file, config_lgw_t *lgw)
         }
     }
 
+    return 0;
 }
 
 void conf_log_lgw(config_lgw_t *lgw)
