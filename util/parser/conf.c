@@ -675,6 +675,94 @@ int config_lgw_parse(char *file, config_lgw_t *lgw)
         }
     }
 
+    json_value_free(jv);
+
+    return 0;
+}
+
+int config_lgw_board_parse(char *file, config_lgw_t *lgw)
+{
+    JSON_Value *jroot;
+    JSON_Object *josx1301;
+    JSON_Object *jogw;
+    JSON_Value *jv;
+    JSON_Object *jo;
+    const char *string;
+    char param_name[32];
+    uint32_t sf, bw, fdev;
+    int i, hlen;
+    bool txlut_flag = false;
+
+    if(file == NULL){
+        return -1;
+    }
+
+    /* parsing json and validating output */
+    jroot = json_parse_file_with_comments(file);
+    if(json_value_get_type(jroot) != JSONObject) {
+        return -1;
+    }
+    josx1301 = json_object_get_object(json_value_get_object(jroot), "SX1301_conf");
+    if(josx1301 == NULL){
+        return -2;
+    }
+
+    for (i = 0; i < LGW_RF_CHAIN_NB; ++i) {
+        snprintf(param_name, sizeof param_name, "radio_%i", i);
+        jv = json_object_get_value(josx1301, param_name);
+        if (json_value_get_type(jv) != JSONObject) {
+            continue;
+        }
+        jo = json_value_get_object(jv);
+        jv = json_object_dotget_value(jo, "rssi_offset");
+        if(json_value_get_type(jv) == JSONNumber){
+            lgw->radio[i].conf.rssi_offset = (float)json_value_get_number(jv);
+        }
+    }
+
+    for (i = 0; i < TX_GAIN_LUT_SIZE_MAX; i++) {
+        snprintf(param_name, sizeof param_name, "tx_lut_%i", i);
+        jv = json_object_dotget_value(josx1301, param_name);
+        if(json_value_get_type(jv) != JSONObject){
+            continue;
+        }
+        if(txlut_flag == false){
+            txlut_flag = true;
+            memset(&lgw->txlut.conf, 0, sizeof(struct lgw_tx_gain_lut_s));
+        }
+        jo = json_value_get_object(jv);
+        lgw->txlut.conf.size++;
+
+        jv = json_object_dotget_value(jo, "rf_power");
+        if (json_value_get_type(jv) == JSONNumber) {
+            lgw->txlut.conf.lut[i].rf_power = (int8_t)json_value_get_number(jv);
+        }
+        jv = json_object_dotget_value(jo, "dac_gain");
+        if (json_value_get_type(jv) == JSONNumber) {
+            lgw->txlut.conf.lut[i].dac_gain = (uint8_t)json_value_get_number(jv);
+        }else{
+            lgw->txlut.conf.lut[i].dac_gain = 3; /* This is the only dac_gain supported for now */
+        }
+        jv = json_object_dotget_value(jo, "dig_gain");
+        if (json_value_get_type(jv) == JSONNumber) {
+            lgw->txlut.conf.lut[i].dig_gain = (uint8_t)json_value_get_number(jv);
+        }
+        jv = json_object_dotget_value(jo, "mix_gain");
+        if (json_value_get_type(jv) == JSONNumber) {
+            lgw->txlut.conf.lut[i].mix_gain = (uint8_t)json_value_get_number(jv);
+        }
+        jv = json_object_dotget_value(jo, "pa_gain");
+        if (json_value_get_type(jv) == JSONNumber) {
+            lgw->txlut.conf.lut[i].pa_gain = (uint8_t)json_value_get_number(jv);
+        }
+    }
+
+}
+
+void conf_log_lgw(config_lgw_t *lgw)
+{
+    int i;
+
     log_line();
     if(lgw->board.flag){
         log_puts(LOG_NORMAL, "LoRaWAN %s", lgw->board.conf.lorawan_public?"PUBLIC":"PRIVATE");
@@ -735,8 +823,4 @@ int config_lgw_parse(char *file, config_lgw_t *lgw)
         log_puts(LOG_NORMAL, "BEACON PERIOD %d", lgw->beacon.period);
         log_puts(LOG_NORMAL, "BEACON FREQ %d", lgw->beacon.freq);
     }
-
-    json_value_free(jv);
-
-    return 0;
 }

@@ -487,6 +487,11 @@ int app_pkt_fwd(app_opt_t *opt)
 
     config_lgw_parse(opt->ffile, &lgw);
 
+    //Overwrite board specified parameters
+    config_lgw_board_parse(opt->bfile, &lgw);
+
+    conf_log_lgw(&lgw);
+
 #ifndef WIN32
     int i, ret;
 

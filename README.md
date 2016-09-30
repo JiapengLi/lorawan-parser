@@ -118,6 +118,11 @@ $ ./lwp --parse "40 11 11 11 01 A0 59 04 02 0F A0 9D 7C 61 F3 FA B7"
 $ lwp -T CD -m "02 30 01"
 ```
 
+### Packet Forwarder Mode
+```
+$ ./lwp --pktfwd global_conf.template.json --board lwp-board.json
+```
+
 ## Compile
 
 ### Linux

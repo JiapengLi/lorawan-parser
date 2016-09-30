@@ -125,4 +125,7 @@ int config_parse(const char *file, config_t *config);
 void config_free(config_t *config);
 int config_lgw_parse(char *file, config_lgw_t *lgw);
 void config_lgw_free(config_lgw_t *lgw);
+int config_lgw_board_parse(char *file, config_lgw_t *lgw);
+void conf_log_lgw(config_lgw_t *lgw);
+
 #endif // __CONFIG_H
