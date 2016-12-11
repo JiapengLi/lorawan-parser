@@ -76,63 +76,67 @@ enum {
 
 // MAC uplink commands   downwlink too
 enum {
-    // Class A
-    LW_MCMD_LCHK_REQ = 0x02, // -  link check request : -
-    LW_MCMD_LADR_ANS = 0x03, // -  link ADR answer    : u1:7-3:RFU, 3/2/1: pow/DR/Ch ACK
-    LW_MCMD_DCAP_ANS = 0x04, // -  duty cycle answer  : -
-    LW_MCMD_DN2P_ANS = 0x05, // -  2nd DN slot status : u1:7-2:RFU  1/0:datarate/channel ack
-    LW_MCMD_DEVS_ANS = 0x06, // -  device status ans  : u1:battery 0,1-254,255=?, u1:7-6:RFU,5-0:margin(-32..31)
-    LW_MCMD_SNCH_ANS = 0x07, // -  set new channel    : u1: 7-2=RFU, 1/0:DR/freq ACK
-    LW_MCMD_RXTS_ANS = 0x08, // -  RX timing setup    :
-    // Class B
-    LW_MCMD_PING_IND = 0x10, // -  pingability indic  : u1: 7=RFU, 6-4:interval, 3-0:datarate
-    LW_MCMD_PING_ANS = 0x11, // -  ack ping freq      : u1: 7-1:RFU, 0:freq ok
-    LW_MCMD_BCNI_REQ = 0x12, // -  next beacon start  :
+    MOTE_MAC_LINK_CHECK_REQ             = 0x02,
+    MOTE_MAC_LINK_ADR_ANS               = 0x03,
+    MOTE_MAC_DUTY_CYCLE_ANS             = 0x04,
+    MOTE_MAC_RX_PARAM_SETUP_ANS         = 0x05,
+    MOTE_MAC_DEV_STATUS_ANS             = 0x06,
+    MOTE_MAC_NEW_CHANNEL_ANS            = 0x07,
+    MOTE_MAC_RX_TIMING_SETUP_ANS        = 0x08,
+    MOTE_MAC_TX_PARAM_SETUP_ANS         = 0x09,
+    MOTE_MAC_DL_CHANNEL_ANS             = 0x0A,
+    MOTE_MAC_PING_SLOT_INFO_REQ         = 0x10,
+    MOTE_MAC_PING_SLOT_FREQ_ANS         = 0x11,
+    MOTE_MAC_BEACON_TIMING_REQ          = 0x12,
+    MOTE_MAC_BEACON_FREQ_ANS            = 0x13,
 };
 
 enum {
-    // Class A
-    LW_MCMD_LCHK_REQ_LEN = 1, // -  link check request : -
-    LW_MCMD_LADR_ANS_LEN = 2, // -  link ADR answer    : u1:7-3:RFU, 3/2/1: pow/DR/Ch ACK
-    LW_MCMD_DCAP_ANS_LEN = 1, // -  duty cycle answer  : -
-    LW_MCMD_DN2P_ANS_LEN = 2, // -  2nd DN slot status : u1:7-2:RFU  1/0:datarate/channel ack
-    LW_MCMD_DEVS_ANS_LEN = 3, // -  device status ans  : u1:battery 0,1-254,255=?, u1:7-6:RFU,5-0:margin(-32..31)
-    LW_MCMD_SNCH_ANS_LEN = 2, // -  set new channel    : u1: 7-2=RFU, 1/0:DR/freq ACK
-    LW_MCMD_RXTS_ANS_LEN = 1,
-    // Class B
-    LW_MCMD_PING_IND_LEN = 1, // -  pingability indic  : u1: 7=RFU, 6-4:interval, 3-0:datarate
-    LW_MCMD_PING_ANS_LEN = 1, // -  ack ping freq      : u1: 7-1:RFU, 0:freq ok
-    LW_MCMD_BCNI_REQ_LEN = 1, // -  next beacon start  : -
+    MOTE_MAC_LEN_LINK_CHECK_REQ         = 1,
+    MOTE_MAC_LEN_LINK_ADR_ANS           = 2,
+    MOTE_MAC_LEN_DUTY_CYCLE_ANS         = 1,
+    MOTE_MAC_LEN_RX_PARAM_SETUP_ANS     = 2,
+    MOTE_MAC_LEN_DEV_STATUS_ANS         = 3,
+    MOTE_MAC_LEN_NEW_CHANNEL_ANS        = 2,
+    MOTE_MAC_LEN_RX_TIMING_SETUP_ANS    = 1,
+    MOTE_MAC_LEN_TX_PARAM_SETUP_ANS     = 1,
+    MOTE_MAC_LEN_DL_CHANNEL_ANS         = 2,
+    MOTE_MAC_LEN_PING_SLOT_INFO_REQ     = 2,
+    MOTE_MAC_LEN_PING_SLOT_FREQ_ANS     = 2,
+    MOTE_MAC_LEN_BEACON_TIMING_REQ      = 1,
+    MOTE_MAC_LEN_BEACON_FREQ_ANS        = 1,
 };
 
-// MAC downlink commands
 enum {
-    // Class A
-    LW_MCMD_LCHK_ANS = 0x02, // link check answer  : u1:margin 0-254,255=unknown margin / u1:gwcnt
-    LW_MCMD_LADR_REQ = 0x03, // link ADR request   : u1:DR/TXPow, u2:chmask, u1:chpage/repeat
-    LW_MCMD_DCAP_REQ = 0x04, // duty cycle cap     : u1:255 dead [7-4]:RFU, [3-0]:cap 2^-k
-    LW_MCMD_DN2P_REQ = 0x05, // 2nd DN window param: u1:7-4:RFU/3-0:datarate, u3:freq
-    LW_MCMD_DEVS_REQ = 0x06, // device status req  : -
-    LW_MCMD_SNCH_REQ = 0x07, // set new channel    : u1:chidx, u3:freq, u1:DRrange
-    LW_MCMD_RXTS_REQ = 0x08, // RX timing setup    :
-    // Class B
-    LW_MCMD_PING_SET = 0x11, // set ping freq      : u3: freq
-    LW_MCMD_BCNI_ANS = 0x12, // next beacon start  : u2: delay(in TUNIT millis), u1:channel
+    SRV_MAC_LINK_CHECK_ANS              = 0x02,
+    SRV_MAC_LINK_ADR_REQ                = 0x03,
+    SRV_MAC_DUTY_CYCLE_REQ              = 0x04,
+    SRV_MAC_RX_PARAM_SETUP_REQ          = 0x05,
+    SRV_MAC_DEV_STATUS_REQ              = 0x06,
+    SRV_MAC_NEW_CHANNEL_REQ             = 0x07,
+    SRV_MAC_RX_TIMING_SETUP_REQ         = 0x08,
+    SRV_MAC_TX_PARAM_SETUP_REQ          = 0x09,
+    SRV_MAC_DL_CHANNEL_REQ              = 0x0A,
+    SRV_MAC_PING_SLOT_INFO_ANS          = 0x10,
+    SRV_MAC_PING_SLOT_CHANNEL_REQ       = 0x11,
+    SRV_MAC_BEACON_TIMING_ANS           = 0x12,
+    SRV_MAC_BEACON_FREQ_REQ             = 0x13,
 };
 
-// MAC downlink commands
 enum {
-    // Class A
-    LW_MCMD_LCHK_ANS_LEN = 3, // link check answer  : u1:margin 0-254,255=unknown margin / u1:gwcnt
-    LW_MCMD_LADR_REQ_LEN = 5, // link ADR request   : u1:DR/TXPow, u2:chmask, u1:chpage/repeat
-    LW_MCMD_DCAP_REQ_LEN = 2, // duty cycle cap     : u1:255 dead [7-4]:RFU, [3-0]:cap 2^-k
-    LW_MCMD_DN2P_REQ_LEN = 5, // 2nd DN window param: u1:7-4:RFU/3-0:datarate, u3:freq
-    LW_MCMD_DEVS_REQ_LEN = 1, // device status req  : -
-    LW_MCMD_SNCH_REQ_LEN = 6, // set new channel    : u1:chidx, u3:freq, u1:DRrange
-    LW_MCMD_RXTS_REQ_LEN = 2, // RX timing setup    :
-    // Class B
-    LW_MCMD_PING_SET_LEN = 1, // set ping freq      : u3: freq
-    LW_MCMD_BCNI_ANS_LEN = 1, // next beacon start  : u2: delay(in TUNIT millis), u1:channel
+    SRV_MAC_LEN_LINK_CHECK_ANS          = 3,
+    SRV_MAC_LEN_LINK_ADR_REQ            = 5,
+    SRV_MAC_LEN_DUTY_CYCLE_REQ          = 2,
+    SRV_MAC_LEN_RX_PARAM_SETUP_REQ      = 5,
+    SRV_MAC_LEN_DEV_STATUS_REQ          = 1,
+    SRV_MAC_LEN_NEW_CHANNEL_REQ         = 6,
+    SRV_MAC_LEN_RX_TIMING_SETUP_REQ     = 2,
+    SRV_MAC_LEN_TX_PARAM_SETUP_REQ      = 2,
+    SRV_MAC_LEN_DL_CHANNEL_REQ          = 5,
+    SRV_MAC_LEN_PING_SLOT_INFO_ANS      = 1,
+    SRV_MAC_LEN_PING_SLOT_CHANNEL_REQ   = 5,
+    SRV_MAC_LEN_BEACON_TIMING_ANS       = 4,
+    SRV_MAC_LEN_BEACON_FREQ_REQ         = 4,
 };
 
 #endif // __LW_MACRO_H

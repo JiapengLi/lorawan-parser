@@ -178,23 +178,35 @@ typedef struct{
 }lw_maccmd_len_t;
 
 const lw_maccmd_len_t lw_node_maccmd_tab[]={
-    { LW_MCMD_LCHK_REQ,       LW_MCMD_LCHK_REQ_LEN },
-    { LW_MCMD_LADR_ANS,       LW_MCMD_LADR_ANS_LEN  },
-    { LW_MCMD_DCAP_ANS,       LW_MCMD_DCAP_ANS_LEN  },
-    { LW_MCMD_DN2P_ANS,       LW_MCMD_DN2P_ANS_LEN  },
-    { LW_MCMD_DEVS_ANS,       LW_MCMD_DEVS_ANS_LEN  },
-    { LW_MCMD_SNCH_ANS,       LW_MCMD_SNCH_ANS_LEN  },
-    { LW_MCMD_RXTS_ANS,       LW_MCMD_RXTS_ANS_LEN  },
+    { MOTE_MAC_LINK_CHECK_REQ,          MOTE_MAC_LEN_LINK_CHECK_REQ },
+    { MOTE_MAC_LINK_ADR_ANS,            MOTE_MAC_LEN_LINK_ADR_ANS },
+    { MOTE_MAC_DUTY_CYCLE_ANS,          MOTE_MAC_LEN_DUTY_CYCLE_ANS },
+    { MOTE_MAC_RX_PARAM_SETUP_ANS,      MOTE_MAC_LEN_RX_PARAM_SETUP_ANS },
+    { MOTE_MAC_DEV_STATUS_ANS,          MOTE_MAC_LEN_DEV_STATUS_ANS },
+    { MOTE_MAC_NEW_CHANNEL_ANS,         MOTE_MAC_LEN_NEW_CHANNEL_ANS },
+    { MOTE_MAC_RX_TIMING_SETUP_ANS,     MOTE_MAC_LEN_RX_TIMING_SETUP_ANS },
+    { MOTE_MAC_TX_PARAM_SETUP_ANS,      MOTE_MAC_LEN_TX_PARAM_SETUP_ANS },
+    { MOTE_MAC_DL_CHANNEL_ANS,          MOTE_MAC_LEN_DL_CHANNEL_ANS },
+    { MOTE_MAC_PING_SLOT_INFO_REQ,      MOTE_MAC_LEN_PING_SLOT_INFO_REQ },
+    { MOTE_MAC_PING_SLOT_FREQ_ANS,      MOTE_MAC_LEN_PING_SLOT_FREQ_ANS },
+    { MOTE_MAC_BEACON_TIMING_REQ,       MOTE_MAC_LEN_BEACON_TIMING_REQ },
+    { MOTE_MAC_BEACON_FREQ_ANS,         MOTE_MAC_LEN_BEACON_FREQ_ANS },
 };
 
 const lw_maccmd_len_t lw_server_maccmd_tab[]={
-    { LW_MCMD_LCHK_ANS,       LW_MCMD_LCHK_ANS_LEN },
-    { LW_MCMD_LADR_REQ,       LW_MCMD_LADR_REQ_LEN },
-    { LW_MCMD_DCAP_REQ,       LW_MCMD_DCAP_REQ_LEN },
-    { LW_MCMD_DN2P_REQ,       LW_MCMD_DN2P_REQ_LEN },
-    { LW_MCMD_DEVS_REQ,       LW_MCMD_DEVS_REQ_LEN },
-    { LW_MCMD_SNCH_REQ,       LW_MCMD_SNCH_REQ_LEN },
-    { LW_MCMD_RXTS_REQ,       LW_MCMD_RXTS_REQ_LEN },
+    { SRV_MAC_LINK_CHECK_ANS,           SRV_MAC_LEN_LINK_CHECK_ANS },
+    { SRV_MAC_LINK_ADR_REQ,             SRV_MAC_LEN_LINK_ADR_REQ },
+    { SRV_MAC_DUTY_CYCLE_REQ,           SRV_MAC_LEN_DUTY_CYCLE_REQ },
+    { SRV_MAC_RX_PARAM_SETUP_REQ,       SRV_MAC_LEN_RX_PARAM_SETUP_REQ },
+    { SRV_MAC_DEV_STATUS_REQ,           SRV_MAC_LEN_DEV_STATUS_REQ },
+    { SRV_MAC_NEW_CHANNEL_REQ,          SRV_MAC_LEN_NEW_CHANNEL_REQ },
+    { SRV_MAC_RX_TIMING_SETUP_REQ,      SRV_MAC_LEN_RX_TIMING_SETUP_REQ },
+    { SRV_MAC_TX_PARAM_SETUP_REQ,       SRV_MAC_LEN_TX_PARAM_SETUP_REQ },
+    { SRV_MAC_DL_CHANNEL_REQ,           SRV_MAC_LEN_DL_CHANNEL_REQ },
+    { SRV_MAC_PING_SLOT_INFO_ANS,       SRV_MAC_LEN_PING_SLOT_INFO_ANS },
+    { SRV_MAC_PING_SLOT_CHANNEL_REQ,    SRV_MAC_LEN_PING_SLOT_CHANNEL_REQ },
+    { SRV_MAC_BEACON_TIMING_ANS,        SRV_MAC_LEN_BEACON_TIMING_ANS },
+    { SRV_MAC_BEACON_FREQ_REQ,          SRV_MAC_LEN_BEACON_FREQ_REQ },
 };
 
 const uint16_t lw_eu868_lgw_dr_tab[16] = {
@@ -1478,14 +1490,14 @@ void lw_test(void)
     }
 
     memset((uint8_t *)&maccmd, 0, sizeof(lw_maccmd_t));
-    maccmd.cmd = LW_MCMD_LCHK_ANS;
+    maccmd.cmd = SRV_MAC_LINK_CHECK_ANS;
     maccmd.pl.lchk_ans.margin = 0x01;
     maccmd.pl.lchk_ans.gwcnt = 0x0A;
     lw_tx_maccmd(frame.deveui, &maccmd);
     lw_log_maccmd(0xA0, (uint8_t *)&maccmd, maccmd.len);
 
     memset((uint8_t *)&maccmd, 0, sizeof(lw_maccmd_t));
-    maccmd.cmd = LW_MCMD_LADR_REQ;
+    maccmd.cmd = SRV_MAC_LINK_ADR_REQ;
     maccmd.pl.ladr_req.dr_txpow.bits.dr = 5;
     maccmd.pl.ladr_req.dr_txpow.bits.txpow = 1;
     maccmd.pl.ladr_req.chmsk[0] = 0x03;
@@ -1496,13 +1508,13 @@ void lw_test(void)
     lw_log_maccmd(0xA0, (uint8_t *)&maccmd, maccmd.len);
 
     memset((uint8_t *)&maccmd, 0, sizeof(lw_maccmd_t));
-    maccmd.cmd = LW_MCMD_DCAP_REQ;
+    maccmd.cmd = SRV_MAC_DUTY_CYCLE_REQ;
     maccmd.pl.dcap_req.dcpl.bits.maxdc = 5;
     lw_tx_maccmd(frame.deveui, &maccmd);
     lw_log_maccmd(0xA0, (uint8_t *)&maccmd, maccmd.len);
 
     memset((uint8_t *)&maccmd, 0, sizeof(lw_maccmd_t));
-    maccmd.cmd = LW_MCMD_DN2P_REQ;
+    maccmd.cmd = SRV_MAC_RX_PARAM_SETUP_REQ;
     maccmd.pl.dn2p_req.dlsettings.bits.rx1droft = 1;
     maccmd.pl.dn2p_req.dlsettings.bits.rx2dr = 3;
     maccmd.pl.dn2p_req.freq[0] = 0x34;
@@ -1512,12 +1524,12 @@ void lw_test(void)
     lw_log_maccmd(0xA0, (uint8_t *)&maccmd, maccmd.len);
 
     memset((uint8_t *)&maccmd, 0, sizeof(lw_maccmd_t));
-    maccmd.cmd = LW_MCMD_DEVS_REQ;
+    maccmd.cmd = SRV_MAC_DEV_STATUS_REQ;
     lw_tx_maccmd(frame.deveui, &maccmd);
     lw_log_maccmd(0xA0, (uint8_t *)&maccmd, maccmd.len);
 
     memset((uint8_t *)&maccmd, 0, sizeof(lw_maccmd_t));
-    maccmd.cmd = LW_MCMD_SNCH_REQ;
+    maccmd.cmd = SRV_MAC_NEW_CHANNEL_REQ;
     maccmd.pl.snch_req.chindex = 4;
     maccmd.pl.snch_req.drrange.bits.min = 2;
     maccmd.pl.snch_req.drrange.bits.max = 7;
@@ -1528,7 +1540,7 @@ void lw_test(void)
     lw_log_maccmd(0xA0, (uint8_t *)&maccmd, maccmd.len);
 
     memset((uint8_t *)&maccmd, 0, sizeof(lw_maccmd_t));
-    maccmd.cmd = LW_MCMD_RXTS_REQ;
+    maccmd.cmd = SRV_MAC_RX_TIMING_SETUP_REQ;
     maccmd.pl.rxts_req.rxtspl.bits.del = 1;
     lw_tx_maccmd(frame.deveui, &maccmd);
     lw_log_maccmd(0xA0, (uint8_t *)&maccmd, maccmd.len);

@@ -19,65 +19,71 @@ const char *lw_mtype_str[] = {
     "RFU",
     "PROPRIETARY",
 };
+typedef struct{
+    uint8_t cmd;
+    char *str;
+}lw_maccmd_str_t;
+
+const lw_maccmd_str_t lw_node_maccmd_str[] = {
+    { MOTE_MAC_LINK_CHECK_REQ,          "LinkCheckReq" },
+    { MOTE_MAC_LINK_ADR_ANS,            "LinkADRAns" },
+    { MOTE_MAC_DUTY_CYCLE_ANS,          "DutyCycleAns" },
+    { MOTE_MAC_RX_PARAM_SETUP_ANS,      "RXParamSetupAns" },
+    { MOTE_MAC_DEV_STATUS_ANS,          "DevStatusAns" },
+    { MOTE_MAC_NEW_CHANNEL_ANS,         "NewChannelAns" },
+    { MOTE_MAC_RX_TIMING_SETUP_ANS,     "RXTimingSetupAns" },
+    { MOTE_MAC_TX_PARAM_SETUP_ANS,      "TxParamSetupAns" },
+    { MOTE_MAC_DL_CHANNEL_ANS,          "DlChannelAns" },
+    { MOTE_MAC_PING_SLOT_INFO_REQ,      "PingSlotInfoReq" },
+    { MOTE_MAC_PING_SLOT_FREQ_ANS,      "PingSlotFreqAns" },
+    { MOTE_MAC_BEACON_TIMING_REQ,       "BeaconTimingReq" },
+    { MOTE_MAC_BEACON_FREQ_ANS,         "BeaconFreqAns" },
+};
+
+const lw_maccmd_str_t lw_server_maccmd_str[] = {
+    { SRV_MAC_LINK_CHECK_ANS,           "LinkCheckAns" },
+    { SRV_MAC_LINK_ADR_REQ,             "LinkADRReq" },
+    { SRV_MAC_DUTY_CYCLE_REQ,           "DutyCycleReq" },
+    { SRV_MAC_RX_PARAM_SETUP_REQ,       "RXParamSetupReq" },
+    { SRV_MAC_DEV_STATUS_REQ,           "DevStatusReq" },
+    { SRV_MAC_NEW_CHANNEL_REQ,          "NewChannelReq" },
+    { SRV_MAC_RX_TIMING_SETUP_REQ,      "RXTimingSetupReq" },
+    { SRV_MAC_TX_PARAM_SETUP_REQ,       "TxParamSetupReq" },
+    { SRV_MAC_DL_CHANNEL_REQ,           "DlChannelReq" },
+    { SRV_MAC_PING_SLOT_INFO_ANS,       "PingSlotInfoAns" },
+    { SRV_MAC_PING_SLOT_CHANNEL_REQ,    "PingSlotChannelReq" },
+    { SRV_MAC_BEACON_TIMING_ANS,        "BeaconTimingAns" },
+    { SRV_MAC_BEACON_FREQ_REQ,          "BeaconFreqReq" },
+};
 
 const char *lw_maccmd_str(uint8_t mtype, uint8_t cmd)
 {
+    int j;
+
     if( (mtype == LW_MTYPE_MSG_UP) || (mtype == LW_MTYPE_CMSG_UP) ){
-        switch(cmd){
-            // Class A
-        case LW_MCMD_LCHK_REQ:
-            return "LinkCheckReq";
-        case LW_MCMD_LADR_ANS:
-            return "LinkADRAns";
-        case LW_MCMD_DCAP_ANS:
-            return "DutyCycleAns";
-        case LW_MCMD_DN2P_ANS:
-            return "RXParamSetupAns";
-        case LW_MCMD_DEVS_ANS:
-            return "DevStatusAns";
-        case LW_MCMD_SNCH_ANS:
-            return "NewChannelAns";
-        case LW_MCMD_RXTS_ANS:
-            return "RXTimingSetupAns";
-            //Class B
-        case LW_MCMD_PING_IND:
-            break;
-        case LW_MCMD_PING_ANS:
-            break;
-        case LW_MCMD_BCNI_REQ:
-            break;
+        for(j=0; j<(sizeof(lw_node_maccmd_str)/sizeof(lw_maccmd_str_t)); j++){
+            if( lw_node_maccmd_str[j].cmd == cmd ){
+                return lw_node_maccmd_str[j].str;
+            }
         }
     }else if( (mtype == LW_MTYPE_MSG_DOWN) || (mtype == LW_MTYPE_CMSG_DOWN) ){
-        switch(cmd){
-            // Class A
-        case LW_MCMD_LCHK_ANS:
-            return "LinkCheckAns";
-        case LW_MCMD_LADR_REQ:
-            return "LinkADRReq";
-        case LW_MCMD_DCAP_REQ:
-            return "DutyCycleReq";
-        case LW_MCMD_DN2P_REQ:
-            return "RXParamSetupReq";
-        case LW_MCMD_DEVS_REQ:
-            return "DevStatusReq";
-        case LW_MCMD_SNCH_REQ:
-            return "NewChannelReq";
-        case LW_MCMD_RXTS_REQ:
-            return "RXTimingSetupReq";
-            //Class B
-        case LW_MCMD_PING_SET:
-            break;
-        case LW_MCMD_BCNI_ANS:
-            break;
+        for(j=0; j<(sizeof(lw_server_maccmd_str)/sizeof(lw_maccmd_str_t)); j++){
+            if( lw_server_maccmd_str[j].cmd == cmd ){
+                return lw_server_maccmd_str[j].str;
+            }
         }
     }
-
     return "Unknown";
 }
 
 void lw_no_pl(void)
 {
     log_puts(LOG_NORMAL, "No MAC command payload");
+}
+
+void lw_unknown_pl(void)
+{
+    log_puts(LOG_NORMAL, "Unknown MAC command payload");
 }
 
 int lw_log_maccmd(uint8_t mac_header, uint8_t *opts, int len)
@@ -109,83 +115,101 @@ int lw_log_maccmd(uint8_t mac_header, uint8_t *opts, int len)
 
     log_puts(LOG_NORMAL, "MACCMD: %H", opts, len);
 
+
+
+
     i=0;
     while(i<len){
         log_puts(LOG_NORMAL, "MACCMD ( %s )", lw_maccmd_str(mhdr.bits.mtype, opts[i]));
         if( (mhdr.bits.mtype == LW_MTYPE_MSG_UP) || (mhdr.bits.mtype == LW_MTYPE_CMSG_UP) ){
             switch(opts[i]){
                 // Class A
-            case LW_MCMD_LCHK_REQ:
+            case MOTE_MAC_LINK_CHECK_REQ:
                 lw_no_pl();
-                i+=LW_MCMD_LCHK_REQ_LEN;
+                i+=MOTE_MAC_LEN_LINK_CHECK_REQ;
                 break;
-            case LW_MCMD_LADR_ANS:
+            case MOTE_MAC_LINK_ADR_ANS:
                 log_puts(LOG_NORMAL, "Status: 0x%02X", opts[i+1]);
                 log_puts(LOG_NORMAL, "Channel mask %s", (opts[i+1]&0x01)?"ACK":"NACK");
                 log_puts(LOG_NORMAL, "Data rate %s", (opts[i+1]&0x02)?"ACK":"NACK");
                 log_puts(LOG_NORMAL, "Power %s", (opts[i+1]&0x04)?"ACK":"NACK");
-                i+=LW_MCMD_LADR_ANS_LEN;
+                i+=MOTE_MAC_LEN_LINK_ADR_ANS;
                 break;
-            case LW_MCMD_DCAP_ANS:
-                i+=LW_MCMD_DCAP_ANS_LEN;
+            case MOTE_MAC_DUTY_CYCLE_ANS:
+                i+=MOTE_MAC_LEN_DUTY_CYCLE_ANS;
                 lw_no_pl();
                 break;
-            case LW_MCMD_DN2P_ANS:
+            case MOTE_MAC_RX_PARAM_SETUP_ANS:
                 log_puts(LOG_NORMAL, "Status: 0x%02X", opts[i+1]);
                 log_puts(LOG_NORMAL, "Channel %s", (opts[i+1]&0x01)?"ACK":"NACK");
                 log_puts(LOG_NORMAL, "RXWIN2 %s", (opts[i+1]&0x02)?"ACK":"NACK");
                 log_puts(LOG_NORMAL, "RX1DRoffset %s", (opts[i+1]&0x04)?"ACK":"NACK");
-                i+=LW_MCMD_DN2P_ANS_LEN;
+                i+=MOTE_MAC_LEN_RX_PARAM_SETUP_ANS;
                 break;
-            case LW_MCMD_DEVS_ANS:
+            case MOTE_MAC_DEV_STATUS_ANS:
                 if(opts[i+1] == 0){
                     log_puts(LOG_NORMAL, "Battery: %d (External Powered)", opts[i+1]);
                 }else if(opts[i+1] == 255){
                     log_puts(LOG_NORMAL, "Battery: %d (Unknown)", opts[i+1]);
                 }else{
-                    log_puts(LOG_NORMAL, "Battery: %d (%.1f%%)", opts[i+1], 1.0*opts[i+1]/255);
+                    log_puts(LOG_NORMAL, "Battery: %d (%.1f%%)", opts[i+1], 100.0*opts[i+1]/255);
                 }
                 dev_sta_margin.data = opts[i+2];
                 log_puts(LOG_NORMAL, "Margin: %d", dev_sta_margin.bits.margin);
-                i+=LW_MCMD_DEVS_ANS_LEN;
+                i+=MOTE_MAC_LEN_DEV_STATUS_ANS;
                 break;
-            case LW_MCMD_SNCH_ANS:
+            case MOTE_MAC_NEW_CHANNEL_ANS:
                 log_puts(LOG_NORMAL, "Status: 0x%02X", opts[i+1]);
                 log_puts(LOG_NORMAL, "Channel %s", (opts[i+1]&0x01)?"ACK":"NACK");
                 log_puts(LOG_NORMAL, "DataRate %s", (opts[i+1]&0x02)?"ACK":"NACK");
-                i+=LW_MCMD_SNCH_ANS_LEN;
+                i+=MOTE_MAC_LEN_NEW_CHANNEL_ANS;
                 break;
-            case LW_MCMD_RXTS_ANS:
-                i+=LW_MCMD_RXTS_ANS_LEN;
+            case MOTE_MAC_RX_TIMING_SETUP_ANS:
                 lw_no_pl();
+                i+=MOTE_MAC_LEN_RX_TIMING_SETUP_ANS;
                 break;
+
+            // TODO: parse these new commands
+            case MOTE_MAC_TX_PARAM_SETUP_ANS:
+                lw_unknown_pl();
+                i += MOTE_MAC_LEN_TX_PARAM_SETUP_ANS;
+                break;
+            case MOTE_MAC_DL_CHANNEL_ANS:
+                lw_unknown_pl();
+                i += MOTE_MAC_LEN_DL_CHANNEL_ANS;
+                break;
+
             //Class B
-            case LW_MCMD_PING_IND:
-                i+=1;
+            case MOTE_MAC_PING_SLOT_INFO_REQ:
+                i+=MOTE_MAC_LEN_PING_SLOT_INFO_REQ;
+                lw_unknown_pl();
+                break;
+            case MOTE_MAC_PING_SLOT_FREQ_ANS:
+                i+=MOTE_MAC_LEN_PING_SLOT_FREQ_ANS;
+                lw_unknown_pl();
+                break;
+            case MOTE_MAC_BEACON_TIMING_REQ:
+                i+=MOTE_MAC_LEN_BEACON_TIMING_REQ;
                 lw_no_pl();
                 break;
-            case LW_MCMD_PING_ANS:
-                i+=1;
-                lw_no_pl();
-                break;
-            case LW_MCMD_BCNI_REQ:
-                i+=1;
+            case MOTE_MAC_BEACON_FREQ_ANS:
+                i+=MOTE_MAC_LEN_BEACON_FREQ_ANS;
                 lw_no_pl();
                 break;
             }
         }else if( (mhdr.bits.mtype == LW_MTYPE_MSG_DOWN) || (mhdr.bits.mtype == LW_MTYPE_CMSG_DOWN) ){
             switch(opts[i]){
             // Class A
-            case LW_MCMD_LCHK_ANS:
+            case SRV_MAC_LINK_CHECK_ANS:
                 if(opts[i+1] == 255){
                     log_puts(LOG_NORMAL, "Margin: %d (RFU)", opts[i+1]);
                 }else{
                     log_puts(LOG_NORMAL, "Margin: %ddB", opts[i+1]);
                 }
                 log_puts(LOG_NORMAL, "GwCnt: %d", opts[i+2]);
-                i+=LW_MCMD_LCHK_ANS_LEN;
+                i+=SRV_MAC_LEN_LINK_CHECK_ANS;
                 break;
-            case LW_MCMD_LADR_REQ:
+            case SRV_MAC_LINK_ADR_REQ:
                 dr = lw_dr_tab[band][opts[i+1]>>4];
                 power = lw_pow_tab[band][opts[i+1]&0x0F];
                 chmaskcntl = lw_chmaskcntl_tab[band][(opts[i+4]>>4)&0x07];
@@ -221,9 +245,9 @@ int lw_log_maccmd(uint8_t mac_header, uint8_t *opts, int len)
                     log_puts(LOG_NORMAL, "ChMaskCntl: %d, ChMask applies to %d ~ %d", (opts[i+4]>>4)&0x07, chmaskcntl&0x00FF, chmaskcntl>>8);
                     break;
                 }
-                i+=LW_MCMD_LADR_REQ_LEN;
+                i+=SRV_MAC_LEN_LINK_ADR_REQ;
                 break;
-            case LW_MCMD_DCAP_REQ:
+            case SRV_MAC_DUTY_CYCLE_REQ:
                 if(opts[i+1] == 255){
                     log_puts(LOG_NORMAL, "MaxDCycle: %d(Off)", opts[i+1]);
                 }else if(opts[i+1]<16){
@@ -231,9 +255,9 @@ int lw_log_maccmd(uint8_t mac_header, uint8_t *opts, int len)
                 }else{
                     log_puts(LOG_NORMAL, "MaxDCycle: %d(RFU)", opts[i+1]);
                 }
-                i+=LW_MCMD_DCAP_REQ_LEN;
+                i+=SRV_MAC_LEN_DUTY_CYCLE_REQ;
                 break;
-            case LW_MCMD_DN2P_REQ:
+            case SRV_MAC_RX_PARAM_SETUP_REQ:
                 rx1drofst = (opts[i+1]>>4) & 0x07;
                 rx2dr = lw_dr_tab[band][opts[i+1] & 0x0F];
                 freq = (opts[i+2]) | ((uint32_t)opts[i+3]<<8) | ((uint32_t)opts[i+4]<<16);
@@ -251,13 +275,13 @@ int lw_log_maccmd(uint8_t mac_header, uint8_t *opts, int len)
                 }else{
                     log_puts(LOG_NORMAL, "Freq: %d", freq);
                 }
-                i+=LW_MCMD_DN2P_REQ_LEN;
+                i+=SRV_MAC_LEN_RX_PARAM_SETUP_REQ;
                 break;
-            case LW_MCMD_DEVS_REQ:
-                i+=LW_MCMD_DEVS_REQ_LEN;
+            case SRV_MAC_DEV_STATUS_REQ:
+                i+=SRV_MAC_LEN_DEV_STATUS_REQ;
                 lw_no_pl();
                 break;
-            case LW_MCMD_SNCH_REQ:
+            case SRV_MAC_NEW_CHANNEL_REQ:
                 freq = (opts[i+2]) | ((uint32_t)opts[i+3]<<8) | ((uint32_t)opts[i+4]<<16);
                 freq *= 100;
                 log_puts(LOG_NORMAL, "ChIndex: %d 0x%02X", opts[i+1], opts[i+1]);
@@ -267,24 +291,39 @@ int lw_log_maccmd(uint8_t mac_header, uint8_t *opts, int len)
                     log_puts(LOG_NORMAL, "Freq: %d", freq);
                 }
                 log_puts(LOG_NORMAL, "DrRange: 0x%02X (DR%d ~ DR%d)", opts[i+5], opts[i+5]&0x0F, opts[i+5]>>4);
-                i+=LW_MCMD_SNCH_REQ_LEN;
+                i+=SRV_MAC_LEN_NEW_CHANNEL_REQ;
                 break;
-            case LW_MCMD_RXTS_REQ:
+            case SRV_MAC_RX_TIMING_SETUP_REQ:
                 if((opts[i+1]&0x0F) == 0){
                     log_puts(LOG_NORMAL, "Del: %ds", (opts[i+1]&0x0F)+1);
                 }else{
                     log_puts(LOG_NORMAL, "Del: %ds", opts[i+1]&0x0F);
                 }
-                i+=LW_MCMD_RXTS_REQ_LEN;
+                i+=SRV_MAC_LEN_RX_TIMING_SETUP_REQ;
                 break;
-                //Class B
-            case LW_MCMD_PING_SET:
-                i+=1;
-                lw_no_pl();
+            case SRV_MAC_TX_PARAM_SETUP_REQ:
+                lw_unknown_pl();
+                i += SRV_MAC_LEN_TX_PARAM_SETUP_REQ;
                 break;
-            case LW_MCMD_BCNI_ANS:
-                i+=1;
-                lw_no_pl();
+            case SRV_MAC_DL_CHANNEL_REQ:
+                lw_unknown_pl();
+                i += SRV_MAC_LEN_DL_CHANNEL_REQ;
+                break;
+            case SRV_MAC_PING_SLOT_INFO_ANS:
+                lw_unknown_pl();
+                i += SRV_MAC_LEN_PING_SLOT_INFO_ANS;
+                break;
+            case SRV_MAC_PING_SLOT_CHANNEL_REQ:
+                lw_unknown_pl();
+                i += SRV_MAC_LEN_PING_SLOT_CHANNEL_REQ;
+                break;
+            case SRV_MAC_BEACON_TIMING_ANS:
+                lw_unknown_pl();
+                i += SRV_MAC_LEN_BEACON_TIMING_ANS;
+                break;
+            case SRV_MAC_BEACON_FREQ_REQ:
+                lw_unknown_pl();
+                i += SRV_MAC_LEN_BEACON_FREQ_REQ;
                 break;
             }
         }
