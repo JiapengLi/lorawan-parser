@@ -7,14 +7,14 @@
 
     /* nwkskey, appskey, appkey */
     "key":{
-        "nwkskey":"2B 7E 15 16 28 AE D2 A6 AB F7 15 88 09 CF 4F 3c",
+        "nwkskey":"2B7E151628AED2A6ABF7158809CF4F3C",
         "appskey":"2B7E151628AED2A6ABF7158809CF4F3C",
-        "appkey":"0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00"
+        "appkey":"2B7E151628AED2A6ABF7158809CF4F3C"
     },
 
     /* Join trasaction use to extract keys, set "key" true to overwrite default session keys */
     "join":{
-        "key": true,
+        "key": false,
         "request":" 00 01 00 00 00 00 00 00 86 01 00 00 00 00 00 00 86 F7 9F B4 C2 06 60",
         "accept":" 20 2D 95 83 AB A7 36 C8 0F 97 00 DB 42 0A 01 05 54"
     },
@@ -78,7 +78,44 @@
         { "direction": "down", "command":"08 01" },
 
         // RXTimingSetupAns
-        { "direction": "up",   "command":"08" }
+        { "direction": "up",   "command":"08" },
+
+        // TxParamSetupReq (> 1.0.2)
+        { "direction": "down", "command":"09 07" },
+
+        // TxParamSetupAns (> 1.0.2)
+        { "direction": "up",   "command":"09" },
+
+        // DlChannelReq (> 1.0.2)
+        { "direction": "down", "command":"0A 00 01 23 45" },
+
+        // DlChannelAns (> 1.0.2)
+        { "direction": "up",   "command":"0A 03" },
+
+        // Class B
+        // PingSlotInfoReq (> 1.0.2)
+        { "direction": "up",   "command":"10 33" },
+
+        // PingSlotInfoAns (> 1.0.2)
+        { "direction": "down", "command":"10" },
+
+        // PingSlotChannelReq (> 1.0.2)
+        { "direction": "down", "command":"11 44 44 44 50" },
+
+        // PingSlotFreqAns (> 1.0.2)
+        { "direction": "up",   "command":"11 03" },
+
+        // BeaconTimingReq (> 1.0.2)
+        { "direction": "up",   "command":"12 " },
+
+        // BeaconTimingAns (> 1.0.2)
+        { "direction": "down", "command":"12 22 22 00" },
+
+        // BeaconFreqReq (> 1.0.2)
+        { "direction": "down", "command":"13 44 44 44" },
+
+        // BeaconFreqAns (> 1.0.2)
+        { "direction": "up",   "command":"13" }
     ]
 }
 

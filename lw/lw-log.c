@@ -86,6 +86,10 @@ void lw_unknown_pl(void)
     log_puts(LOG_NORMAL, "Unknown MAC command payload");
 }
 
+uint8_t lw_max_eirp_tab[16] = {
+    8, 10, 12, 13, 14, 16, 18, 20, 21, 24, 26, 27, 29, 30, 33, 36,
+};
+
 int lw_log_maccmd(uint8_t mac_header, uint8_t *opts, int len)
 {
     lw_mhdr_t mhdr;
@@ -114,9 +118,6 @@ int lw_log_maccmd(uint8_t mac_header, uint8_t *opts, int len)
     band = lw_band;
 
     log_puts(LOG_NORMAL, "MACCMD: %H", opts, len);
-
-
-
 
     i=0;
     while(i<len){
@@ -169,24 +170,27 @@ int lw_log_maccmd(uint8_t mac_header, uint8_t *opts, int len)
                 i+=MOTE_MAC_LEN_RX_TIMING_SETUP_ANS;
                 break;
 
-            // TODO: parse these new commands
             case MOTE_MAC_TX_PARAM_SETUP_ANS:
-                lw_unknown_pl();
+                lw_no_pl();
                 i += MOTE_MAC_LEN_TX_PARAM_SETUP_ANS;
                 break;
             case MOTE_MAC_DL_CHANNEL_ANS:
-                lw_unknown_pl();
+                log_puts(LOG_NORMAL, "Status: 0x%02X", opts[i+1]);
+                log_puts(LOG_NORMAL, "Channel Frequency %s", (opts[i+1]&0x01)?"ACK":"NACK");
+                log_puts(LOG_NORMAL, "Uplink Frequency %s", (opts[i+1]&0x02)?"ACK":"NACK");
                 i += MOTE_MAC_LEN_DL_CHANNEL_ANS;
                 break;
 
             //Class B
             case MOTE_MAC_PING_SLOT_INFO_REQ:
+                log_puts(LOG_NORMAL, "Periodicity %ds", ( 1<<((opts[i+1]>>4)&0x07) ) );
+                log_puts(LOG_NORMAL, "DataRate %d", (opts[i+1]&0x0F));
                 i+=MOTE_MAC_LEN_PING_SLOT_INFO_REQ;
-                lw_unknown_pl();
                 break;
             case MOTE_MAC_PING_SLOT_FREQ_ANS:
                 i+=MOTE_MAC_LEN_PING_SLOT_FREQ_ANS;
-                lw_unknown_pl();
+                log_puts(LOG_NORMAL, "Channel Frequency %s", (opts[i+1]&0x01)?"ACK":"NACK");
+                log_puts(LOG_NORMAL, "Data Rate Range %s", (opts[i+1]&0x02)?"ACK":"NACK");
                 break;
             case MOTE_MAC_BEACON_TIMING_REQ:
                 i+=MOTE_MAC_LEN_BEACON_TIMING_REQ;
@@ -302,27 +306,59 @@ int lw_log_maccmd(uint8_t mac_header, uint8_t *opts, int len)
                 i+=SRV_MAC_LEN_RX_TIMING_SETUP_REQ;
                 break;
             case SRV_MAC_TX_PARAM_SETUP_REQ:
-                lw_unknown_pl();
+                log_puts(LOG_NORMAL, "MaxEIRP: %ddBm", lw_max_eirp_tab[(opts[i+1] & 0x0F)]);
+                log_puts(LOG_NORMAL, "UplinkDwellTime: %d", (opts[i+1]&0x10)?1:0);
+                log_puts(LOG_NORMAL, "DownlinkDwellTime: %d", (opts[i+1]&0x10)?1:0);
                 i += SRV_MAC_LEN_TX_PARAM_SETUP_REQ;
                 break;
             case SRV_MAC_DL_CHANNEL_REQ:
-                lw_unknown_pl();
+                freq = (opts[i+2]) | ((uint32_t)opts[i+3]<<8) | ((uint32_t)opts[i+4]<<16);
+                freq *= 100;
+                log_puts(LOG_NORMAL, "ChIndex: %d 0x%02X", opts[i+1], opts[i+1]);
+                if(freq < 100000000){
+                    log_puts(LOG_NORMAL, "Freq: %d (RFU <100MHz)", freq);
+                }else{
+                    log_puts(LOG_NORMAL, "Freq: %d", freq);
+                }
                 i += SRV_MAC_LEN_DL_CHANNEL_REQ;
                 break;
+
             case SRV_MAC_PING_SLOT_INFO_ANS:
-                lw_unknown_pl();
+                lw_no_pl();
                 i += SRV_MAC_LEN_PING_SLOT_INFO_ANS;
                 break;
             case SRV_MAC_PING_SLOT_CHANNEL_REQ:
-                lw_unknown_pl();
+                freq = (opts[i+1]) | ((uint32_t)opts[i+2]<<8) | ((uint32_t)opts[i+3]<<16);
+                freq *= 100;
+                if(freq < 100000000){
+                    log_puts(LOG_NORMAL, "Freq: %d (RFU <100MHz)", freq);
+                }else{
+                    log_puts(LOG_NORMAL, "Freq: %d", freq);
+                }
+                log_puts(LOG_NORMAL, "Data Rate: DR%d ~ DR%d", opts[i+4]&0x0F, (opts[i+4]>>4)&0x0F);
                 i += SRV_MAC_LEN_PING_SLOT_CHANNEL_REQ;
                 break;
             case SRV_MAC_BEACON_TIMING_ANS:
-                lw_unknown_pl();
+            {
+                uint32_t delay = (opts[i+1]) | ((uint16_t)opts[i+2]<<8);
+                uint8_t channel = opts[i+3];
+                if(channel == 0){
+                    log_puts(LOG_NORMAL, "Beacon channel fixed");
+                }else{
+                    log_puts(LOG_NORMAL, "Beacon channel %d", channel);
+                }
+                log_puts(LOG_NORMAL, "RTime: %d ~ %dms (TX end to beacon start)", 30*delay, 30*(delay+1));
                 i += SRV_MAC_LEN_BEACON_TIMING_ANS;
+            }
                 break;
             case SRV_MAC_BEACON_FREQ_REQ:
-                lw_unknown_pl();
+                freq = (opts[i+1]) | ((uint32_t)opts[i+2]<<8) | ((uint32_t)opts[i+3]<<16);
+                freq *= 100;
+                if(freq < 100000000){
+                    log_puts(LOG_NORMAL, "Freq: %d (RFU <100MHz)", freq);
+                }else{
+                    log_puts(LOG_NORMAL, "Freq: %d", freq);
+                }
                 i += SRV_MAC_LEN_BEACON_FREQ_REQ;
                 break;
             }
