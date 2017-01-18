@@ -415,7 +415,7 @@ void lw_log(lw_frame_t *frame, uint8_t *msg, int len)
         log_puts(LOG_NORMAL, "DEVADDR: %08X", frame->pl.mac.devaddr.data);
         log_puts(LOG_NORMAL, "ADR: %d, ADRACKREQ: %d, ACK %d", \
                 frame->pl.mac.fctrl.ul.adr, frame->pl.mac.fctrl.ul.adrackreq, frame->pl.mac.fctrl.ul.ack);
-        if( (frame->mhdr.bits.mtype == LW_MTYPE_MSG_UP) && (frame->mhdr.bits.mtype == LW_MTYPE_CMSG_UP) ){
+        if( (frame->mhdr.bits.mtype == LW_MTYPE_MSG_UP) || (frame->mhdr.bits.mtype == LW_MTYPE_CMSG_UP) ){
             if(frame->pl.mac.fctrl.ul.classb){
                 log_puts(LOG_NORMAL, "Class B");
             }

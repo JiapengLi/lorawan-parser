@@ -1085,23 +1085,30 @@ int lw_mtype_msg_up(lw_frame_t *frame, lw_node_t *cur, uint8_t *msg, int len)
     frame->pl.mac.fcnt = lw_key.fcnt32;
     frame->pl.mac.fctrl.data = msg[id++];
     foptslen = frame->pl.mac.fctrl.ul.foptslen;
-    if( len > (8 + 4 + foptslen) ){
-        frame->pl.mac.fport = msg[LW_DATA_OFF_FOPTS + foptslen];
-        pl_index = LW_DATA_OFF_FOPTS + foptslen + 1;
-        pl_len  = len - 4 - pl_index;
 
-        if(frame->pl.mac.fport == 0){
-            lw_key.aeskey = cur->nwkskey;
+    if( len > (8 + 4 + foptslen) ){
+        if( len == (8 + 4 + foptslen + 1) ){
+            frame->pl.mac.flen = 0;
+            frame->pl.mac.fport = msg[LW_DATA_OFF_FOPTS + foptslen];
+            log_puts(LOG_WARN, "PORT (%d) PRESENT WITHOUT PAYLOAD", frame->pl.mac.fport);
         }else{
-            lw_key.aeskey = cur->appskey;
+            frame->pl.mac.fport = msg[LW_DATA_OFF_FOPTS + foptslen];
+            pl_index = LW_DATA_OFF_FOPTS + foptslen + 1;
+            pl_len  = len - 4 - pl_index;
+
+            if(frame->pl.mac.fport == 0){
+                lw_key.aeskey = cur->nwkskey;
+            }else{
+                lw_key.aeskey = cur->appskey;
+            }
+            lw_key.in = msg + pl_index;
+            lw_key.len = pl_len;
+            pl_len = lw_encrypt(frame->pl.mac.fpl, &lw_key);
+            if(pl_len<=0){
+                return LW_ERR_DECRYPT;
+            }
+            frame->pl.mac.flen = pl_len;
         }
-        lw_key.in = msg + pl_index;
-        lw_key.len = pl_len;
-        pl_len = lw_encrypt(frame->pl.mac.fpl, &lw_key);
-        if(pl_len<=0){
-            return LW_ERR_DECRYPT;
-        }
-        frame->pl.mac.flen = pl_len;
     }else{
         frame->pl.mac.flen = 0;
     }
