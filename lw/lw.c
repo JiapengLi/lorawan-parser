@@ -615,7 +615,7 @@ int lw_pack(lw_frame_t *frame, uint8_t *msg, int *len)
         lw_key.aeskey = cur->appkey;
         lw_key.in = msg+1;
         lw_key.len = i-1;
-        lw_join_decrypt(out+1, &lw_key);
+        lw_join_encrypt(out+1, &lw_key);
         memcpy(msg+1, out+1, lw_key.len);
         *len = i;
 
