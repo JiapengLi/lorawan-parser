@@ -136,12 +136,12 @@ int app_getopt(app_opt_t *opt, int argc, char **argv)
     app_setopt_dft(opt);
 
     opterr = 0;
+    index = 0;
     while(1){
         ret = getopt_long(argc, argv, ":hvc:m:p:g:B:N:A:K:T:D:O:C:P:f:b:i:", app_long_options, &index);
         if(ret == -1){
             break;
         }
-        //printf("OPT %d\n", ret);
         switch(ret){
         case 'v':
             if(opt->mode != APP_MODE_IDLE){
