@@ -114,7 +114,7 @@ int main(int argc, char **argv)
         log_puts(LOG_NORMAL, "%d.%d.%d", VMAJOR, VMINOR, VPATCH);
         return 0;
     case APP_MODE_MACCMD:
-        ret = lw_log_maccmd(opt.hdr.data, opt.maccmd.buf, opt.maccmd.len);
+        ret = lw_log_maccmd(opt.hdr.data, LW_MACCMD_FOPTS, opt.maccmd.buf, opt.maccmd.len);
         if(ret < 0){
             log_puts(LOG_ERROR, "MACCMD error(%d)", ret);
             return -1;
@@ -285,7 +285,7 @@ int main(int argc, char **argv)
     while(ll_head != NULL){
         log_line();
         /** buf[0] -> MHDR, buf[1] ~ buf[n] -> maccmd */
-        ret = lw_log_maccmd(ll_head->buf[0], ll_head->buf+1, ll_head->len-1);
+        ret = lw_log_maccmd(ll_head->buf[0], LW_MACCMD_FOPTS, ll_head->buf+1, ll_head->len-1);
         if(ret < 0){
             log_puts(LOG_ERROR, "MACCMD error(%d)", ret);
         }

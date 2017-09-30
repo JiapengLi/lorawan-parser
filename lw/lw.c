@@ -275,6 +275,7 @@ void lw_set_deveui(uint8_t *deveui)
 int lw_add(lw_node_t *node)
 {
     int i;
+    lw_node_t *cur = lw_node;
 
     /* Find available buf */
     for(i=0; i<LW_MAX_NODES; i++){
@@ -287,7 +288,24 @@ int lw_add(lw_node_t *node)
         return LW_ERR_NODE_USED_UP;
     }
 
-    /* TODO: Check to make sure devaddr/deveui is not exist */
+    /* Check to make sure devaddr/deveui is not exist */
+    for(; cur != NULL; cur = cur->next){
+        if( node->mode == OTAA ){
+            /* check deveui */
+            if(0 == memcmp(node->deveui, cur->deveui, 8)){
+                return LW_OK;
+            }
+        }else{
+            /* check devaddr/nwkskey */
+            if( node->devaddr.data == cur->devaddr.data ){
+                if( 0 == memcmp(node->nwkskey, cur->nwkskey, 16) ){
+                    return LW_OK;
+                }
+            }
+        }
+    }
+
+
     memcpy((uint8_t *)&lw_node_buf[i], (uint8_t *)node, sizeof(lw_node_t));
 
     if( 0 == lw_check_zero(lw_node_buf[i].deveui, 8) ){
@@ -695,6 +713,8 @@ int lw_auto_add(lw_frame_t *frame, uint8_t *msg, int len)
     lw_node_t endnode;
     int ret, id;
 
+    memset(&endnode.appeui, 0, sizeof(endnode));
+
     memcpy(plmic.buf, msg+len-4, 4);
     switch(frame->mhdr.bits.mtype){
     case LW_MTYPE_JOIN_REQUEST:
@@ -757,10 +777,11 @@ int lw_auto_add(lw_frame_t *frame, uint8_t *msg, int len)
 
         //log_puts(LOG_NORMAL, "AUTO ADD ABP DEVICE");
 
+        /* Check if  */
         endnode.mode = ABP;
         memset(endnode.appeui, 0, 8);
         memset(endnode.deveui, 0, 8);
-        endnode.devaddr.data = 0x00000001;
+        endnode.devaddr.data = lw_key.devaddr.data;
         memcpy(endnode.nwkskey, lw_dft_nwkskey, 16);
         memcpy(endnode.appskey, lw_dft_appskey, 16);
         endnode.ufcnt = lw_key.fcnt32;     // Increase frame counter high 16bits
@@ -1501,7 +1522,7 @@ void lw_test(void)
     maccmd.pl.lchk_ans.margin = 0x01;
     maccmd.pl.lchk_ans.gwcnt = 0x0A;
     lw_tx_maccmd(frame.deveui, &maccmd);
-    lw_log_maccmd(0xA0, (uint8_t *)&maccmd, maccmd.len);
+    lw_log_maccmd(0xA0, LW_MACCMD_FOPTS, (uint8_t *)&maccmd, maccmd.len);
 
     memset((uint8_t *)&maccmd, 0, sizeof(lw_maccmd_t));
     maccmd.cmd = SRV_MAC_LINK_ADR_REQ;
@@ -1512,13 +1533,13 @@ void lw_test(void)
     maccmd.pl.ladr_req.redundancy.bits.nbtrans = 1;
     maccmd.pl.ladr_req.redundancy.bits.chmaskcntl = 6;
     lw_tx_maccmd(frame.deveui, &maccmd);
-    lw_log_maccmd(0xA0, (uint8_t *)&maccmd, maccmd.len);
+    lw_log_maccmd(0xA0, LW_MACCMD_FOPTS, (uint8_t *)&maccmd, maccmd.len);
 
     memset((uint8_t *)&maccmd, 0, sizeof(lw_maccmd_t));
     maccmd.cmd = SRV_MAC_DUTY_CYCLE_REQ;
     maccmd.pl.dcap_req.dcpl.bits.maxdc = 5;
     lw_tx_maccmd(frame.deveui, &maccmd);
-    lw_log_maccmd(0xA0, (uint8_t *)&maccmd, maccmd.len);
+    lw_log_maccmd(0xA0, LW_MACCMD_FOPTS, (uint8_t *)&maccmd, maccmd.len);
 
     memset((uint8_t *)&maccmd, 0, sizeof(lw_maccmd_t));
     maccmd.cmd = SRV_MAC_RX_PARAM_SETUP_REQ;
@@ -1528,12 +1549,12 @@ void lw_test(void)
     maccmd.pl.dn2p_req.freq[1] = 0x23;
     maccmd.pl.dn2p_req.freq[2] = 0x01;
     lw_tx_maccmd(frame.deveui, &maccmd);
-    lw_log_maccmd(0xA0, (uint8_t *)&maccmd, maccmd.len);
+    lw_log_maccmd(0xA0, LW_MACCMD_FOPTS, (uint8_t *)&maccmd, maccmd.len);
 
     memset((uint8_t *)&maccmd, 0, sizeof(lw_maccmd_t));
     maccmd.cmd = SRV_MAC_DEV_STATUS_REQ;
     lw_tx_maccmd(frame.deveui, &maccmd);
-    lw_log_maccmd(0xA0, (uint8_t *)&maccmd, maccmd.len);
+    lw_log_maccmd(0xA0, LW_MACCMD_FOPTS, (uint8_t *)&maccmd, maccmd.len);
 
     memset((uint8_t *)&maccmd, 0, sizeof(lw_maccmd_t));
     maccmd.cmd = SRV_MAC_NEW_CHANNEL_REQ;
@@ -1544,13 +1565,13 @@ void lw_test(void)
     maccmd.pl.snch_req.freq[1] = 0x34;
     maccmd.pl.snch_req.freq[2] = 0x34;
     lw_tx_maccmd(frame.deveui, &maccmd);
-    lw_log_maccmd(0xA0, (uint8_t *)&maccmd, maccmd.len);
+    lw_log_maccmd(0xA0, LW_MACCMD_FOPTS, (uint8_t *)&maccmd, maccmd.len);
 
     memset((uint8_t *)&maccmd, 0, sizeof(lw_maccmd_t));
     maccmd.cmd = SRV_MAC_RX_TIMING_SETUP_REQ;
     maccmd.pl.rxts_req.rxtspl.bits.del = 1;
     lw_tx_maccmd(frame.deveui, &maccmd);
-    lw_log_maccmd(0xA0, (uint8_t *)&maccmd, maccmd.len);
+    lw_log_maccmd(0xA0, LW_MACCMD_FOPTS, (uint8_t *)&maccmd, maccmd.len);
 }
 
 

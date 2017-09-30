@@ -42,6 +42,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../../lib/aes.h" />
+		<Unit filename="../../lib/base64.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../lib/base64.h" />
 		<Unit filename="../../lib/cmac.c">
 			<Option compilerVar="CC" />
 		</Unit>

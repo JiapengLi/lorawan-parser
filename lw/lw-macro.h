@@ -3,6 +3,8 @@
 
 #define LW_VERSION_MAJOR_R1                     (0x00)
 
+#define LORAWAN_V11_CLASSB
+
 enum{
     // Error code
     LW_OK                   = 0,
@@ -104,7 +106,11 @@ enum {
     MOTE_MAC_LEN_PING_SLOT_INFO_REQ     = 2,
     MOTE_MAC_LEN_PING_SLOT_FREQ_ANS     = 2,
     MOTE_MAC_LEN_BEACON_TIMING_REQ      = 1,
+#ifdef LORAWAN_V11_CLASSB
+    MOTE_MAC_LEN_BEACON_FREQ_ANS        = 2,
+#else
     MOTE_MAC_LEN_BEACON_FREQ_ANS        = 1,
+#endif
 };
 
 enum {
