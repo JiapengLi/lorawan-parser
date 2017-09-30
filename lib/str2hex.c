@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "base64.h"
+
 /** extend this value to handle long words */
 #define STR2HEX_BUF_LEN                     (18)
 
@@ -83,8 +85,12 @@ int str2hex(char *str, uint8_t *hex, int max_len)
             }
         }else if( (c==',') || (c==':') || (c=='-') ){
             str[i] = ' ';
-        }else if( !( (c>='a' && c<='z') || (c>='A' && c<='Z') || (c>='0' && c<='9') || c == ' ') ){
+        }else if( !( (c>='a' && c<='f') || (c>='A' && c<='F') || (c>='0' && c<='9') || c == ' ') ){
             /** character invalid */
+            j = b64_to_bin(str, len, hex, max_len);
+            if( j > 0 ){
+                return j;
+            }
             return STR2HEX_ERR_CHAR_INVALID;
         }
     }
