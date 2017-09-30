@@ -3,6 +3,6 @@
 
 #define VMAJOR          (0)
 #define VMINOR          (2)
-#define VPATCH          (0)
+#define VPATCH          (1)
 
 #endif // __VERSIONING__
