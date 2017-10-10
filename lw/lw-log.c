@@ -91,11 +91,6 @@ const char *lw_maccmd_str(uint8_t mtype, uint8_t cmd)
     return "Unknown";
 }
 
-void lw_no_pl(void)
-{
-    log_puts(LOG_NORMAL, "No MAC command payload");
-}
-
 void lw_unknown_pl(void)
 {
     log_puts(LOG_NORMAL, "Unknown MAC command payload");
@@ -386,8 +381,10 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
                 i+=SRV_MAC_LEN_RX_PARAM_SETUP_REQ;
                 break;
             case SRV_MAC_DEV_STATUS_REQ:
+                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )",
+                                     opts[i],
+                                     lw_maccmd_str(mhdr.bits.mtype, opts[i]));
                 i+=SRV_MAC_LEN_DEV_STATUS_REQ;
-                lw_no_pl();
                 break;
             case SRV_MAC_NEW_CHANNEL_REQ:
                 freq = (opts[i+2]) | ((uint32_t)opts[i+3]<<8) | ((uint32_t)opts[i+4]<<16);
@@ -465,7 +462,9 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
                 break;
 
             case SRV_MAC_PING_SLOT_INFO_ANS:
-                lw_no_pl();
+                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )",
+                                     opts[i],
+                                     lw_maccmd_str(mhdr.bits.mtype, opts[i]));
                 i += SRV_MAC_LEN_PING_SLOT_INFO_ANS;
                 break;
             case SRV_MAC_PING_SLOT_CHANNEL_REQ:
