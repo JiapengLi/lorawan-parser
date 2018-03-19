@@ -36,6 +36,7 @@ void usage(char *name)
     log_puts(LOG_NORMAL, " -p, --parse        [hex]       Parse packet");
     log_puts(LOG_NORMAL, " -g, --pack         [hex]       Generate packet");
     log_puts(LOG_NORMAL, " -f, --pktfwd       [file]      Packet forwarder mode");
+    log_puts(LOG_NORMAL, "     --join                     Analyze JR and JA");
     log_line();
     log_puts(LOG_NORMAL, " -B, --band         <string>    PHY band EU868/US915/EU434/AU920/CN780/CN470");
     log_puts(LOG_NORMAL, " -N, --nwkskey      <hex>       NwkSKey");
@@ -64,6 +65,8 @@ void usage(char *name)
     log_puts(LOG_NORMAL, "     --rx1droft     <int>       RX1DRoffset (0~7)");
     log_puts(LOG_NORMAL, "     --rx2dr        <int>       RX2DataRate (0~15)");
     log_puts(LOG_NORMAL, "     --rxdelay      <int>       RxDelay (0~15)");
+    log_puts(LOG_NORMAL, "     --jr           <hex>       JoinRequest raw data");
+    log_puts(LOG_NORMAL, "     --ja           <hex>       JoinAccept raw data");
     log_line();
     log_puts(LOG_NORMAL, "     --motes        <file>      Motes/Nodes JSON file");
     log_puts(LOG_NORMAL, "     --nodes        <file>      Same as --motes");

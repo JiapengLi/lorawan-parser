@@ -10,9 +10,9 @@ With lorawan-parser, one could see all details of LoRaWAN, like how frames are d
 - [x] Support both ABP and OTAA mode device
 - [x] Colorful terminal outputs (Windows MiniTTY not supported)
 - [X] Cross platform (Tested on Ubuntu, Lubuntu, Raspberry Pi, OpenWRT, Windows)
-- [ ] Support LoRaWAN 1.0.2 protocol
+- [x] Support LoRaWAN 1.0.2 protocol
 - [ ] Support Semtech packet forwarder v1 and v2 protocol
-- [ ] Live parse LoRaWAN motes message (To support Semtech IoT Start Kit)
+- [ ] Live parse LoRaWAN motes message (To support RisingHF gateway or Semtech IoT Start Kit)
 
 ## Usage
 
@@ -22,9 +22,9 @@ After compile find `lwp.exe/lwp` under `util/parser/` directory to parse the LoR
 
 ```
 --------------------------------------------------------------------------------
-Usage: lwp [OPTIONS]
+Usage: lwp.exe [OPTIONS]
  -h, --help                     Help
- -v, --version                  Version 0.2.0
+ -v, --version                  Version 0.3.0
 
 --------------------------------------------------------------------------------
  -c, --burst-parse  <file>      Parse lwp json format file
@@ -32,6 +32,7 @@ Usage: lwp [OPTIONS]
  -p, --parse        [hex]       Parse packet
  -g, --pack         [hex]       Generate packet
  -f, --pktfwd       [file]      Packet forwarder mode
+     --join                     Analyze JR and JA
 
 --------------------------------------------------------------------------------
  -B, --band         <string>    PHY band EU868/US915/EU434/AU920/CN780/CN470
@@ -63,6 +64,8 @@ Usage: lwp [OPTIONS]
      --rx1droft     <int>       RX1DRoffset (0~7)
      --rx2dr        <int>       RX2DataRate (0~15)
      --rxdelay      <int>       RxDelay (0~15)
+     --jr           <hex>       JoinRequest raw data
+     --ja           <hex>       JoinAccept raw data
 
 --------------------------------------------------------------------------------
      --motes        <file>      Motes/Nodes JSON file
@@ -70,18 +73,11 @@ Usage: lwp [OPTIONS]
 
 --------------------------------------------------------------------------------
  -b, --board        <file>      Board specific TX power table and RSSI offset
+ -i, --iface        <string>    Network interface, default eth0
 
 --------------------------------------------------------------------------------
 Default AppKey/NwkSKey/AppSKey 2B7E151628AED2A6ABF7158809CF4F3C
-
 ```
-
-### Burst Parse LoRaWAN Frame
-```
-$ ./lwp -c lwp-config.json
-```
-
-To go further, user could fill their own LoRaWAN frames in a json file to parse it.
 
 ### Pack LoRaWAN frame
 ```
@@ -118,7 +114,23 @@ $ ./lwp --parse "40 11 11 11 01 A0 59 04 02 0F A0 9D 7C 61 F3 FA B7"
 $ lwp -T CD -m "02 30 01"
 ```
 
+### Parse JoinRequest and JoinAccept
+
+```
+# Parse JR/JA pair
+$ ./lwp --join --jr "0001000000000000860100000000000086F79FB4C20660" --ja "202D9583ABA736C80F9700DB420A010554" --appkey "86000000000000008600000000000000"
+```
+
+### Burst Parse LoRaWAN Frame
+
+```
+$ ./lwp -c lwp-config.json
+```
+
+To go further, user could fill their own LoRaWAN frames in a json file to parse it.
+
 ### Packet Forwarder Mode
+
 ```
 $ ./lwp --pktfwd global_conf.template.json --board lwp-board.json --iface eth0
 ```
@@ -129,6 +141,9 @@ $ ./lwp --pktfwd global_conf.template.json --board lwp-board.json --iface eth0
 
 Depends on tools *libtool*, *automake*. To build:
 
+    # install tools if it is not there
+    sudo apt-get install autoconf libtool
+    
     cd lorawan-parser
     autoreconf -i
     ./configure
@@ -167,7 +182,7 @@ Add below path to system $PATH
 
     // 64bits
     $YOUR_PATH/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin
-
+    
     // 32bits
     $YOUR_PATH/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin
 
@@ -205,3 +220,4 @@ parson, AES, CMAC have its own licenses. Please follow links below to get the de
 + Lander Casado, Philippas Tsigas. CMAC library http://www.cse.chalmers.se/research/group/dcs/masters/contikisec/
 + diabloneo timespec_diff gitst https://gist.github.com/diabloneo/9619917
 + CCAN (json libary is from CCAN project) https://ccodearchive.net/
+
