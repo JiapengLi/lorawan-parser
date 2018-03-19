@@ -137,6 +137,31 @@ int main(int argc, char **argv)
             log_puts(LOG_ERROR, "DATA MESSAGE PARSE error(%d)", ret);
         }
         return 0;
+    case APP_MODE_JOIN:
+        lw_init(opt.band);
+        kgrp.nwkskey = opt.nwkskey;
+        kgrp.flag.bits.nwkskey = 1;
+        kgrp.appskey = opt.appskey;
+        kgrp.flag.bits.appskey = 1;
+        kgrp.appkey = opt.appkey;
+        kgrp.flag.bits.appkey = 1;
+        lw_set_key(&kgrp);
+        log_line();
+        ret = lw_parse(&frame, opt.join.request.buf, opt.join.request.len);
+        if(ret == LW_OK){
+            lw_log(&frame, opt.join.request.buf, opt.join.request.len);
+        }else{
+            log_puts(LOG_ERROR, "JOIN REQUEST PARSE error(%d)", ret);
+        }
+
+        log_line();
+        ret = lw_parse(&frame, opt.join.accept.buf, opt.join.accept.len);
+        if(ret == LW_OK){
+            lw_log(&frame, opt.join.accept.buf, opt.join.accept.len);
+        }else{
+            log_puts(LOG_ERROR, "JOIN ACCEPT PARSE error(%d)", ret);
+        }
+        return 0;
     case APP_MODE_BURST_PARSE:
         pfile = opt.cfile;
         break;

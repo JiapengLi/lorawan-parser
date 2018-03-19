@@ -35,6 +35,9 @@
 #define OPT_FPENDING                    (17)
 //#define OPT_PARSE                       (18)
 //#define OPT_PACK                        (19)
+#define OPT_JOIN                       (20)
+#define OPT_JR                         (21)
+#define OPT_JA                         (22)
 
 struct option app_long_options[] = {
     {"help",        no_argument,            0,      'h'},
@@ -45,6 +48,8 @@ struct option app_long_options[] = {
     {"parse",       required_argument,      0,      'p'},
     {"pack",        required_argument,      0,      'g'},
     {"pktfwd",      required_argument,      0,      'f'},
+
+    {"join",        no_argument,            0,      OPT_JOIN},
 
     {"band",        required_argument,      0,      'B'},
     {"nwkskey",     required_argument,      0,      'N'},
@@ -76,6 +81,10 @@ struct option app_long_options[] = {
     {"nodes",       required_argument,      0,      OPT_MOTES},
     {"board",       required_argument,      0,      'b'},
     {"iface",       required_argument,      0,      'i'},
+
+    {"jr",          required_argument,      0,      OPT_JR},
+    {"ja",          required_argument,      0,      OPT_JA},
+
     {0,             0,                      0,      0},
 };
 
@@ -238,6 +247,29 @@ int app_getopt(app_opt_t *opt, int argc, char **argv)
                 }
             }
             break;
+        case OPT_JOIN:
+            if(opt->mode != APP_MODE_IDLE){
+                return APP_ERR_MODE_DUP;
+            }
+            opt->mode = APP_MODE_JOIN;
+            break;
+        case OPT_JR:
+            hlen = str2hex(optarg, opt->join.request.buf, APP_JR_LEN);
+            if( hlen != APP_JR_LEN ){
+                return APP_ERR_PARA;
+            }
+            opt->join.request.len = hlen;
+            //log_puts(LOG_NORMAL, "JR %d %h", opt->join.request.len, opt->join.request.buf, opt->join.request.len);
+            break;
+        case OPT_JA:
+            hlen = str2hex(optarg, opt->join.accept.buf, APP_JA_CFLIST_LEN);
+            if( ( hlen != APP_JA_CFLIST_LEN ) && ( hlen != APP_JA_LEN ) ){
+                return APP_ERR_PARA;
+            }
+            opt->join.accept.len = hlen;
+            //log_puts(LOG_NORMAL, "JA %d %h", opt->join.accept.len, opt->join.accept.buf, opt->join.accept.len);
+            break;
+
         case 'b':
             if(optarg != NULL){
                 if(optarg[0] == '-'){

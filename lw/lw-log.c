@@ -565,15 +565,15 @@ void lw_log(lw_frame_t *frame, uint8_t *msg, int len)
         if(frame->node != NULL){
             log_puts(LOG_NORMAL, "DEVNONCE: 0x%04X", frame->node->devnonce.data);
         }
-        log_puts(LOG_NORMAL, "NETID: 0x%06X", frame->pl.ja.netid.data);
-        log_puts(LOG_NORMAL, "DEVADDR: %08X", frame->pl.ja.devaddr.data);
         log_puts(LOG_NORMAL, "RX2DataRate: %d", frame->pl.ja.dlsettings.bits.rx2dr);
         log_puts(LOG_NORMAL, "RX1DRoffset: %d", frame->pl.ja.dlsettings.bits.rx1droft);
         if(frame->pl.ja.cflist_len > 0){
-            log_puts(LOG_NORMAL, "CFList: %H", frame->pl.ja.cflist, frame->pl.ja.cflist_len);
+            log_puts(LOG_NORMAL, "CFList: %h", frame->pl.ja.cflist, frame->pl.ja.cflist_len);
         }
-        log_puts(LOG_NORMAL, "NWKSKEY: %H", frame->pl.ja.nwkskey, 16);
-        log_puts(LOG_NORMAL, "APPSKEY: %H", frame->pl.ja.appskey, 16);
+        log_puts(LOG_NORMAL, "NETID: 0x%06X", frame->pl.ja.netid.data);
+        log_puts(LOG_NORMAL, "DEVADDR: %08X", frame->pl.ja.devaddr.data);
+        log_puts(LOG_NORMAL, "NWKSKEY: %h", frame->pl.ja.nwkskey, 16);
+        log_puts(LOG_NORMAL, "APPSKEY: %h", frame->pl.ja.appskey, 16);
         break;
     case LW_MTYPE_MSG_UP:
     case LW_MTYPE_MSG_DOWN:

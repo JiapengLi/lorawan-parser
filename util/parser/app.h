@@ -11,6 +11,10 @@
 #define APP_KEY_LEN                 (16)
 #define APP_EUI_LEN                 (8)
 
+#define APP_JR_LEN                  (23)
+#define APP_JA_LEN                  (17)
+#define APP_JA_CFLIST_LEN           (33)
+
 typedef enum {
     APP_MODE_IDLE,
     APP_MODE_HELP,
@@ -20,6 +24,7 @@ typedef enum {
     APP_MODE_PARSE,
     APP_MODE_BURST_PARSE,
     APP_MODE_PKT_FWD,
+    APP_MODE_JOIN,
 }app_mode_t;
 
 typedef enum{
@@ -75,6 +80,17 @@ typedef struct{
     uint8_t rx1droft;
     uint8_t rx2dr;
     uint8_t rxdelay;
+
+    struct{
+        struct{
+            uint8_t buf[APP_JR_LEN];
+            uint8_t len;
+        }request;
+        struct{
+            uint8_t buf[APP_JA_CFLIST_LEN];
+            uint8_t len;
+        }accept;
+    }join;
 }app_opt_t;
 
 int app_getopt(app_opt_t *opt, int argc, char **argv);

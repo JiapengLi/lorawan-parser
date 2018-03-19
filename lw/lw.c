@@ -712,6 +712,7 @@ int lw_auto_add(lw_frame_t *frame, uint8_t *msg, int len)
     lw_key_t lw_key;
     lw_node_t endnode;
     int ret, id;
+    uint32_t cnt;
 
     memset(&endnode.appeui, 0, sizeof(endnode));
 
@@ -770,7 +771,19 @@ int lw_auto_add(lw_frame_t *frame, uint8_t *msg, int len)
             break;
         }
         lw_key.fcnt32 = ((uint32_t)msg[LW_DATA_OFF_FCNT+1]<<8) + msg[LW_DATA_OFF_FCNT];
+
+#if 0
         lw_msg_mic(&mic, &lw_key);
+#else
+        for(cnt=0; cnt<0xFFFF0000; cnt+=0x00010000){
+            lw_key.fcnt32 = cnt + ((uint32_t)msg[LW_DATA_OFF_FCNT+1]<<8) + msg[LW_DATA_OFF_FCNT];
+            lw_msg_mic(&mic, &lw_key);
+            if(mic.data == plmic.data){
+                break;
+            }
+        }
+#endif
+
         if(mic.data != plmic.data){
             return LW_ERR_MIC;
         }
@@ -872,11 +885,7 @@ int lw_parse(lw_frame_t *frame, uint8_t *msg, int len)
                 }
             }
         }
-        ret = lw_auto_add(frame, msg, len);
-        if(ret == LW_OK){
-            return LW_OK;
-        }
-        break;
+        return lw_auto_add(frame, msg, len);
     case LW_MTYPE_RFU:
     case LW_MTYPE_PROPRIETARY:
         return LW_ERR_NOT_AVALAIBLE;
