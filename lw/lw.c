@@ -713,9 +713,10 @@ int lw_auto_add(lw_frame_t *frame, uint8_t *msg, int len)
     lw_node_t endnode;
     int ret, id;
 
-    memset(&endnode.appeui, 0, sizeof(endnode));
+    memset(&endnode, 0, sizeof(endnode));
 
     memcpy(plmic.buf, msg+len-4, 4);
+
     switch(frame->mhdr.bits.mtype){
     case LW_MTYPE_JOIN_REQUEST:
         lw_key.aeskey = lw_dft_appkey;
@@ -872,6 +873,7 @@ int lw_parse(lw_frame_t *frame, uint8_t *msg, int len)
                 }
             }
         }
+
         ret = lw_auto_add(frame, msg, len);
         if(ret == LW_OK){
             return LW_OK;
