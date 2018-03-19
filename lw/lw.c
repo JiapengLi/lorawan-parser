@@ -714,9 +714,10 @@ int lw_auto_add(lw_frame_t *frame, uint8_t *msg, int len)
     int ret, id;
     uint32_t cnt;
 
-    memset(&endnode.appeui, 0, sizeof(endnode));
+    memset(&endnode, 0, sizeof(endnode));
 
     memcpy(plmic.buf, msg+len-4, 4);
+
     switch(frame->mhdr.bits.mtype){
     case LW_MTYPE_JOIN_REQUEST:
         lw_key.aeskey = lw_dft_appkey;

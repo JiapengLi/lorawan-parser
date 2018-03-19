@@ -40,3 +40,4 @@ json
 *.bak
 bak
 *.sublime-workspace
+*.orig
