@@ -117,6 +117,7 @@ int main(int argc, char **argv)
         log_puts(LOG_NORMAL, "%d.%d.%d", VMAJOR, VMINOR, VPATCH);
         return 0;
     case APP_MODE_MACCMD:
+        lw_init(opt.band);
         ret = lw_log_maccmd(opt.hdr.data, LW_MACCMD_FOPTS, opt.maccmd.buf, opt.maccmd.len);
         if(ret < 0){
             log_puts(LOG_ERROR, "MACCMD error(%d)", ret);
@@ -171,6 +172,7 @@ int main(int argc, char **argv)
     case APP_MODE_PKT_FWD:
         return app_pkt_fwd(&opt);
     case APP_MODE_GENERATE:
+        lw_init(opt.band);
         memset( (uint8_t *)&endnode, 0, sizeof(lw_node_t) );
         lw_cpy(endnode.appeui, opt.appeui, 8);
         lw_cpy(endnode.deveui, opt.deveui, 8);
@@ -238,7 +240,6 @@ int main(int argc, char **argv)
         }else{
             log_puts(LOG_FATAL, "LoRaWAN Pack error");
         }
-
         return 0;
     default:
         log_puts(LOG_FATAL, "UNKNOWN MODE");

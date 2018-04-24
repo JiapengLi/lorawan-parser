@@ -80,11 +80,15 @@ typedef enum{
 
 typedef enum{
     EU868,
-    EU434,
     US915,
-    AU920,
-    CN780,
-    CUSTOM,
+    CN779,
+    EU433,
+    AU915,
+    CN470,
+    AS923,
+    KR920,
+    IN865,
+    RU864,
 }lw_band_t;
 
 typedef union{
@@ -413,10 +417,18 @@ typedef struct{
 typedef struct lgw_pkt_rx_s lw_rxpkt_t;
 typedef struct lgw_pkt_tx_s lw_txpkt_t;
 
-#include "lw-log.h"
+typedef struct{
+    lw_band_t band;
+    const char *name;
+    const uint8_t *dr_tab;
+    struct{
+        uint8_t max_eirp_index;
+        uint8_t max_tx_power_index;
+    }power;
+    const uint16_t *chmaskcntl_tab;
+}lw_region_t;
 
-#define LW_BAND_STR_TAB_NUM          (6)
-extern const char *lw_band_str_tab[];
+#include "lw-log.h"
 
 int lw_init(lw_band_t band);
 int lw_add(lw_node_t *node);
@@ -434,6 +446,9 @@ int lw_maccmd_valid(uint8_t mac_header, uint8_t *opts, int len);
 
 int8_t lw_get_dr(uint8_t mod, uint32_t datarate, uint8_t bw);
 int8_t lw_get_rf(uint8_t dr, uint8_t *mod, uint32_t *datarate, uint8_t *bw, uint8_t *fdev);
+
+lw_band_t lw_get_band_type(const char *band);
+const char *lw_get_band_name(lw_band_t band);
 
 uint32_t lw_read_dw(uint8_t *buf);
 

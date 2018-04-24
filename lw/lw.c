@@ -46,7 +46,6 @@ uint32_t lw_deveui_cnt;
 uint32_t lw_devaddr_cnt;
 lw_frame_t lw_dlframe;
 lw_config_t lw_config;
-lw_band_t lw_band;
 
 const lw_mtype_func_p lwp_mtye_func[] = {
     lw_mtype_join_request,
@@ -59,117 +58,230 @@ const lw_mtype_func_p lwp_mtye_func[] = {
     lw_mtype_proprietary,
 };
 
-const uint8_t lw_dr_tab[][16] = {
+/* Data Rate Scheme */
+const uint8_t lw_dr_tab_0[16] = {
+    LW_DR(SF12, BW125),    // DR0
+    LW_DR(SF11, BW125),    // DR1
+    LW_DR(SF10, BW125),    // DR2
+    LW_DR(SF9, BW125),     // DR3
+    LW_DR(SF8, BW125),     // DR4
+    LW_DR(SF7, BW125),     // DR5
+    LW_DR(SF7, BW250),     // DR7
+    LW_DR(FSK, BW125),     // DR8
+    LW_DR_RFU,             // DR9
+    LW_DR_RFU,             // DR10
+    LW_DR_RFU,             // DR11
+    LW_DR_RFU,             // DR12
+    LW_DR_RFU,             // DR13
+    LW_DR_RFU,             // DR14
+    LW_DR_RFU,             // DR15
+};
+const uint8_t lw_dr_tab_1[16] = {
+
+    LW_DR(SF10, BW125),    // DR0
+    LW_DR(SF9, BW125),     // DR1
+    LW_DR(SF8, BW125),     // DR2
+    LW_DR(SF7, BW125),     // DR3
+    LW_DR(SF8, BW500),     // DR4
+    LW_DR_RFU,             // DR5
+    LW_DR_RFU,             // DR6
+    LW_DR_RFU,             // DR7
+    LW_DR(SF12, BW500),    // DR8
+    LW_DR(SF11, BW500),    // DR9
+    LW_DR(SF10, BW500),    // DR10
+    LW_DR(SF9, BW500),     // DR11
+    LW_DR(SF8, BW500),     // DR12
+    LW_DR(SF7, BW500),     // DR13
+    LW_DR_RFU,             // DR14
+    LW_DR_RFU,             // DR15
+};
+const uint8_t lw_dr_tab_2[16] = {
+    LW_DR(SF12, BW125),    // DR0
+    LW_DR(SF11, BW125),    // DR1
+    LW_DR(SF10, BW125),    // DR2
+    LW_DR(SF9, BW125),     // DR3
+    LW_DR(SF8, BW125),     // DR4
+    LW_DR(SF7, BW125),     // DR5
+    LW_DR(SF8, BW500),     // DR6
+    LW_DR_RFU,             // DR7
+    LW_DR(SF12, BW500),    // DR8
+    LW_DR(SF11, BW500),    // DR9
+    LW_DR(SF10, BW500),    // DR10
+    LW_DR(SF9, BW500),     // DR11
+    LW_DR(SF8, BW500),     // DR12
+    LW_DR(SF7, BW500),     // DR13
+    LW_DR_RFU,             // DR14
+    LW_DR_RFU,             // DR15
+};
+const uint8_t lw_dr_tab_3[16] = {
+    LW_DR(SF12, BW125),    // DR0
+    LW_DR(SF11, BW125),    // DR1
+    LW_DR(SF10, BW125),    // DR2
+    LW_DR(SF9, BW125),     // DR3
+    LW_DR(SF8, BW125),     // DR4
+    LW_DR(SF7, BW125),     // DR5
+    LW_DR_RFU,             // DR7
+    LW_DR_RFU,             // DR8
+    LW_DR_RFU,             // DR9
+    LW_DR_RFU,             // DR10
+    LW_DR_RFU,             // DR11
+    LW_DR_RFU,             // DR12
+    LW_DR_RFU,             // DR13
+    LW_DR_RFU,             // DR14
+    LW_DR_RFU,             // DR15
+};
+
+/* LinkAdrReq ChmskCntl */
+const uint16_t lw_chmaskcntl_tab_0[8]={
+    LW_CMC(0, 15),
+    LW_CMC_RFU,
+    LW_CMC_RFU,
+    LW_CMC_RFU,
+    LW_CMC_RFU,
+    LW_CMC_RFU,
+    LW_CMC_ALL_ON,
+    LW_CMC_RFU,
+};
+const uint16_t lw_chmaskcntl_tab_1[8]={
+    LW_CMC(0, 15),
+    LW_CMC(16, 31),
+    LW_CMC(32, 47),
+    LW_CMC(48, 63),
+    LW_CMC(64, 71),
+    LW_CMC_RFU,
+    LW_CMC_ALL_125KHZ_ON,
+    LW_CMC_ALL_125KHZ_OFF,
+};
+const uint16_t lw_chmaskcntl_tab_2[8]={
+    LW_CMC(0, 15),
+    LW_CMC(16, 31),
+    LW_CMC(32, 47),
+    LW_CMC(48, 63),
+    LW_CMC(64, 79),
+    LW_CMC(80, 95),
+    LW_CMC_ALL_ON,
+    LW_CMC_RFU,
+};
+
+const int8_t lw_max_eirp_tab[16] = {
+    8, 10, 12, 13, 14, 16, 18, 20, 21, 24, 26, 27, 29, 30, 33, 36
+};
+
+#define LW_DR_TAB_EU868                 lw_dr_tab_0
+#define LW_DR_TAB_US915                 lw_dr_tab_1
+#define LW_DR_TAB_CN779                 LW_DR_TAB_EU868
+#define LW_DR_TAB_EU433                 LW_DR_TAB_EU868
+#define LW_DR_TAB_AU915                 lw_dr_tab_2
+#define LW_DR_TAB_CN470                 lw_dr_tab_3
+#define LW_DR_TAB_AS923                 LW_DR_TAB_EU868
+#define LW_DR_TAB_KR920                 LW_DR_TAB_CN470
+#define LW_DR_TAB_IN865                 LW_DR_TAB_EU868
+#define LW_DR_TAB_RU864                 LW_DR_TAB_EU868
+
+#define LW_CHMSKCNTL_TAB_EU868          lw_chmaskcntl_tab_0
+#define LW_CHMSKCNTL_TAB_US915          lw_chmaskcntl_tab_1
+#define LW_CHMSKCNTL_TAB_CN779          LW_CHMSKCNTL_TAB_EU868
+#define LW_CHMSKCNTL_TAB_EU433          LW_CHMSKCNTL_TAB_EU868
+#define LW_CHMSKCNTL_TAB_AU915          LW_CHMSKCNTL_TAB_US915
+#define LW_CHMSKCNTL_TAB_CN470          lw_chmaskcntl_tab_2
+#define LW_CHMSKCNTL_TAB_AS923          LW_CHMSKCNTL_TAB_EU868
+#define LW_CHMSKCNTL_TAB_KR920          LW_CHMSKCNTL_TAB_EU868
+#define LW_CHMSKCNTL_TAB_IN865          LW_CHMSKCNTL_TAB_EU868
+#define LW_CHMSKCNTL_TAB_RU864          LW_CHMSKCNTL_TAB_EU868
+
+const lw_region_t lw_region_tab[] = {
+    {
+        EU868,
+        "EU868",
+        LW_DR_TAB_EU868,
+        {5, 7},
+        LW_CHMSKCNTL_TAB_EU868,
+    },
+    {
+        US915,
+        "US915",
+        LW_DR_TAB_US915,
+        {13, 10},
+        LW_CHMSKCNTL_TAB_US915,
+    },
+    {
+        CN779,
+        "CN779",
+        LW_DR_TAB_CN779,
+        {2, 5},
+        LW_CHMSKCNTL_TAB_CN779,
+    },
+    {
+        EU433,
+        "EU433",
+        LW_DR_TAB_EU433,
+        {2, 5},
+        LW_CHMSKCNTL_TAB_EU433,
+    },
+    {
+        AU915,
+        "AU915",
+        LW_DR_TAB_AU915,
+        {13, 10},
+        LW_CHMSKCNTL_TAB_AU915,
+    },
+    {
+        CN470,
+        "CN470",
+        LW_DR_TAB_CN470,
+        {7, 7},
+        LW_CHMSKCNTL_TAB_CN470,
+    },
+    {
+        AS923,
+        "AS923",
+        LW_DR_TAB_AS923,
+        {5, 7},
+        LW_CHMSKCNTL_TAB_AS923,
+    },
+    {
+        KR920,
+        "KR920",
+        LW_DR_TAB_KR920,
+        {4, 7},
+        LW_CHMSKCNTL_TAB_KR920,
+    },
+    {
+        IN865,
+        "IN865",
+        LW_DR_TAB_IN865,
+        {13, 10},
+        LW_CHMSKCNTL_TAB_IN865,
+    },
+    {
+        RU864,
+        "RU864",
+        LW_DR_TAB_RU864,
+        {5, 7},
+        LW_CHMSKCNTL_TAB_RU864,
+    },
+};
+
+const lw_region_t *lw_region;
+
+int8_t lw_pow_tab[16] = {
     /* EU868 */
-    {
-        LW_DR(SF12, BW125),    // DR0
-        LW_DR(SF11, BW125),    // DR1
-        LW_DR(SF10, BW125),    // DR2
-        LW_DR(SF9, BW125),     // DR3
-        LW_DR(SF8, BW125),     // DR4
-        LW_DR(SF7, BW125),     // DR5
-        LW_DR(SF7, BW250),     // DR7
-        LW_DR(FSK, BW125),     // DR8
-        LW_DR_RFU,             // DR9
-        LW_DR_RFU,             // DR10
-        LW_DR_RFU,             // DR11
-        LW_DR_RFU,             // DR12
-        LW_DR_RFU,             // DR13
-        LW_DR_RFU,             // DR14
-        LW_DR_RFU,             // DR15
-    },
-    /* US915 */
-    {
-        LW_DR(SF10, BW125),    // DR0
-        LW_DR(SF9, BW125),     // DR1
-        LW_DR(SF8, BW125),     // DR2
-        LW_DR(SF7, BW125),     // DR3
-        LW_DR(SF8, BW500),     // DR4
-        LW_DR_RFU,             // DR5
-        LW_DR_RFU,             // DR6
-        LW_DR_RFU,             // DR7
-        LW_DR(SF12, BW500),    // DR8
-        LW_DR(SF11, BW500),    // DR9
-        LW_DR(SF10, BW500),    // DR10
-        LW_DR(SF9, BW500),     // DR11
-        LW_DR(SF8, BW500),     // DR12
-        LW_DR(SF7, BW500),     // DR13
-        LW_DR_RFU,             // DR14
-        LW_DR_RFU,             // DR15
-    },
-};
-
-const int8_t lw_pow_tab[][16] = {
-    /* EU868 */
-    {
-        20,
-        14,
-        11,
-        8,
-        5,
-        2,
-        LW_POW_RFU,
-        LW_POW_RFU,
-        LW_POW_RFU,
-        LW_POW_RFU,
-        LW_POW_RFU,
-        LW_POW_RFU,
-        LW_POW_RFU,
-        LW_POW_RFU,
-        LW_POW_RFU,
-        LW_POW_RFU,
-    },
-    /* US915 */
-    {
-        30,
-        28,
-        26,
-        24,
-        22,
-        20,
-        18,
-        16,
-        14,
-        12,
-        10,
-        LW_POW_RFU,
-        LW_POW_RFU,
-        LW_POW_RFU,
-        LW_POW_RFU,
-        LW_POW_RFU,
-    },
-};
-
-const uint16_t lw_chmaskcntl_tab[][8]={
-    {
-        LW_CMC(0, 15),
-        LW_CMC_RFU,
-        LW_CMC_RFU,
-        LW_CMC_RFU,
-        LW_CMC_RFU,
-        LW_CMC_RFU,
-        LW_CMC_ALL_ON,
-        LW_CMC_RFU,
-    },
-    {
-        LW_CMC(0, 15),
-        LW_CMC(16, 31),
-        LW_CMC(32, 47),
-        LW_CMC(48, 63),
-        LW_CMC(64, 71),
-        LW_CMC_RFU,
-        LW_CMC_ALL_125KHZ_ON,
-        LW_CMC_ALL_125KHZ_OFF,
-    }
-};
-
-const char *lw_band_str_tab[LW_BAND_STR_TAB_NUM]={
-    "EU868",
-    "EU434",
-    "US915",
-    "CN780",
-    "EU433",
-    "CUSTOM",
+    20,
+    14,
+    11,
+    8,
+    5,
+    2,
+    LW_POW_RFU,
+    LW_POW_RFU,
+    LW_POW_RFU,
+    LW_POW_RFU,
+    LW_POW_RFU,
+    LW_POW_RFU,
+    LW_POW_RFU,
+    LW_POW_RFU,
+    LW_POW_RFU,
+    LW_POW_RFU,
 };
 
 typedef struct{
@@ -228,8 +340,21 @@ const uint16_t lw_eu868_lgw_dr_tab[16] = {
     0xFFFF,
 };
 
+const lw_region_t *lw_get_region(lw_band_t band)
+{
+    int i;
+    for(i=0; i<sizeof(lw_region_tab)/sizeof(lw_region_tab[0]); i++){
+        if(band == lw_region_tab[i].band){
+            return &lw_region_tab[i];
+        }
+    }
+    return &lw_region_tab[0];
+}
+
 int lw_init(lw_band_t band)
 {
+    int i;
+
     lw_node = NULL;
     lw_node_latest_jr = NULL;
     lw_node_num = 0;
@@ -239,7 +364,16 @@ int lw_init(lw_band_t band)
 
     //lw_config.rxwin2.dr = 0;          // not used
     lw_config.rxwin2.freq = 869525000;
-    lw_band = band;
+
+    lw_region = lw_get_region(band);
+
+    for(i = 0; i<16; i++){
+        if(i <= lw_region->power.max_tx_power_index){
+            lw_pow_tab[i] = lw_max_eirp_tab[lw_region->power.max_eirp_index] - 2*i;
+        }else{
+            lw_pow_tab[i] = LW_POW_RFU;
+        }
+    }
 
     return 0;
 }
@@ -1429,6 +1563,28 @@ void lw_get_skeys(uint8_t *nwkskey, uint8_t *appskey, lw_skey_seed_t *seed)
     b[0] = 0x02;
 	aes_set_key(seed->aeskey, LW_KEY_LEN, &aesContext);
     aes_encrypt( b, appskey, &aesContext );
+}
+
+lw_band_t lw_get_band_type(const char *band)
+{
+    int i;
+    for(i=0; i<sizeof(lw_region_tab)/sizeof(lw_region_tab[0]); i++){
+        if(0 == strcmp(band, lw_region_tab[i].name)){
+            return (lw_band_t)lw_region_tab[i].band;
+        }
+    }
+    return lw_region_tab[0].band;
+}
+
+const char *lw_get_band_name(lw_band_t band)
+{
+    int i;
+    for(i=0; i<sizeof(lw_region_tab)/sizeof(lw_region_tab[0]); i++){
+        if(band == lw_region_tab[i].band){
+            return lw_region_tab[i].name;
+        }
+    }
+    return lw_region_tab[0].name;
 }
 
 /*****************************************************************************/

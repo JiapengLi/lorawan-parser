@@ -126,8 +126,9 @@ const char *app_err(int err)
 
 void app_setopt_dft(app_opt_t *opt)
 {
-    opt->mode = APP_MODE_IDLE;
     memset(opt, 0, sizeof(app_opt_t));
+    opt->band = EU868;
+    opt->mode = APP_MODE_IDLE;
     memcpy(opt->nwkskey, app_dft_key, APP_KEY_LEN);
     memcpy(opt->appskey, app_dft_key, APP_KEY_LEN);
     memcpy(opt->appkey, app_dft_key, APP_KEY_LEN);
@@ -299,13 +300,7 @@ int app_getopt(app_opt_t *opt, int argc, char **argv)
             break;
 
         case 'B':
-            opt->band = EU868;
-            for(i=0; i<LW_BAND_STR_TAB_NUM; i++){
-                if(0 == strcmp(optarg, lw_band_str_tab[i])){
-                    opt->band = (lw_band_t)i;
-                    break;
-                }
-            }
+            opt->band = lw_get_band_type(optarg);
             break;
         case OPT_DEVEUI:
             hlen = str2hex(optarg, opt->deveui, APP_EUI_LEN);
@@ -597,7 +592,7 @@ void app_log_opt(app_opt_t *opt)
     if(opt->iface != NULL){
         log_puts(LOG_INFO, "IFACE:         %s", opt->iface);
     }
-    log_puts(LOG_INFO, "BAND:          %s", lw_band_str_tab[opt->band]);
+    log_puts(LOG_INFO, "BAND:          %s", lw_get_band_name(opt->band));
     log_puts(LOG_INFO, "DEVEUI:        %h", opt->deveui, APP_EUI_LEN);
     log_puts(LOG_INFO, "APPEUI:        %h", opt->appeui, APP_EUI_LEN);
     log_puts(LOG_INFO, "APPKEY:        %h", opt->appkey, APP_KEY_LEN);

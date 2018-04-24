@@ -5,11 +5,13 @@
 
 #include <string.h>
 
-extern const uint8_t lw_dr_tab[][16];
-extern const int8_t lw_pow_tab[][16];
-extern const uint16_t lw_chmaskcntl_tab[][8];
+
 extern lw_node_t *lw_node;
-extern lw_band_t lw_band;
+
+extern const lw_region_t *lw_region;
+extern const int8_t lw_pow_tab[16];
+
+extern const int8_t lw_max_eirp_tab[16];
 
 const char *lw_mtype_str[] = {
     "JOIN REQUEST",
@@ -96,10 +98,6 @@ void lw_unknown_pl(void)
     log_puts(LOG_NORMAL, "Unknown MAC command payload");
 }
 
-uint8_t lw_max_eirp_tab[16] = {
-    8, 10, 12, 13, 14, 16, 18, 20, 21, 24, 26, 27, 29, 30, 33, 36,
-};
-
 int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int len)
 {
     lw_mhdr_t mhdr;
@@ -116,7 +114,6 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
             int8_t margin           :6;
         }bits;
     }dev_sta_margin;
-    lw_band_t band;
     int i, ret;
     char strbuf[512];
 
@@ -126,10 +123,8 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
     }
 
     mhdr.data = mac_header;
-    band = lw_band;
 
     log_puts(LOG_NORMAL, "MACCMD: (%s) %h", type==LW_MACCMD_FOPTS?"FOPTS":"PORT0", opts, len);
-
 
     i=0;
     while(i<len){
@@ -282,17 +277,15 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
                 i+=SRV_MAC_LEN_LINK_CHECK_ANS;
                 break;
             case SRV_MAC_LINK_ADR_REQ:
-                dr = lw_dr_tab[band][opts[i+1]>>4];
-                power = lw_pow_tab[band][opts[i+1]&0x0F];
-                chmaskcntl = lw_chmaskcntl_tab[band][(opts[i+4]>>4)&0x07];
+                dr = lw_region->dr_tab[opts[i+1]>>4];
+                power = lw_pow_tab[opts[i+1]&0x0F];
+                chmaskcntl = lw_region->chmaskcntl_tab[(opts[i+4]>>4)&0x07];
                 ChMask = opts[i+2] + (((uint16_t)opts[i+3])<<8);
 
                 if(power == LW_POW_RFU){
                     sprintf(strbuf+strlen(strbuf), "TXPower: %d (RFU)", opts[i+1]&0x0F);
                 }else{
-                    sprintf(strbuf+strlen(strbuf), "TXPower: %d ", opts[i+1]&0x0F);
-                    #warning "power puts index only"
-                    //sprintf(strbuf+strlen(strbuf), "TXPower: %d (%ddBm)", opts[i+1]&0x0F, power);
+                    sprintf(strbuf+strlen(strbuf), "TXPower: %d (%ddBm)", opts[i+1]&0x0F, power);
                 }
                 sprintf(strbuf+strlen(strbuf), ", ");
 
@@ -352,7 +345,7 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
                 break;
             case SRV_MAC_RX_PARAM_SETUP_REQ:
                 rx1drofst = (opts[i+1]>>4) & 0x07;
-                rx2dr = lw_dr_tab[band][opts[i+1] & 0x0F];
+                rx2dr = lw_region->dr_tab[opts[i+1] & 0x0F];
                 freq = (opts[i+2]) | ((uint32_t)opts[i+3]<<8) | ((uint32_t)opts[i+4]<<16);
                 freq *= 100;
 

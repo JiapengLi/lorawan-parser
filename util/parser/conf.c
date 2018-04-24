@@ -107,15 +107,9 @@ int config_parse(const char *file, config_t *config)
     }
     joroot = json_value_get_object(jvroot);
 
-    config->band = EU868;
     string = json_object_get_string(joroot, "band");
     if(string != NULL){
-        for(i=0; i<LW_BAND_STR_TAB_NUM; i++){
-            if(0 == strcmp(string, lw_band_str_tab[i])){
-                config->band = (lw_band_t)i;
-                break;
-            }
-        }
+        config->band = lw_get_band_type(string);
     }
 
     string = json_object_dotget_string(joroot, "key.nwkskey");
@@ -284,7 +278,7 @@ int config_parse(const char *file, config_t *config)
     }
 
     log_line();
-    log_puts(LOG_NORMAL, "%15s %s","BAND:\t", lw_band_str_tab[config->band]);
+    log_puts(LOG_NORMAL, "%15s %s","BAND:\t", lw_get_band_name(config->band));
     sprintf(sbuf, "NWKSKEY:\t");
     sprintf(slen, "<%d>", 16);
     log_puts(LOG_NORMAL, "%15s%6s %H", sbuf, slen, config->nwkskey, 16);
