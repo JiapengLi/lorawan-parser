@@ -1,0 +1,22 @@
+{
+    /* LoRaWAN Parser Configuration File */
+    /* Default EU868 when absent, available band EU868, US915 */
+    /* Region Specific: DataRate, TXPower, JoinResp CFList, RX1DROffset */
+    "band": "EU868",
+    /* nwkskey, appskey, appkey */
+    "key": {
+        "nwkskey": "8374B066E421A315FC688D5DB4F6B513",
+        "appskey": "66361837C59C94BC05C4F7DD2C824F3D",
+        "appkey": "E37330D34A0E9B8465EE7331505E8C9A"
+    },
+    /* payload array, add all payload which need parse here */
+    "messages": [
+        "AAAAAABAV/mMyAEAAEBX+YzvthAFyqA=",
+        "IIA56kgUYyFtk2SUDFsTj2pZeEDmoVFEoRy6LMNDv9aA",
+        "QM4rBSaAAQAIKXsJ5Wc16IFRN9ikHg==",
+        "QM4rBSaAAgAIYmQc/aYbmFBnaa7TBA==",
+        "QM4rBSaAAwAIQ6mkZU2yPztPVrFtKA==",
+        "QM4rBSaABAAIBtZHR5nFXSvQt1BYkg==",
+        "QM4rBSaABQAIEdq5wD6c2q2h0vLz3A=="
+    ]
+}
