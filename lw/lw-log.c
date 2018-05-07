@@ -560,13 +560,22 @@ void lw_log(lw_frame_t *frame, uint8_t *msg, int len)
         }
         log_puts(LOG_NORMAL, "RX2DataRate: %d", frame->pl.ja.dlsettings.bits.rx2dr);
         log_puts(LOG_NORMAL, "RX1DRoffset: %d", frame->pl.ja.dlsettings.bits.rx1droft);
-        if(frame->pl.ja.cflist_len > 0){
-            log_puts(LOG_NORMAL, "CFList: %h", frame->pl.ja.cflist, frame->pl.ja.cflist_len);
-        }
         log_puts(LOG_NORMAL, "NETID: 0x%06X", frame->pl.ja.netid.data);
         log_puts(LOG_NORMAL, "DEVADDR: %08X", frame->pl.ja.devaddr.data);
         log_puts(LOG_NORMAL, "NWKSKEY: %h", frame->pl.ja.nwkskey, 16);
         log_puts(LOG_NORMAL, "APPSKEY: %h", frame->pl.ja.appskey, 16);
+        if(frame->pl.ja.cflist_len > 0){
+            int i, freq;
+            log_puts(LOG_NORMAL, "CFList: %h", frame->pl.ja.cflist, frame->pl.ja.cflist_len);
+            uint8_t *buf = frame->pl.ja.cflist;
+            i = 0;
+            while((i+3)<=frame->pl.ja.cflist_len){
+                freq = (buf[i+0]) | ((uint32_t)buf[i+1]<<8) | ((uint32_t)buf[i+2]<<16);
+                freq *= 100;
+                log_puts(LOG_NORMAL, "CHx: %d", freq);
+                i += 3;
+            }
+        }
         break;
     case LW_MTYPE_MSG_UP:
     case LW_MTYPE_MSG_DOWN:

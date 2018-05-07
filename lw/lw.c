@@ -46,6 +46,7 @@ uint32_t lw_deveui_cnt;
 uint32_t lw_devaddr_cnt;
 lw_frame_t lw_dlframe;
 lw_config_t lw_config;
+bool lw_v11;
 
 const lw_mtype_func_p lwp_mtye_func[] = {
     lw_mtype_join_request,
