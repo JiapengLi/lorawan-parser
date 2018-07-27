@@ -28,6 +28,7 @@ enum{
     LW_ERR_NO_HEAP          = -18,
     LW_ERR_UNKOWN_DATA_RATE = -19,
     LW_ERR_FRAME_TOO_SHORT  = -20,
+    LW_ERR_NODE_EXISTS      = -21,
 };
 
 typedef enum{
@@ -76,7 +77,6 @@ enum {
     LW_JA_LEN_EXT           = 17+16
 };
 
-// MAC uplink commands   downwlink too
 enum {
     MOTE_MAC_LINK_CHECK_REQ             = 0x02,
     MOTE_MAC_LINK_ADR_ANS               = 0x03,
@@ -87,10 +87,28 @@ enum {
     MOTE_MAC_RX_TIMING_SETUP_ANS        = 0x08,
     MOTE_MAC_TX_PARAM_SETUP_ANS         = 0x09,
     MOTE_MAC_DL_CHANNEL_ANS             = 0x0A,
+    MOTE_MAC_DEVICE_TIME_REQ            = 0x0D,
     MOTE_MAC_PING_SLOT_INFO_REQ         = 0x10,
     MOTE_MAC_PING_SLOT_FREQ_ANS         = 0x11,
     MOTE_MAC_BEACON_TIMING_REQ          = 0x12,
     MOTE_MAC_BEACON_FREQ_ANS            = 0x13,
+};
+
+enum {
+    SRV_MAC_LINK_CHECK_ANS           = 0x02,
+    SRV_MAC_LINK_ADR_REQ             = 0x03,
+    SRV_MAC_DUTY_CYCLE_REQ           = 0x04,
+    SRV_MAC_RX_PARAM_SETUP_REQ       = 0x05,
+    SRV_MAC_DEV_STATUS_REQ           = 0x06,
+    SRV_MAC_NEW_CHANNEL_REQ          = 0x07,
+    SRV_MAC_RX_TIMING_SETUP_REQ      = 0x08,
+    SRV_MAC_TX_PARAM_SETUP_REQ       = 0x09,
+    SRV_MAC_DL_CHANNEL_REQ           = 0x0A,
+    SRV_MAC_DEVICE_TIME_ANS          = 0x0D,
+    SRV_MAC_PING_SLOT_INFO_ANS       = 0x10,
+    SRV_MAC_PING_SLOT_CHANNEL_REQ    = 0x11,
+    SRV_MAC_BEACON_TIMING_ANS        = 0x12,
+    SRV_MAC_BEACON_FREQ_REQ          = 0x13,
 };
 
 enum {
@@ -103,6 +121,7 @@ enum {
     MOTE_MAC_LEN_RX_TIMING_SETUP_ANS    = 1,
     MOTE_MAC_LEN_TX_PARAM_SETUP_ANS     = 1,
     MOTE_MAC_LEN_DL_CHANNEL_ANS         = 2,
+    MOTE_MAC_LEN_DEVICE_TIME_REQ        = 1,
     MOTE_MAC_LEN_PING_SLOT_INFO_REQ     = 2,
     MOTE_MAC_LEN_PING_SLOT_FREQ_ANS     = 2,
     MOTE_MAC_LEN_BEACON_TIMING_REQ      = 1,
@@ -111,22 +130,6 @@ enum {
 #else
     MOTE_MAC_LEN_BEACON_FREQ_ANS        = 1,
 #endif
-};
-
-enum {
-    SRV_MAC_LINK_CHECK_ANS              = 0x02,
-    SRV_MAC_LINK_ADR_REQ                = 0x03,
-    SRV_MAC_DUTY_CYCLE_REQ              = 0x04,
-    SRV_MAC_RX_PARAM_SETUP_REQ          = 0x05,
-    SRV_MAC_DEV_STATUS_REQ              = 0x06,
-    SRV_MAC_NEW_CHANNEL_REQ             = 0x07,
-    SRV_MAC_RX_TIMING_SETUP_REQ         = 0x08,
-    SRV_MAC_TX_PARAM_SETUP_REQ          = 0x09,
-    SRV_MAC_DL_CHANNEL_REQ              = 0x0A,
-    SRV_MAC_PING_SLOT_INFO_ANS          = 0x10,
-    SRV_MAC_PING_SLOT_CHANNEL_REQ       = 0x11,
-    SRV_MAC_BEACON_TIMING_ANS           = 0x12,
-    SRV_MAC_BEACON_FREQ_REQ             = 0x13,
 };
 
 enum {
@@ -139,6 +142,7 @@ enum {
     SRV_MAC_LEN_RX_TIMING_SETUP_REQ     = 2,
     SRV_MAC_LEN_TX_PARAM_SETUP_REQ      = 2,
     SRV_MAC_LEN_DL_CHANNEL_REQ          = 5,
+    SRV_MAC_LEN_DEVICE_TIME_ANS         = 6,
     SRV_MAC_LEN_PING_SLOT_INFO_ANS      = 1,
     SRV_MAC_LEN_PING_SLOT_CHANNEL_REQ   = 5,
     SRV_MAC_LEN_BEACON_TIMING_ANS       = 4,

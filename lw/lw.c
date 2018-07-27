@@ -300,6 +300,7 @@ const lw_maccmd_len_t lw_node_maccmd_tab[]={
     { MOTE_MAC_RX_TIMING_SETUP_ANS,     MOTE_MAC_LEN_RX_TIMING_SETUP_ANS },
     { MOTE_MAC_TX_PARAM_SETUP_ANS,      MOTE_MAC_LEN_TX_PARAM_SETUP_ANS },
     { MOTE_MAC_DL_CHANNEL_ANS,          MOTE_MAC_LEN_DL_CHANNEL_ANS },
+    { MOTE_MAC_DEVICE_TIME_REQ,         MOTE_MAC_LEN_DEVICE_TIME_REQ       },
     { MOTE_MAC_PING_SLOT_INFO_REQ,      MOTE_MAC_LEN_PING_SLOT_INFO_REQ },
     { MOTE_MAC_PING_SLOT_FREQ_ANS,      MOTE_MAC_LEN_PING_SLOT_FREQ_ANS },
     { MOTE_MAC_BEACON_TIMING_REQ,       MOTE_MAC_LEN_BEACON_TIMING_REQ },
@@ -316,6 +317,7 @@ const lw_maccmd_len_t lw_server_maccmd_tab[]={
     { SRV_MAC_RX_TIMING_SETUP_REQ,      SRV_MAC_LEN_RX_TIMING_SETUP_REQ },
     { SRV_MAC_TX_PARAM_SETUP_REQ,       SRV_MAC_LEN_TX_PARAM_SETUP_REQ },
     { SRV_MAC_DL_CHANNEL_REQ,           SRV_MAC_LEN_DL_CHANNEL_REQ },
+    { SRV_MAC_DEVICE_TIME_ANS,         SRV_MAC_LEN_DEVICE_TIME_ANS       },
     { SRV_MAC_PING_SLOT_INFO_ANS,       SRV_MAC_LEN_PING_SLOT_INFO_ANS },
     { SRV_MAC_PING_SLOT_CHANNEL_REQ,    SRV_MAC_LEN_PING_SLOT_CHANNEL_REQ },
     { SRV_MAC_BEACON_TIMING_ANS,        SRV_MAC_LEN_BEACON_TIMING_ANS },
@@ -351,6 +353,29 @@ const lw_region_t *lw_get_region(lw_band_t band)
     }
     return &lw_region_tab[0];
 }
+
+int8_t lw_get_node_maccmd_len(uint8_t cmd)
+{
+    int j;
+    for (j = 0; j < (sizeof(lw_node_maccmd_tab) / sizeof(lw_maccmd_len_t)); j++) {
+        if (lw_node_maccmd_tab[j].cmd == cmd) {
+            return lw_node_maccmd_tab[j].len;
+        }
+    }
+    return -1;
+}
+
+int8_t lw_get_server_maccmd_len(uint8_t cmd)
+{
+    int j;
+    for (j = 0; j < (sizeof(lw_server_maccmd_tab) / sizeof(lw_maccmd_len_t)); j++) {
+        if (lw_server_maccmd_tab[j].cmd == cmd) {
+            return lw_server_maccmd_tab[j].len;
+        }
+    }
+    return -1;
+}
+
 
 int lw_init(lw_band_t band)
 {
@@ -1328,6 +1353,55 @@ int lw_mtype_proprietary(lw_frame_t *frame, lw_node_t *cur, uint8_t *buf, int le
 }
 
 /*****************************************************************************/
+uint8_t lgw_util_get_sf(uint8_t sf)
+{
+    int i;
+    for (i = 7; i <= 12; i++) {
+        if (sf == (1 << (i - 6))) {
+            sf = i;
+            break;
+        }
+    }
+    return sf;
+}
+
+uint16_t lgw_util_get_bw(uint8_t bw)
+{
+    uint16_t bwreal = bw;
+    switch (bw) {
+    case BW_125KHZ:
+        bwreal = 125;
+        break;
+    case BW_250KHZ:
+        bwreal = 250;
+        break;
+    case BW_500KHZ:
+        bwreal = 500;
+        break;
+    }
+    return bwreal;
+}
+
+uint8_t lgw_util_get_cr(uint8_t cr)
+{
+    uint8_t crreal = cr;
+    switch (cr) {
+    case CR_LORA_4_5:
+        crreal = 5;
+        break;
+    case CR_LORA_4_6:
+        crreal = 6;
+        break;
+    case CR_LORA_4_7:
+        crreal = 7;
+        break;
+    case CR_LORA_4_8:
+        crreal = 8;
+        break;
+    }
+    return crreal;
+}
+
 int8_t lw_get_dr(uint8_t mod, uint32_t datarate, uint8_t bw)
 {
     int8_t ret = -1;
@@ -1368,6 +1442,20 @@ int8_t lw_get_rf(uint8_t dr, uint8_t *mod, uint32_t *datarate, uint8_t *bw, uint
         *bw = (uint8_t)((drtab>>8)&0xFF);
     }
     return 0;
+}
+
+static char lw_rf_name[30];
+const char *lw_get_rf_name(uint8_t mod, uint32_t datarate, uint8_t bw, uint8_t fdev)
+{
+    lw_rf_name[0] = '\0';
+    if (mod == MOD_LORA) {
+        sprintf(lw_rf_name, "SF%dBW%d",
+                lgw_util_get_sf(datarate),
+                lgw_util_get_bw(bw));
+    } else {
+        sprintf(lw_rf_name, "FSK50K");
+    }
+    return lw_rf_name;
 }
 
 void lw_cpy(uint8_t *dest, uint8_t *src, int len)

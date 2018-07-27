@@ -13,7 +13,7 @@
     #warning Not supported compiler type
 #endif
 
-#define LW_MAX_NODES                        (100)
+#define LW_MAX_NODES                        (150)
 #define LW_KEY_LEN                          (16)
 #define LW_MIC_LEN                          (4)
 
@@ -27,6 +27,11 @@
 #define LW_CMC_ALL_ON               (0xFFFE)
 #define LW_CMC_ALL_125KHZ_ON        (0xFFFD)
 #define LW_CMC_ALL_125KHZ_OFF       (0xFFFC)
+
+#define LW_FOPTS_MAX_LEN                    (15)
+#define LW_MACCMD_MAX_LEN                   (128)
+
+#define LW_BEACON_PERIOD                    (128)
 
 enum{
     DR0 = 0,
@@ -67,18 +72,27 @@ enum{
 #define LW_LGW_DR(sf,bw)            ( (uint16_t)( (sf) | ((bw)<<8) ))
 
 typedef enum{
-    ABP,
-    OTAA,
+    ABP   = 0,
+    OTAA  = 1,
 }lw_mode_t;
 
 typedef enum{
-    CLASS_A_RX1,
-    CLASS_A_RX2,
-    CLASS_B_RX,
-    CLASS_C_RX,
+    RXWIN_IDLE      = -1,
+    CLASS_C_RX2_0   = 4,
+    CLASS_A_RX1     = 1,
+    CLASS_C_RX2_1   = 5,
+    CLASS_A_RX2     = 2,
+    CLASS_C_RX2     = 0,
+    CLASS_B_RX      = 3,
 }lw_rxwin_t;
 
 typedef enum{
+    CLASS_A  = 0,
+    CLASS_B  = 1,
+    CLASS_C  = 2,
+} lw_class_t;
+
+typedef enum {
     EU868,
     US915,
     CN779,
@@ -126,13 +140,15 @@ typedef union{
 }PACKED lw_mic_t;
 
 typedef union{
-    uint32_t data;
+    uint32_t data               : 24;
+    uint8_t buf[3];
 }PACKED lw_anonce_t;
 
 typedef lw_anonce_t lw_netid_t;
 
 typedef union{
     uint16_t data;
+    uint8_t buf[2];
 }PACKED lw_dnonce_t;
 
 typedef union{
@@ -201,13 +217,13 @@ typedef struct{
     uint32_t fcnt;
     uint8_t fopts[15];
     uint8_t fport;
-    uint8_t fpl[255];
+    uint8_t fpl[256];
     uint8_t flen;
 }lw_pl_mac_t;
 
 typedef struct{
-    //uint8_t appeui[8];
-    //uint8_t deveui[8];
+    uint8_t appeui[8];
+    uint8_t deveui[8];
     lw_dnonce_t devnonce;
 }lw_pl_jr_t;
 
@@ -228,13 +244,14 @@ typedef struct lw{
     uint8_t flag;
     lw_mode_t mode;
     uint8_t joined;
+
     uint8_t appeui[8];
     uint8_t deveui[8];
     lw_devaddr_t devaddr;
     uint8_t nwkskey[16];
     uint8_t appskey[16];
-
     uint8_t appkey[16];
+
     lw_dnonce_t devnonce;
     lw_anonce_t appnonce;
     lw_netid_t netid;
@@ -244,16 +261,29 @@ typedef struct lw{
     uint32_t ufcnt;
     uint32_t dfcnt;
 
+    bool dlack;
+    bool dlready;
     uint8_t dlport;
     uint16_t dlsize;
     uint8_t *dlbuf;
+    lw_rxwin_t dlrxwin;
 
     uint8_t maccmdsize;
-    uint8_t maccmd[15];
+    uint8_t maccmd[LW_MACCMD_MAX_LEN];
 
     lw_rxwin_t rxwin;
     lw_dlset_t dlsettings;
     lw_rxdelay_t rxdelay;
+
+    struct {
+        uint8_t prediocity;
+        uint8_t dr;
+        uint32_t freq;
+    } pingslot;
+
+    struct {
+        uint32_t freq;
+    } beacon;
 
     struct lw *next;
 }lw_node_t;
@@ -271,6 +301,10 @@ typedef struct{
     lw_mic_t mic;
     uint8_t buf[256];
     int len;
+    struct {
+        uint8_t *buf;
+        uint8_t len;
+    } maccmd;
 }lw_frame_t;
 
 typedef struct{
@@ -389,16 +423,50 @@ typedef struct{
                 }bits;
             }rxtspl;
         }rxts_req;
+
+        struct {
+            uint8_t freq[3];
+            union {
+                uint8_t data;
+                struct {
+                    uint8_t val             : 4;
+                    uint8_t rfu             : 4;
+                } bits;
+            } dr;
+        } psch_req;
+
+        struct {
+            uint8_t delay[2];
+            uint8_t channel;
+        } bcnt_ans;
+
+        struct {
+            uint8_t freq[3];
+        } bfreq_req;
+
+        struct {
+            uint8_t epoch[4];
+            uint8_t epoch_ms;
+        } devt_req;
+
+        struct {
+            uint8_t chindex;
+            uint8_t freq[3];
+        } dlch_req;
     }pl;
     uint8_t len;
 }lw_maccmd_t;
 
-typedef struct{
-    struct{
-        uint32_t freq;
-        uint8_t dr;
-    }rxwin2;
-}lw_config_t;
+typedef struct {
+    uint32_t freq;
+    uint32_t dr;
+} lw_beacon_t;
+
+typedef struct {
+    uint32_t freq;
+    uint32_t dr;
+    uint32_t prediocity;
+} lw_ping_t;
 
 typedef struct{
     union{
@@ -414,13 +482,21 @@ typedef struct{
     uint8_t *appkey;
 }lw_key_grp_t;
 
+typedef struct {
+    uint32_t freq[5];
+    uint8_t len;
+} lw_cflist_t;
+
 typedef struct lgw_pkt_rx_s lw_rxpkt_t;
 typedef struct lgw_pkt_tx_s lw_txpkt_t;
+
+#include "lw-log.h"
+//#include "lw-ch.h"
 
 typedef struct{
     lw_band_t band;
     const char *name;
-    const uint8_t *dr_tab;
+    const uint8_t *dr_to_sfbw_tab;
     struct{
         uint8_t max_eirp_index;
         uint8_t max_tx_power_index;
@@ -428,7 +504,21 @@ typedef struct{
     const uint16_t *chmaskcntl_tab;
 }lw_region_t;
 
-#include "lw-log.h"
+typedef struct {
+    const lw_region_t *region;
+    struct {
+        uint32_t freq;
+        uint8_t dr;
+    } rxwin2;
+    uint8_t rxdelay;
+    lw_ping_t ping;
+    struct {
+        uint8_t buf[16];
+        uint8_t len;
+    } cflist;
+    bool mac_cmd_dup;
+    bool force_port0;
+} lw_config_t;
 
 int lw_init(lw_band_t band);
 int lw_add(lw_node_t *node);
@@ -446,13 +536,14 @@ int lw_maccmd_valid(uint8_t mac_header, uint8_t *opts, int len);
 
 int8_t lw_get_dr(uint8_t mod, uint32_t datarate, uint8_t bw);
 int8_t lw_get_rf(uint8_t dr, uint8_t *mod, uint32_t *datarate, uint8_t *bw, uint8_t *fdev);
+const char *lw_get_rf_name(uint8_t mod, uint32_t datarate, uint8_t bw, uint8_t fdev);
 
 lw_band_t lw_get_band_type(const char *band);
 const char *lw_get_band_name(lw_band_t band);
 
 uint32_t lw_read_dw(uint8_t *buf);
 
-/** crypto functions */
+/* crypto functions */
 void lw_msg_mic(lw_mic_t* mic, lw_key_t *key);
 void lw_join_mic(lw_mic_t* mic, lw_key_t *key);
 int lw_encrypt(uint8_t *out, lw_key_t *key);

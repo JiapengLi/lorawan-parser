@@ -4,14 +4,16 @@
 #include "math.h"
 
 #include <string.h>
+#include <time.h>
 
+//static const char *NAME = "LWLOG";
+#define LWLOG_INFO(x...)              log_puts(LOG_NORMAL, x);
 
 extern lw_node_t *lw_node;
 
 extern const lw_region_t *lw_region;
-extern const int8_t lw_pow_tab[16];
-
 extern const int8_t lw_max_eirp_tab[16];
+extern const int8_t lw_pow_tab[16];
 
 const char *lw_mtype_str[] = {
     "JOIN REQUEST",
@@ -35,7 +37,6 @@ const char *lw_mtype_str_abbr[] = {
     "PM",
 };
 
-
 typedef struct{
     uint8_t cmd;
     char *str;
@@ -51,6 +52,7 @@ const lw_maccmd_str_t lw_node_maccmd_str[] = {
     { MOTE_MAC_RX_TIMING_SETUP_ANS,     "RXTimingSetupAns" },
     { MOTE_MAC_TX_PARAM_SETUP_ANS,      "TxParamSetupAns" },
     { MOTE_MAC_DL_CHANNEL_ANS,          "DlChannelAns" },
+    { MOTE_MAC_DEVICE_TIME_REQ,         "DeviceTimeReq" },
     { MOTE_MAC_PING_SLOT_INFO_REQ,      "PingSlotInfoReq" },
     { MOTE_MAC_PING_SLOT_FREQ_ANS,      "PingSlotFreqAns" },
     { MOTE_MAC_BEACON_TIMING_REQ,       "BeaconTimingReq" },
@@ -67,6 +69,7 @@ const lw_maccmd_str_t lw_server_maccmd_str[] = {
     { SRV_MAC_RX_TIMING_SETUP_REQ,      "RXTimingSetupReq" },
     { SRV_MAC_TX_PARAM_SETUP_REQ,       "TxParamSetupReq" },
     { SRV_MAC_DL_CHANNEL_REQ,           "DlChannelReq" },
+    { SRV_MAC_DEVICE_TIME_ANS,          "DeviceTimeAns" },
     { SRV_MAC_PING_SLOT_INFO_ANS,       "PingSlotInfoAns" },
     { SRV_MAC_PING_SLOT_CHANNEL_REQ,    "PingSlotChannelReq" },
     { SRV_MAC_BEACON_TIMING_ANS,        "BeaconTimingAns" },
@@ -95,7 +98,7 @@ const char *lw_maccmd_str(uint8_t mtype, uint8_t cmd)
 
 void lw_unknown_pl(void)
 {
-    log_puts(LOG_NORMAL, "Unknown MAC command payload");
+    LWLOG_INFO("Unknown MAC command payload");
 }
 
 int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int len)
@@ -124,21 +127,21 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
 
     mhdr.data = mac_header;
 
-    log_puts(LOG_NORMAL, "MACCMD: (%s) %h", type==LW_MACCMD_FOPTS?"FOPTS":"PORT0", opts, len);
+    LWLOG_INFO("MACCMD: (%s) %h", type == LW_MACCMD_FOPTS ? "FOPTS" : "PORT0", opts, len);
 
     i=0;
     while(i<len){
         strbuf[0] = '\0';
-        //log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )", opts[i], lw_maccmd_str(mhdr.bits.mtype, opts[i]));
+        //LWLOG_INFO("MACCMD: %02X ( %s )", opts[i], lw_maccmd_str(mhdr.bits.mtype, opts[i]));
         if( (mhdr.bits.mtype == LW_MTYPE_MSG_UP) || (mhdr.bits.mtype == LW_MTYPE_CMSG_UP) ){
             switch(opts[i]){
                 // Class A
             case MOTE_MAC_LINK_CHECK_REQ:
-                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )", opts[i], lw_maccmd_str(mhdr.bits.mtype, opts[i]));
+                LWLOG_INFO("MACCMD: %02X ( %s )", opts[i], lw_maccmd_str(mhdr.bits.mtype, opts[i]));
                 i+=MOTE_MAC_LEN_LINK_CHECK_REQ;
                 break;
             case MOTE_MAC_LINK_ADR_ANS:
-                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )"      ", "
+                LWLOG_INFO("MACCMD: %02X ( %s )"      ", "
                                      "Status: 0x%02X"           ", "
                                      "Channel mask: %s"         ", "
                                      "Data rate: %s"            ", "
@@ -152,11 +155,11 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
                 i+=MOTE_MAC_LEN_LINK_ADR_ANS;
                 break;
             case MOTE_MAC_DUTY_CYCLE_ANS:
-                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )", opts[i], lw_maccmd_str(mhdr.bits.mtype, opts[i]));
+                LWLOG_INFO("MACCMD: %02X ( %s )", opts[i], lw_maccmd_str(mhdr.bits.mtype, opts[i]));
                 i+=MOTE_MAC_LEN_DUTY_CYCLE_ANS;
                 break;
             case MOTE_MAC_RX_PARAM_SETUP_ANS:
-                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )"      ", "
+                LWLOG_INFO("MACCMD: %02X ( %s )"      ", "
                                      "Status: 0x%02X"           ", "
                                      "Channel: %s"              ", "
                                      "RXWIN2: %s"               ", "
@@ -179,7 +182,7 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
                 }
                 dev_sta_margin.data = opts[i+2];
 
-                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )"      ", "
+                LWLOG_INFO("MACCMD: %02X ( %s )"      ", "
                                      "Battery: %s"              ", "
                                      "Margin: %d",
                                      opts[i],
@@ -189,7 +192,7 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
                 i+=MOTE_MAC_LEN_DEV_STATUS_ANS;
                 break;
             case MOTE_MAC_NEW_CHANNEL_ANS:
-                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )"      ", "
+                LWLOG_INFO("MACCMD: %02X ( %s )"      ", "
                                      "Status: 0x%02X"           ", "
                                      "Channel mask: %s"         ", "
                                      "Data rate: %s",
@@ -201,16 +204,16 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
                 i+=MOTE_MAC_LEN_NEW_CHANNEL_ANS;
                 break;
             case MOTE_MAC_RX_TIMING_SETUP_ANS:
-                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )", opts[i], lw_maccmd_str(mhdr.bits.mtype, opts[i]));
+                LWLOG_INFO("MACCMD: %02X ( %s )", opts[i], lw_maccmd_str(mhdr.bits.mtype, opts[i]));
                 i+=MOTE_MAC_LEN_RX_TIMING_SETUP_ANS;
                 break;
 
             case MOTE_MAC_TX_PARAM_SETUP_ANS:
-                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )", opts[i], lw_maccmd_str(mhdr.bits.mtype, opts[i]));
+                LWLOG_INFO("MACCMD: %02X ( %s )", opts[i], lw_maccmd_str(mhdr.bits.mtype, opts[i]));
                 i += MOTE_MAC_LEN_TX_PARAM_SETUP_ANS;
                 break;
             case MOTE_MAC_DL_CHANNEL_ANS:
-                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )"      ", "
+                LWLOG_INFO("MACCMD: %02X ( %s )"      ", "
                                      "Channel Frequency: %s"    ", "
                                      "Uplink Frequency: %s",
                                      opts[i],
@@ -223,13 +226,19 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
             //Class B
             case MOTE_MAC_PING_SLOT_INFO_REQ:
 #ifdef LORAWAN_V11_CLASSB
-                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )"      ", "
-                                     "Periodicity: %ds",
+                LWLOG_INFO("MACCMD: %02X ( %s )"      ", "
+                                     "Periodicity: %d" ", "
+                                     "PingNb: %d" ", "
+                                     "PingPeriod: %.2fs"
+                                     ,
                                      opts[i],
                                      lw_maccmd_str(mhdr.bits.mtype, opts[i]),
-                                     ( 1<<(opts[i+1]&0x07) ));
+                                     opts[i+1]&0x07,
+                                     ( 1<<(7-(opts[i+1]&0x07))),
+                                     0.03 * (1 << (5 + (opts[i+1]&0x07)))
+                                     );
 #else
-                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )"      ", "
+                LWLOG_INFO("MACCMD: %02X ( %s )"      ", "
                                      "Periodicity: %ds"         ", "
                                      "DataRate: %d",
                                      opts[i],
@@ -240,7 +249,7 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
                 i+=MOTE_MAC_LEN_PING_SLOT_INFO_REQ;
                 break;
             case MOTE_MAC_PING_SLOT_FREQ_ANS:
-                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )"      ", "
+                LWLOG_INFO("MACCMD: %02X ( %s )"      ", "
                                      "Channel Frequency: %s"    ", "
                                      "Data Rate Range: %s",
                                      opts[i],
@@ -250,12 +259,16 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
                 i+=MOTE_MAC_LEN_PING_SLOT_FREQ_ANS;
                 break;
             case MOTE_MAC_BEACON_TIMING_REQ:
-                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )", opts[i], lw_maccmd_str(mhdr.bits.mtype, opts[i]));
+                LWLOG_INFO("MACCMD: %02X ( %s )", opts[i], lw_maccmd_str(mhdr.bits.mtype, opts[i]));
                 i+=MOTE_MAC_LEN_BEACON_TIMING_REQ;
                 break;
             case MOTE_MAC_BEACON_FREQ_ANS:
-                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )", opts[i], lw_maccmd_str(mhdr.bits.mtype, opts[i]));
+                LWLOG_INFO("MACCMD: %02X ( %s )", opts[i], lw_maccmd_str(mhdr.bits.mtype, opts[i]));
                 i+=MOTE_MAC_LEN_BEACON_FREQ_ANS;
+                break;
+            case MOTE_MAC_DEVICE_TIME_REQ:
+                LWLOG_INFO("MACCMD: %02X ( %s )", opts[i], lw_maccmd_str(mhdr.bits.mtype, opts[i]));
+                i += MOTE_MAC_LEN_DEVICE_TIME_REQ;
                 break;
             }
         }else if( (mhdr.bits.mtype == LW_MTYPE_MSG_DOWN) || (mhdr.bits.mtype == LW_MTYPE_CMSG_DOWN) ){
@@ -267,7 +280,7 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
                 }else{
                     sprintf(strbuf, "%ddB", opts[i+1]);
                 }
-                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )"      ", "
+                LWLOG_INFO("MACCMD: %02X ( %s )"      ", "
                                      "Margin: %s"               ", "
                                      "GwCnt: %d",
                                      opts[i],
@@ -277,7 +290,7 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
                 i+=SRV_MAC_LEN_LINK_CHECK_ANS;
                 break;
             case SRV_MAC_LINK_ADR_REQ:
-                dr = lw_region->dr_tab[opts[i+1]>>4];
+                dr = lw_region->dr_to_sfbw_tab[opts[i + 1] >> 4];
                 power = lw_pow_tab[opts[i+1]&0x0F];
                 chmaskcntl = lw_region->chmaskcntl_tab[(opts[i+4]>>4)&0x07];
                 ChMask = opts[i+2] + (((uint16_t)opts[i+3])<<8);
@@ -321,7 +334,7 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
                     break;
                 }
 
-                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )"      ", "
+                LWLOG_INFO("MACCMD: %02X ( %s )"      ", "
                                      "%s",
                                      opts[i],
                                      lw_maccmd_str(mhdr.bits.mtype, opts[i]),
@@ -336,7 +349,7 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
                 }else{
                     sprintf(strbuf+strlen(strbuf), "MaxDCycle: %d(RFU)", opts[i+1]);
                 }
-                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )"      ", "
+                LWLOG_INFO("MACCMD: %02X ( %s )"      ", "
                                      "%s",
                                      opts[i],
                                      lw_maccmd_str(mhdr.bits.mtype, opts[i]),
@@ -345,7 +358,7 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
                 break;
             case SRV_MAC_RX_PARAM_SETUP_REQ:
                 rx1drofst = (opts[i+1]>>4) & 0x07;
-                rx2dr = lw_region->dr_tab[opts[i+1] & 0x0F];
+                rx2dr = lw_region->dr_to_sfbw_tab[opts[i + 1] & 0x0F];
                 freq = (opts[i+2]) | ((uint32_t)opts[i+3]<<8) | ((uint32_t)opts[i+4]<<16);
                 freq *= 100;
 
@@ -366,7 +379,7 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
                 }else{
                     sprintf(strbuf+strlen(strbuf), "Freq: %d", freq);
                 }
-                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )"      ", "
+                LWLOG_INFO("MACCMD: %02X ( %s )"      ", "
                                      "%s",
                                      opts[i],
                                      lw_maccmd_str(mhdr.bits.mtype, opts[i]),
@@ -374,7 +387,7 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
                 i+=SRV_MAC_LEN_RX_PARAM_SETUP_REQ;
                 break;
             case SRV_MAC_DEV_STATUS_REQ:
-                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )",
+                LWLOG_INFO("MACCMD: %02X ( %s )",
                                      opts[i],
                                      lw_maccmd_str(mhdr.bits.mtype, opts[i]));
                 i+=SRV_MAC_LEN_DEV_STATUS_REQ;
@@ -395,7 +408,7 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
 
                 sprintf(strbuf+strlen(strbuf), "DrRange: 0x%02X (DR%d ~ DR%d)", opts[i+5], opts[i+5]&0x0F, opts[i+5]>>4);
 
-                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )"      ", "
+                LWLOG_INFO("MACCMD: %02X ( %s )"      ", "
                                      "%s",
                                      opts[i],
                                      lw_maccmd_str(mhdr.bits.mtype, opts[i]),
@@ -409,7 +422,7 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
                     sprintf(strbuf+strlen(strbuf), "Del: %ds", opts[i+1]&0x0F);
                 }
 
-                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )"      ", "
+                LWLOG_INFO("MACCMD: %02X ( %s )"      ", "
                                      "%s",
                                      opts[i],
                                      lw_maccmd_str(mhdr.bits.mtype, opts[i]),
@@ -424,7 +437,7 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
                 sprintf(strbuf+strlen(strbuf), ", ");
                 sprintf(strbuf+strlen(strbuf), "DownlinkDwellTime: %d", (opts[i+1]&0x10)?1:0);
 
-                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )"      ", "
+                LWLOG_INFO("MACCMD: %02X ( %s )"      ", "
                                      "%s",
                                      opts[i],
                                      lw_maccmd_str(mhdr.bits.mtype, opts[i]),
@@ -445,7 +458,7 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
                     sprintf(strbuf+strlen(strbuf), "Freq: %d", freq);
                 }
 
-                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )"      ", "
+                LWLOG_INFO("MACCMD: %02X ( %s )"      ", "
                                      "%s",
                                      opts[i],
                                      lw_maccmd_str(mhdr.bits.mtype, opts[i]),
@@ -455,7 +468,7 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
                 break;
 
             case SRV_MAC_PING_SLOT_INFO_ANS:
-                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )",
+                LWLOG_INFO("MACCMD: %02X ( %s )",
                                      opts[i],
                                      lw_maccmd_str(mhdr.bits.mtype, opts[i]));
                 i += SRV_MAC_LEN_PING_SLOT_INFO_ANS;
@@ -474,7 +487,7 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
 #else
                 sprintf(strbuf+strlen(strbuf), "Data Rate: DR%d ~ DR%d", opts[i+4]&0x0F, (opts[i+4]>>4)&0x0F);
 #endif
-                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )"      ", "
+                LWLOG_INFO("MACCMD: %02X ( %s )"      ", "
                                      "%s",
                                      opts[i],
                                      lw_maccmd_str(mhdr.bits.mtype, opts[i]),
@@ -482,8 +495,7 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
 
                 i += SRV_MAC_LEN_PING_SLOT_CHANNEL_REQ;
                 break;
-            case SRV_MAC_BEACON_TIMING_ANS:
-            {
+            case SRV_MAC_BEACON_TIMING_ANS: {
                 uint32_t delay = (opts[i+1]) | ((uint16_t)opts[i+2]<<8);
                 uint8_t channel = opts[i+3];
                 if(channel == 0){
@@ -495,7 +507,7 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
 
                 sprintf(strbuf+strlen(strbuf),"RTime: %d ~ %dms (TX end to beacon start)", 30*delay, 30*(delay+1));
 
-                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )"      ", "
+                LWLOG_INFO("MACCMD: %02X ( %s )"      ", "
                                      "%s",
                                      opts[i],
                                      lw_maccmd_str(mhdr.bits.mtype, opts[i]),
@@ -513,12 +525,40 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
                     sprintf(strbuf+strlen(strbuf), "Freq: %d", freq);
                 }
 
-                log_puts(LOG_NORMAL, "MACCMD: %02X ( %s )"      ", "
+                LWLOG_INFO("MACCMD: %02X ( %s )"      ", "
                                      "%s",
                                      opts[i],
                                      lw_maccmd_str(mhdr.bits.mtype, opts[i]),
                                      strbuf);
                 i += SRV_MAC_LEN_BEACON_FREQ_REQ;
+                break;
+            case SRV_MAC_DEVICE_TIME_ANS: {
+                double seconds;
+                time_t ult;
+                struct tm  ts;
+                char       buf[80];
+                uint32_t sec = (opts[i+1]<<0) | (opts[i+2]<<8) | (opts[i+3]<<16) | (opts[i+4]<<24);
+                seconds = (uint32_t)opts[i+5];
+                seconds = seconds / (1<<8);
+                printf("%u %f\n", sec, seconds);
+
+                seconds += sec;
+                ult = (time_t)seconds + 315964800 - (37-19) ;
+
+                ts = *localtime(&ult);
+                /* week: %a */
+                strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S (%z)", &ts);
+
+                LWLOG_INFO("MACCMD: %02X ( %s )"      ", "
+                         "Seconds since epoch: %.3f" ", "
+                         "Time: %s",
+                         opts[i],
+                         lw_maccmd_str(mhdr.bits.mtype, opts[i]),
+                         seconds,
+                         buf
+                         );
+                i += SRV_MAC_LEN_DEVICE_TIME_ANS;
+                }
                 break;
             }
         }
@@ -532,47 +572,48 @@ void lw_log(lw_frame_t *frame, uint8_t *msg, int len)
     uint8_t buf[16];
     char *fctrlbitstr;
 
-    log_puts(LOG_NORMAL, "MSG: (%2s) %h", lw_mtype_str_abbr[frame->mhdr.bits.mtype], msg, len);
+    LWLOG_INFO("MSG: (%2s) %h", lw_mtype_str_abbr[frame->mhdr.bits.mtype], msg, len);
 
 #if 0
     if(frame->mhdr.bits.major == LW_VERSION_MAJOR_R1){
-        log_puts(LOG_NORMAL, "LoRaWAN R1");
+        LWLOG_INFO("LoRaWAN R1");
     }else{
-        log_puts(LOG_NORMAL, "LoRaWAN version unknown");
+        LWLOG_INFO("LoRaWAN version unknown");
     }
 
-    log_puts(LOG_NORMAL, "%s", lw_mtype_str[frame->mhdr.bits.mtype]);
+    LWLOG_INFO("%s", lw_mtype_str[frame->mhdr.bits.mtype]);
 #endif
+
     lw_cpy(buf, frame->appeui, 8);
     lw_cpy(buf+8, frame->deveui, 8);
 
 
     switch(frame->mhdr.bits.mtype){
     case LW_MTYPE_JOIN_REQUEST:
-        log_puts(LOG_NORMAL, "APPEUI: %h, DEVEUI: %h", buf, 8, buf+8, 8);
-        log_puts(LOG_NORMAL, "DEVNONCE: 0x%04X", frame->pl.jr.devnonce.data);
+        LWLOG_INFO("APPEUI: %h, DEVEUI: %h", buf, 8, buf + 8, 8);
+        LWLOG_INFO("DEVNONCE: 0x%04X", frame->pl.jr.devnonce.data);
         break;
     case LW_MTYPE_JOIN_ACCEPT:
-        log_puts(LOG_NORMAL, "APPEUI: %h, DEVEUI: %h", buf, 8, buf+8, 8);
-        log_puts(LOG_NORMAL, "APPNONCE: 0x%06X", frame->pl.ja.appnonce.data);
+        LWLOG_INFO("APPEUI: %h, DEVEUI: %h", buf, 8, buf + 8, 8);
+        LWLOG_INFO("APPNONCE: 0x%06X", frame->pl.ja.appnonce.data);
         if(frame->node != NULL){
-            log_puts(LOG_NORMAL, "DEVNONCE: 0x%04X", frame->node->devnonce.data);
+            LWLOG_INFO("DEVNONCE: 0x%04X", frame->node->devnonce.data);
         }
-        log_puts(LOG_NORMAL, "RX2DataRate: %d", frame->pl.ja.dlsettings.bits.rx2dr);
-        log_puts(LOG_NORMAL, "RX1DRoffset: %d", frame->pl.ja.dlsettings.bits.rx1droft);
-        log_puts(LOG_NORMAL, "NETID: 0x%06X", frame->pl.ja.netid.data);
-        log_puts(LOG_NORMAL, "DEVADDR: %08X", frame->pl.ja.devaddr.data);
-        log_puts(LOG_NORMAL, "NWKSKEY: %h", frame->pl.ja.nwkskey, 16);
-        log_puts(LOG_NORMAL, "APPSKEY: %h", frame->pl.ja.appskey, 16);
+        LWLOG_INFO("RX2DataRate: %d", frame->pl.ja.dlsettings.bits.rx2dr);
+        LWLOG_INFO("RX1DRoffset: %d", frame->pl.ja.dlsettings.bits.rx1droft);
+        LWLOG_INFO("NETID: 0x%06X", frame->pl.ja.netid.data);
+        LWLOG_INFO("DEVADDR: %08X", frame->pl.ja.devaddr.data);
+        LWLOG_INFO("NWKSKEY: %h", frame->pl.ja.nwkskey, 16);
+        LWLOG_INFO("APPSKEY: %h", frame->pl.ja.appskey, 16);
         if(frame->pl.ja.cflist_len > 0){
             int i, freq;
-            log_puts(LOG_NORMAL, "CFList: %h", frame->pl.ja.cflist, frame->pl.ja.cflist_len);
+            LWLOG_INFO("CFList: %h", frame->pl.ja.cflist, frame->pl.ja.cflist_len);
             uint8_t *buf = frame->pl.ja.cflist;
             i = 0;
             while((i+3)<=frame->pl.ja.cflist_len){
                 freq = (buf[i+0]) | ((uint32_t)buf[i+1]<<8) | ((uint32_t)buf[i+2]<<16);
                 freq *= 100;
-                log_puts(LOG_NORMAL, "CHx: %d", freq);
+                LWLOG_INFO("CHx: %d", freq);
                 i += 3;
             }
         }
@@ -592,7 +633,7 @@ void lw_log(lw_frame_t *frame, uint8_t *msg, int len)
             }
         }
 
-        log_puts(LOG_NORMAL, "APPEUI: %h, DEVEUI: %h, DEVADDR: %08X, ADR: %d, ADRACKREQ: %d, ACK :%d, FCNT: %u [0x%08X], MIC: %h%s",
+        LWLOG_INFO("APPEUI: %h, DEVEUI: %h, DEVADDR: %08X, ADR: %d, ADRACKREQ: %d, ACK :%d, FCNT: %u [0x%08X], MIC: %h%s",
             buf, 8,
             buf+8, 8,
             frame->pl.mac.devaddr.data,
@@ -602,21 +643,21 @@ void lw_log(lw_frame_t *frame, uint8_t *msg, int len)
             fctrlbitstr);
 
         if( (frame->pl.mac.flen > 0) && (frame->pl.mac.fport > 0) ){
-            log_puts(LOG_NORMAL, "PORT: %d, LEN: %d, DATA: %h",
+            LWLOG_INFO("PORT: %d, LEN: %d, DATA: %h",
                      frame->pl.mac.fport,
                      frame->pl.mac.flen,
                      frame->pl.mac.fpl, frame->pl.mac.flen);
         }else if( (frame->pl.mac.flen > 0) && (frame->pl.mac.fport == 0) ){
             if( LW_OK != lw_log_maccmd(frame->mhdr.data, LW_MACCMD_PORT0, frame->pl.mac.fpl, frame->pl.mac.flen) ){
-                log_puts(LOG_ERROR, "MACCMD INVALID: %h (Port 0)", frame->pl.mac.fpl, frame->pl.mac.flen);
+                LWLOG_INFO("MACCMD INVALID: %h (Port 0)", frame->pl.mac.fpl, frame->pl.mac.flen);
             }
         }else{
-            log_puts(LOG_NORMAL, "No Port and FRMPayload");
+            LWLOG_INFO("No Port and FRMPayload");
         }
 
         if(frame->pl.mac.fctrl.ul.foptslen > 0){
             if( LW_OK != lw_log_maccmd(frame->mhdr.data, LW_MACCMD_FOPTS, frame->pl.mac.fopts, frame->pl.mac.fctrl.ul.foptslen) ){
-                log_puts(LOG_ERROR, "MACCMD INVALID: %h (FOpts)", frame->pl.mac.fopts, frame->pl.mac.fctrl.ul.foptslen);
+                LWLOG_INFO("MACCMD INVALID: %h (FOpts)", frame->pl.mac.fopts, frame->pl.mac.fctrl.ul.foptslen);
             }
         }
         break;
@@ -627,18 +668,16 @@ void lw_log(lw_frame_t *frame, uint8_t *msg, int len)
 
         break;
     }
-
-    //log_puts(LOG_NORMAL, "DMSG: %H", frame->buf, frame->len);
 }
 
 void lw_log_all_node()
 {
     lw_node_t *cur = lw_node;
     log_line();
-    log_puts(LOG_INFO, "Node List:");
-    log_puts(LOG_NORMAL, "mode,joined,appeui,deveui,devaddr,appkey,nwkskey,appskey,ulsum,ullost,ufcnt,dfcnt");
+    LWLOG_INFO("Node List:");
+    LWLOG_INFO("mode,joined,appeui,deveui,devaddr,appkey,nwkskey,appskey,ulsum,ullost,ufcnt,dfcnt");
     for(; cur != NULL; cur = cur->next){
-        log_puts(LOG_NORMAL, "%s,%s,%h,%h,%08X,%h,%h,%h,%u,%u,%u,%u",
+        LWLOG_INFO("%s,%s,%h,%h,%08X,%h,%h,%h,%u,%u,%u,%u",
                              cur->mode == ABP?"ABP":"OTAA",
                              cur->joined?"YES":"NO",
                              cur->appeui, 8,
@@ -651,6 +690,174 @@ void lw_log_all_node()
                              cur->uflost,
                              cur->ufcnt,
                              cur->dfcnt);
+    }
+}
+
+const char *lw_log_mtype_str[] = {
+    "JR",
+    "JA",
+    "UU",
+    "UD",
+    "CU",
+    "CD",
+    "RFU",
+    "P",
+};
+
+void lw_log_frame(lw_frame_t *frame, void *pkt)
+{
+    uint8_t buf[16];
+    uint8_t *maccmd;
+    int maccmdlen = 0;
+    uint8_t *macmsg;
+    int macmsglen = 0;
+    int port;
+    lw_rxpkt_t *rxpkt = pkt;
+    lw_txpkt_t *txpkt = pkt;
+
+    lw_cpy(buf, frame->deveui, 8);
+    lw_cpy(buf + 8, frame->appeui, 8);
+
+    switch (frame->mhdr.bits.mtype) {
+    case LW_MTYPE_JOIN_REQUEST:
+        /*type,appeui,deveui,devnonce*/
+        LWLOG_INFO("%T,%s,%d,%s,%h,%h,%04X",
+                   lw_log_mtype_str[frame->mhdr.bits.mtype],
+                   rxpkt->freq_hz,
+                   lw_get_rf_name(rxpkt->modulation, rxpkt->datarate, rxpkt->bandwidth, 0),
+                   buf,
+                   8,
+                   buf + 8,
+                   8,
+                   frame->pl.jr.devnonce.data);
+        break;
+    case LW_MTYPE_JOIN_ACCEPT:
+        /*type,appeui,deveui,appnonce,cflist,nwkskey,appskey*/
+        LWLOG_INFO("%T,%s,%d,%s,%h,%h,%08X,%06X,%06X,%d,%d,%d,%h,%h,%h",
+                   lw_log_mtype_str[frame->mhdr.bits.mtype],
+                   txpkt->freq_hz,
+                   lw_get_rf_name(txpkt->modulation, txpkt->datarate, txpkt->bandwidth, txpkt->f_dev),
+                   buf, 8,
+                   buf + 8, 8,
+                   frame->pl.ja.devaddr.data,
+                   frame->pl.ja.appnonce.data,
+                   frame->pl.ja.netid.data,
+                   frame->pl.ja.dlsettings.bits.rx2dr,
+                   frame->pl.ja.dlsettings.bits.rx1droft,
+                   frame->pl.ja.rxdelay,
+                   frame->pl.ja.cflist, frame->pl.ja.cflist_len,
+                   frame->pl.ja.nwkskey, 16,
+                   frame->pl.ja.appskey, 16
+                  );
+        break;
+    case LW_MTYPE_MSG_UP:
+    case LW_MTYPE_CMSG_UP:
+        port = -1;
+        if (frame->pl.mac.flen != 0) {
+            port = frame->pl.mac.fport;
+        }
+
+        if (frame->pl.mac.fctrl.ul.foptslen != 0) {
+            maccmd = frame->pl.mac.fopts;
+            maccmdlen = frame->pl.mac.fctrl.ul.foptslen;
+        } else if ((frame->pl.mac.flen != 0) && (frame->pl.mac.fport == 0)) {
+            maccmd = frame->pl.mac.fpl;
+            maccmdlen = frame->pl.mac.flen;
+        } else {
+            macmsg = frame->pl.mac.fpl;
+            maccmdlen = 0;
+        }
+        macmsg = frame->pl.mac.fpl;
+        macmsglen = frame->pl.mac.flen;
+
+        /* type,appeui,deveui,devaddr,counter,port,msg,cmd */
+        LWLOG_INFO("%T,%s,%d,%s,%.1f,%.1f,%h,%h,%08X,%d,%d,%h,%h",
+                   lw_log_mtype_str[frame->mhdr.bits.mtype],
+                   rxpkt->freq_hz,
+                   lw_get_rf_name(rxpkt->modulation, rxpkt->datarate, rxpkt->bandwidth, 0),
+                   rxpkt->rssi,
+                   rxpkt->snr,
+                   buf, 8,
+                   buf + 8, 8,
+                   frame->pl.mac.devaddr.data,
+                   frame->pl.mac.fcnt,
+                   port,
+                   macmsg, macmsglen,
+                   maccmd, maccmdlen);
+        break;
+    case LW_MTYPE_MSG_DOWN:
+    case LW_MTYPE_CMSG_DOWN:
+        port = -1;
+        if (frame->pl.mac.flen != 0) {
+            port = frame->pl.mac.fport;
+        }
+
+        if (frame->pl.mac.fctrl.ul.foptslen != 0) {
+            maccmd = frame->pl.mac.fopts;
+            maccmdlen = frame->pl.mac.fctrl.ul.foptslen;
+        } else if ((frame->pl.mac.flen != 0) && (frame->pl.mac.fport == 0)) {
+            maccmd = frame->pl.mac.fpl;
+            maccmdlen = frame->pl.mac.flen;
+        } else {
+            macmsg = frame->pl.mac.fpl;
+            maccmdlen = 0;
+        }
+        macmsg = frame->pl.mac.fpl;
+        macmsglen = frame->pl.mac.flen;
+
+        /* type,appeui,deveui,devaddr,counter,port,msg,cmd */
+        LWLOG_INFO("%T,%s,%d,%s,%d,%h,%h,%08X,%d,%d,%h,%h",
+                   lw_log_mtype_str[frame->mhdr.bits.mtype],
+                   txpkt->freq_hz,
+                   lw_get_rf_name(txpkt->modulation, txpkt->datarate, txpkt->bandwidth, txpkt->f_dev),
+                   txpkt->rf_power,
+                   buf, 8,
+                   buf + 8, 8,
+                   frame->pl.mac.devaddr.data,
+                   frame->pl.mac.fcnt,
+                   port,
+                   macmsg, macmsglen,
+                   maccmd, maccmdlen);
+
+#if 0
+        LWLOG_INFO("DEVADDR: %08X", frame->pl.mac.devaddr.data);
+        LWLOG_INFO("ADR: %d, ADRACKREQ: %d, ACK %d", \
+                   frame->pl.mac.fctrl.ul.adr, frame->pl.mac.fctrl.ul.adrackreq, frame->pl.mac.fctrl.ul.ack);
+        if ((frame->mhdr.bits.mtype == LW_MTYPE_MSG_UP) && (frame->mhdr.bits.mtype == LW_MTYPE_CMSG_UP)) {
+            if (frame->pl.mac.fctrl.ul.classb) {
+                LWLOG_INFO("Class B");
+            }
+        } else {
+            if (frame->pl.mac.fctrl.dl.fpending) {
+                LWLOG_INFO("FPENDING is on");
+            }
+        }
+        LWLOG_INFO("FCNT: %d [0x%08X]", frame->pl.mac.fcnt, frame->pl.mac.fcnt);
+
+        if ((frame->pl.mac.flen > 0) && (frame->pl.mac.fport > 0)) {
+            LWLOG_INFO("PORT: %d", frame->pl.mac.fport);
+            LWLOG_INFO("DATA: %H", frame->pl.mac.fpl, frame->pl.mac.flen);
+        } else {
+            LWLOG_INFO("No Port and FRMPayload in message");
+        }
+
+        if (frame->pl.mac.fctrl.ul.foptslen > 0) {
+            LWLOG_INFO("FOPTS MACCMD");
+            lw_log_maccmd(frame->mhdr.data, frame->pl.mac.fopts, frame->pl.mac.fctrl.ul.foptslen);
+        }
+
+        if ((frame->pl.mac.flen > 0) && (frame->pl.mac.fport == 0)) {
+            LWLOG_INFO("Port 0 MACCMD");
+            lw_log_maccmd(frame->mhdr.data, frame->pl.mac.fpl, frame->pl.mac.flen);
+        }
+#endif
+        break;
+    case LW_MTYPE_RFU:
+
+        break;
+    case LW_MTYPE_PROPRIETARY:
+
+        break;
     }
 }
 
@@ -671,9 +878,15 @@ uint16_t lw_get_bw(uint8_t bw)
 {
     uint16_t bwreal = bw;
     switch (bw) {
-    case BW_125KHZ: bwreal = 125; break;
-    case BW_250KHZ: bwreal = 250; break;
-    case BW_500KHZ: bwreal = 500; break;
+    case BW_125KHZ:
+        bwreal = 125;
+        break;
+    case BW_250KHZ:
+        bwreal = 250;
+        break;
+    case BW_500KHZ:
+        bwreal = 500;
+        break;
     }
     return bwreal;
 }
@@ -684,10 +897,10 @@ void lw_log_rxpkt(lw_rxpkt_t *rxpkt)
         return;
     }
 
-    log_puts(LOG_NORMAL, "\nRX: %H", rxpkt->payload, rxpkt->size);
+    LWLOG_INFO("RX: %h", rxpkt->payload, rxpkt->size);
 
     if(rxpkt->modulation == MOD_LORA){
-        log_puts(LOG_NORMAL, "LORA,%08X(%u),%d,%d,SF%dBW%d,4/%d,%.1f,%.1f,%.1f,%.1f",
+        LWLOG_INFO("LORA,%08X(%u),%d,%d,SF%dBW%d,4/%d,%.1f,%.1f,%.1f,%.1f",
                         rxpkt->count_us,
                         rxpkt->count_us,
                         rxpkt->if_chain,
@@ -701,7 +914,7 @@ void lw_log_rxpkt(lw_rxpkt_t *rxpkt)
                         rxpkt->snr_min
                  );
     }else if(rxpkt->modulation == MOD_FSK){
-        log_puts(LOG_NORMAL, "FSK,%08X(%u),%d,%d,%d,%d,%.1f",
+        LWLOG_INFO("FSK,%08X(%u),%d,%d,%d,%d,%.1f",
                         rxpkt->count_us,
                         rxpkt->count_us,
                         rxpkt->if_chain,
@@ -715,10 +928,10 @@ void lw_log_rxpkt(lw_rxpkt_t *rxpkt)
 
 void lw_log_txpkt(lw_txpkt_t *txpkt)
 {
-    log_puts(LOG_NORMAL, "\nTX: %H", txpkt->payload, txpkt->size);
+    LWLOG_INFO("TX: %h", txpkt->payload, txpkt->size);
 
     if(txpkt->modulation == MOD_LORA){
-        log_puts(LOG_NORMAL, "LORA,%d,%08X(%u),%d,%d,SF%dBW%d,4/%d,%d,%d,%d,%d,%d",
+        LWLOG_INFO("LORA,%d,%08X(%u),%d,%d,SF%dBW%d,4/%d,%d,%d,%d,%d,%d",
                         txpkt->tx_mode,
                         txpkt->count_us,
                         txpkt->count_us,
@@ -734,7 +947,7 @@ void lw_log_txpkt(lw_txpkt_t *txpkt)
                         txpkt->no_crc
                  );
     }else if(txpkt->modulation == MOD_FSK){
-        log_puts(LOG_NORMAL, "FSK,%d,%08X(%u),%d,%d,%d,%d,%d,%d,%d,%d",
+        LWLOG_INFO("FSK,%d,%08X(%u),%d,%d,%d,%d,%d,%d,%d,%d",
                         txpkt->tx_mode,
                         txpkt->count_us,
                         txpkt->count_us,
