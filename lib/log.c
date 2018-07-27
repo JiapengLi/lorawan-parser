@@ -42,7 +42,7 @@ int log_init(log_level_t level)
 
 int log_puts(int priority, char *fmt, ...)
 {
-    int i, d, ret, len, j;
+    int i = 0, d, ret, len, j;
     char c, *s;
     uint8_t *hbuf;
     double f;

@@ -707,7 +707,7 @@ const char *lw_log_mtype_str[] = {
 void lw_log_frame(lw_frame_t *frame, void *pkt)
 {
     uint8_t buf[16];
-    uint8_t *maccmd;
+    uint8_t *maccmd = NULL;
     int maccmdlen = 0;
     uint8_t *macmsg;
     int macmsglen = 0;

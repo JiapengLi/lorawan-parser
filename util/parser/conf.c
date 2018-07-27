@@ -322,10 +322,10 @@ int config_lgw_parse(char *file, config_lgw_t *lgw)
     JSON_Object *josx1301;
     JSON_Object *jogw;
     JSON_Value *jv;
-    JSON_Object *jo;
+    JSON_Object *jo = NULL;
     const char *string;
     char param_name[32];
-    uint32_t sf, bw, fdev;
+    uint32_t sf, bw = 0, fdev = 0;
     int i, hlen;
 
     if(file == NULL){

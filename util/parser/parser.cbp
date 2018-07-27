@@ -29,6 +29,7 @@
 					<Add option="-O2" />
 					<Add directory="../../lw" />
 					<Add directory="../../lib" />
+					<Add directory="../../lib/libloragw/inc" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
