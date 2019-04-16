@@ -292,7 +292,7 @@ int lw_log_maccmd(uint8_t mac_header, lw_maccmd_type_t type, uint8_t *opts, int 
             case SRV_MAC_LINK_ADR_REQ:
                 dr = lw_region->dr_to_sfbw_tab[opts[i + 1] >> 4];
                 power = lw_pow_tab[opts[i+1]&0x0F];
-                chmaskcntl = lw_region->chmaskcntl_tab[(opts[i+4]>>4)&0x07];
+                chmaskcntl = (opts[i+4]>>4)&0x07;
                 ChMask = opts[i+2] + (((uint16_t)opts[i+3])<<8);
 
                 if(power == LW_POW_RFU){
