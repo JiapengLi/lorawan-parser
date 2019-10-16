@@ -1596,7 +1596,10 @@ int lw_encrypt(uint8_t *out, lw_key_t *key)
 	uint8_t A[LW_KEY_LEN];
 
 	uint16_t const over_hang_bytes = key->len%LW_KEY_LEN;
-    int blocks = key->len/LW_KEY_LEN + 1;
+	int blocks = key->len/LW_KEY_LEN;
+	if (over_hang_bytes) {
+		++blocks;
+	}
 
 	memset(A, 0, LW_KEY_LEN);
 
